@@ -2,77 +2,68 @@ import {
   CacheConfig,
   CacheEntry,
   CacheStats,
-  CircuitBreakerConfig,
-  CircuitBreakerState,
-  NetworkStatus,
-  WorkerMessage,
-  WorkerResponse,
 } from './types';
 import { ImageCache } from './cache';
 import { createAdapter, type PlatformAdapter } from '../adapters/factory';
+import { createCloudEngine, ServiceWorkerClient } from '../service-worker/index';
 
 export class ImageEngine {
   private cache: ImageCache;
-  private worker: Worker | null = null;
-  private messageHandlers: Map<string, (response: WorkerResponse) => void> = new Map();
-  private circuitBreaker: CircuitBreaker;
-  private networkStatus: NetworkStatus = {
+  private swClient: ServiceWorkerClient;
+  private networkStatus = {
     online: typeof navigator !== 'undefined' ? navigator.onLine : true,
-    bandwidth: 'unknown',
+    bandwidth: 'unknown' as const,
   };
   private adapter: PlatformAdapter | null = null;
   private platform: string = 'memory';
   private pendingRequests: Map<string, Promise<string | null>> = new Map();
+  private debug: boolean;
 
   constructor(config: Partial<CacheConfig> = {}) {
-    this.adapter = createAdapter({ platformOverride: config.platformOverride });
+    const finalConfig = { ...config };
+    this.debug = finalConfig.debug ?? false;
+    
+    this.adapter = createAdapter({ platformOverride: finalConfig.platformOverride });
     this.platform = this.adapter.platform;
-    this.cache = new ImageCache(config);
+    this.cache = new ImageCache(finalConfig);
     this.cache.setAdapter(this.adapter);
-    this.circuitBreaker = new CircuitBreaker();
+    this.swClient = createCloudEngine({ debug: this.debug });
     this.setupNetworkListeners();
   }
 
   async init(): Promise<void> {
     await this.cache.init();
-    this.worker = this.createEmbeddedWorker();
-    await this.setupWorkerCommunication();
-    console.log(`[ImageEngine] Initialized with ${this.platform} adapter`);
+    
+    const swEnabled = await this.swClient.init();
+    
+    if (!swEnabled) {
+      this.log('[ImageEngine] Service Worker unavailable, using fallback mode');
+    } else {
+      this.log('[ImageEngine] Service Worker active');
+    }
+    
+    this.log(`[ImageEngine] Initialized with ${this.platform} adapter`);
   }
 
   async get(url: string): Promise<string | null> {
-    const cached = await this.cache.get(url);
+    if (this.swClient.isFallbackMode()) {
+      return this.swClient.get(url);
+    }
+
+    if (this.pendingRequests.has(url)) {
+      return this.pendingRequests.get(url)!;
+    }
+
+    const pending = this.swClient.get(url);
+    this.pendingRequests.set(url, pending);
     
-    if (cached) {
-      const blob = new Blob([cached.data], { type: cached.metadata.mimeType });
-      return URL.createObjectURL(blob);
-    }
-
-    const pending = this.pendingRequests.get(url);
-    if (pending) {
-      return pending;
-    }
-
-    if (this.circuitBreaker.getState() === 'open') {
-      return null;
-    }
-
     try {
-      const fetchPromise = this.fetchFromWorker(url);
-      this.pendingRequests.set(url, fetchPromise);
-      
-      const result = await fetchPromise;
-      
+      const result = await pending;
       this.pendingRequests.delete(url);
-      
-      if (result) {
-        return result;
-      }
-      this.circuitBreaker.recordSuccess();
-      return null;
-    } catch {
-      this.circuitBreaker.recordFailure();
+      return result;
+    } catch (error) {
       this.pendingRequests.delete(url);
+      this.log('[ImageEngine] Get failed:', error);
       return null;
     }
   }
@@ -86,134 +77,77 @@ export class ImageEngine {
       upgradeable: false,
     };
     await this.cache.set(entry);
+    
+    if (!this.swClient.isFallbackMode()) {
+      await this.swClient.set(url, data, metadata);
+    }
   }
 
   async delete(url: string): Promise<boolean> {
-    return this.cache.delete(url);
+    const cacheDeleted = await this.cache.delete(url);
+    
+    if (!this.swClient.isFallbackMode()) {
+      const swDeleted = await this.swClient.delete(url);
+      return cacheDeleted || swDeleted;
+    }
+    
+    return cacheDeleted;
   }
 
   async clear(): Promise<void> {
     await this.cache.clear();
+    
+    if (!this.swClient.isFallbackMode()) {
+      await this.swClient.clear();
+    }
   }
 
   async getStats(): Promise<CacheStats> {
-    const stats = await this.cache.getStats();
-    return {
-      ...stats,
-    };
+    const cacheStats = await this.cache.getStats();
+    
+    if (!this.swClient.isFallbackMode()) {
+      try {
+        const swStats = await this.swClient.getStats();
+        return {
+          ...cacheStats,
+          hitRate: swStats.hitRate,
+          missRate: swStats.missRate,
+          evictionCount: swStats.evictionCount,
+        };
+      } catch {
+        return cacheStats;
+      }
+    }
+    
+    return cacheStats;
   }
 
-  getNetworkStatus(): NetworkStatus {
+  getNetworkStatus() {
     return { ...this.networkStatus };
-  }
-
-  getCircuitBreakerState(): CircuitBreakerState {
-    return this.circuitBreaker.getState();
   }
 
   getPlatform(): string {
     return this.platform;
   }
 
+  isServiceWorkerActive(): boolean {
+    return this.swClient.isReady();
+  }
+
+  isFallbackMode(): boolean {
+    return this.swClient.isFallbackMode();
+  }
+
   destroy(): void {
-    if (this.worker) {
-      this.worker.terminate();
-      this.worker = null;
-    }
     if (this.adapter) {
       this.adapter.destroy();
     }
     this.cache.clear();
   }
 
-  private createEmbeddedWorker(): Worker {
-    const workerCode = `
-      self.onmessage = async (event) => {
-        const { id, type, payload } = event.data;
-        
-        try {
-          switch (type) {
-            case 'fetch':
-              const response = await fetch(payload.url);
-              const blob = await response.blob();
-              const arrayBuffer = await blob.arrayBuffer();
-              self.postMessage({ id, type: 'success', payload: { data: arrayBuffer, mimeType: blob.type } });
-              break;
-            default:
-              self.postMessage({ id, type: 'error', error: 'Unknown message type' });
-          }
-        } catch (error) {
-          self.postMessage({ id, type: 'error', error: error.message });
-        }
-      };
-    `;
-    const blob = new Blob([workerCode], { type: 'application/javascript' });
-    return new Worker(URL.createObjectURL(blob));
-  }
-
-  private setupWorkerCommunication(): Promise<void> {
-    return new Promise((resolve) => {
-      if (!this.worker) {
-        resolve();
-        return;
-      }
-
-      this.worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
-        const handler = this.messageHandlers.get(event.data.id);
-        if (handler) {
-          handler(event.data);
-          this.messageHandlers.delete(event.data.id);
-        }
-      };
-
-      resolve();
-    });
-  }
-
-  private async fetchFromWorker(url: string): Promise<string | null> {
-    if (!this.worker) {
-      return this.fetchDirect(url);
-    }
-
-    return new Promise((resolve) => {
-      const id = crypto.randomUUID();
-      
-      this.messageHandlers.set(id, async (response) => {
-        if (response.type === 'success' && response.payload) {
-          const { data, mimeType } = response.payload as { data: ArrayBuffer; mimeType: string };
-          await this.set(url, data, {
-            size: data.byteLength,
-            mimeType,
-            cachedAt: Date.now(),
-            accessedAt: Date.now(),
-            accessCount: 0,
-          });
-          const blob = new Blob([data], { type: mimeType });
-          resolve(URL.createObjectURL(blob));
-        } else {
-          resolve(null);
-        }
-      });
-
-      this.worker!.postMessage({ id, type: 'fetch', payload: { url } });
-    });
-  }
-
-  private async fetchDirect(url: string): Promise<string | null> {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const arrayBuffer = await blob.arrayBuffer();
-      await this.set(url, arrayBuffer, {
-        size: arrayBuffer.byteLength,
-        mimeType: blob.type,
-        cachedAt: Date.now(),
-        accessedAt: Date.now(),
-        accessCount: 0,
-      });
-      return URL.createObjectURL(blob);
-    } catch {
-      return null;
+  private log(...args: unknown[]): void {
+    if (this.debug) {
+      console.log(...args);
     }
   }
 
@@ -227,38 +161,5 @@ export class ImageEngine {
     window.addEventListener('offline', () => {
       this.networkStatus.online = false;
     });
-  }
-}
-
-class CircuitBreaker {
-  private state: CircuitBreakerState = 'closed';
-  private failures = 0;
-  private lastFailureTime = 0;
-  private config: CircuitBreakerConfig = {
-    failureThreshold: 3,
-    resetTimeout: 30000,
-  };
-
-  getState(): CircuitBreakerState {
-    if (this.state === 'open') {
-      if (Date.now() - this.lastFailureTime > this.config.resetTimeout) {
-        this.state = 'half-open';
-      }
-    }
-    return this.state;
-  }
-
-  recordFailure(): void {
-    this.failures++;
-    this.lastFailureTime = Date.now();
-    
-    if (this.failures >= this.config.failureThreshold) {
-      this.state = 'open';
-    }
-  }
-
-  recordSuccess(): void {
-    this.failures = 0;
-    this.state = 'closed';
   }
 }
