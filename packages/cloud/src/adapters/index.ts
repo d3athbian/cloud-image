@@ -1,2 +1,7 @@
 // Adapters module - platform-specific storage implementations
-// Phase 4: T037-T042 will implement actual adapters
+export * from './types';
+export * from './factory';
+export { MemoryAdapter, createMemoryAdapter } from './memory';
+export { WebAdapter, createWebAdapter } from './web';
+export { TizenAdapter, createTizenAdapter } from './tizen';
+export { WebOSAdapter, createWebOSAdapter } from './webos';

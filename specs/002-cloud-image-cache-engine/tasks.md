@@ -51,18 +51,18 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Demo App & Testing
 
-- [ ] T141 Create demo app in /demos/cloud-demo/ using Vite + React 18+ (outside packages/cloud to exclude from bundle). Demo must include:
+- [x] T141 Create demo app in /demos/cloud-demo/ using Vite + React 18+ (outside packages/cloud to exclude from bundle). Demo must include:
   - Grid of 100+ images (use picsum.photos)
   - Cache stats display (itemCount, totalSize)
   - Network status indicator (online/offline, bandwidth classification)
   - Controls (prefetch, clear cache)
-- [ ] T142 Configure vite.config to explicitly exclude /demos from npm bundle
-- [ ] T143 Generate playwright-cli scripts for:
+- [x] T142 Configure vite.config to explicitly exclude /demos from npm bundle
+- [x] T143 Generate playwright-cli scripts for:
   - Cache hit test (verify <50ms retrieval)
   - Stress test (100+ images, verify no CLS)
   - Offline test (disconnect, verify cached images visible)
-- [ ] T144 Create stress test runner with configurable image count (N=10,50,100,500)
-- [ ] T145 Create /docs/DISTRIBUTION.md with:
+- [x] T144 Create stress test runner with configurable image count (N=10,50,100,500)
+- [x] T145 Create /docs/DISTRIBUTION.md with:
   - npm install instructions
   - Usage example
   - CDN alternative
@@ -76,14 +76,14 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 **Purpose**: Initialize monorepo structure and configure build tools
 
-- [ ] T001 Initialize TypeScript 5.x project with strict mode in packages/cloud/
-- [ ] T002 Configure Vite for library bundling with tree-shaking support
-- [ ] T003 Configure Vitest for unit testing with coverage thresholds
-- [ ] T004 Configure Playwright for integration/e2e testing (use `playwright-cli` skill)
-- [ ] T005 [P] Create package.json with exports map for tree-shaking
-- [ ] T006 [P] Setup ESLint + Prettier with checked-in config
-- [ ] T007 [P] Create packages/cloud/src/ directory structure (core/, adapters/, worker/, react/)
-- [ ] T008 Create initial tsconfig.json extending base strict config
+- [x] T001 Initialize TypeScript 5.x project with strict mode in packages/cloud/
+- [x] T002 Configure Vite for library bundling with tree-shaking support
+- [x] T003 Configure Vitest for unit testing with coverage thresholds
+- [x] T004 Configure Playwright for integration/e2e testing (use `playwright-cli` skill)
+- [x] T005 [P] Create package.json with exports map for tree-shaking
+- [x] T006 [P] Setup ESLint + Prettier with checked-in config
+- [x] T007 [P] Create packages/cloud/src/ directory structure (core/, adapters/, worker/, react/)
+- [x] T008 Create initial tsconfig.json extending base strict config
 
 ---
 
@@ -95,15 +95,15 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for Foundational Phase (MANDATORY - TDD)
 
-- [ ] T009 Write unit tests for CacheEntry validation rules in packages/cloud/tests/unit/cache-entry.test.ts
-- [ ] T010 Write unit tests for CacheConfig validation rules in packages/cloud/tests/unit/cache-config.test.ts
-- [ ] T011 Write unit tests for WorkerMessage serialization in packages/cloud/tests/unit/worker-message.test.ts
+- [x] T009 Write unit tests for CacheEntry validation rules in packages/cloud/tests/unit/cache-entry.test.ts
+- [x] T010 Write unit tests for CacheConfig validation rules in packages/cloud/tests/unit/cache-config.test.ts
+- [x] T011 Write unit tests for WorkerMessage serialization in packages/cloud/tests/unit/worker-message.test.ts
 
 ### Implementation for Foundational Phase
 
-- [ ] T012 Create packages/cloud/src/core/types.ts with CacheEntry, CacheConfig, CacheStats, PlatformType, CircuitBreakerState interfaces
-- [ ] T013 Create packages/cloud/src/core/engine.ts with ImageEngine class skeleton
-- [ ] T014 Create packages/cloud/src/core/cache.ts with LRU/TTL eviction logic:
+- [x] T012 Create packages/cloud/src/core/types.ts with CacheEntry, CacheConfig, CacheStats, PlatformType, CircuitBreakerState interfaces
+- [x] T013 Create packages/cloud/src/core/engine.ts with ImageEngine class skeleton
+- [x] T014 Create packages/cloud/src/core/cache.ts with LRU/TTL eviction logic:
   - 90% threshold trigger
   - LRU dual scoring (accessCount × 0.6 + recencyFactor × 0.4)
   - TTL expiration check (always evicts expired first)
@@ -135,14 +135,14 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Implementation for User Story 1
 
-- [ ] T026 [P] Create packages/cloud/src/react/image.tsx with CloudImage component
-- [ ] T027 [P] Implement CloudImage state machine (pending, loading, loaded, error, offline)
-- [ ] T026.5 [P] Implement priority hints: `fetchpriority="high"` for above-fold images, `loading="lazy"` for below-fold (viewport detection via IntersectionObserver)
-- [ ] T028 [P] Implement aspect-ratio placeholder for CLS prevention in CloudImage
-- [ ] T029 Implement useSyncExternalStore integration for cache state in packages/cloud/src/react/hooks.ts
-- [ ] T030 Create packages/cloud/src/contracts/image-contract.ts with CloudImageProps interface
-- [ ] T031 Integrate CloudImage with Worker communication via engine.get()
-- [ ] T032 Add onCacheHit and onCacheMiss callbacks to CloudImage
+- [x] T026 [P] Create packages/cloud/src/react/image.tsx with CloudImage component
+- [x] T027 [P] Implement CloudImage state machine (pending, loading, loaded, error, offline)
+- [x] T026.5 [P] Implement priority hints: `fetchpriority="high"` for above-fold images, `loading="lazy"` for below-fold (viewport detection via IntersectionObserver)
+- [x] T028 [P] Implement aspect-ratio placeholder for CLS prevention in CloudImage
+- [x] T029 Implement useSyncExternalStore integration for cache state in packages/cloud/src/react/hooks.ts
+- [x] T030 Create packages/cloud/src/contracts/image-contract.ts with CloudImageProps interface
+- [x] T031 Integrate CloudImage with Worker communication via engine.get()
+- [x] T032 Add onCacheHit and onCacheMiss callbacks to CloudImage
 
 **Checkpoint**: CloudImage works as img replacement with automatic caching and CLS prevention
 
@@ -156,19 +156,19 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 2 (MANDATORY - TDD)
 
-- [ ] T033 Write unit tests for platform detection in packages/cloud/tests/unit/platform-detection.test.ts
-- [ ] T034 Write unit tests for WebAdapter (IndexedDB) in packages/cloud/tests/unit/adapters/web.test.ts
-- [ ] T035 Write unit tests for MemoryAdapter in packages/cloud/tests/unit/adapters/memory.test.ts
+- [x] T033 Write unit tests for platform detection in packages/cloud/tests/unit/platform-detection.test.ts
+- [x] T034 Write unit tests for WebAdapter (IndexedDB) in packages/cloud/tests/unit/adapters/web.test.ts
+- [x] T035 Write unit tests for MemoryAdapter in packages/cloud/tests/unit/adapters/memory.test.ts
 - [ ] T036 Write integration tests for adapter fallback chain in packages/cloud/tests/integration/adapter-fallback.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] Create packages/cloud/src/adapters/web.ts with IndexedDB implementation using idb
-- [ ] T038 [P] Create packages/cloud/src/adapters/memory.ts with in-memory LRU cache
-- [ ] T039 [P] Create packages/cloud/src/adapters/tizen.ts with Tizen FileSystem API adapter
-- [ ] T040 [P] Create packages/cloud/src/adapters/webos.ts with WebOS FileSystem API adapter
-- [ ] T041 Create packages/cloud/src/adapters/index.ts with detectPlatform() and createAdapter() factory
-- [ ] T042 Create packages/cloud/src/adapters/factory.ts implementing auto-detection logic
+- [x] T037 [P] Create packages/cloud/src/adapters/web.ts with IndexedDB implementation using idb
+- [x] T038 [P] Create packages/cloud/src/adapters/memory.ts with in-memory LRU cache
+- [x] T039 [P] Create packages/cloud/src/adapters/tizen.ts with Tizen FileSystem API adapter
+- [x] T040 [P] Create packages/cloud/src/adapters/webos.ts with WebOS FileSystem API adapter
+- [x] T041 Create packages/cloud/src/adapters/index.ts with detectPlatform() and createAdapter() factory
+- [x] T042 Create packages/cloud/src/adapters/factory.ts implementing auto-detection logic
 - [ ] T043 Integrate platform adapter into ImageEngine initialization
 - [ ] T044 Add platform override config option for testing
 
