@@ -312,16 +312,16 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 8 (MANDATORY - TDD)
 
-- [ ] T094 Write unit tests for memory pressure detection in packages/cloud/tests/unit/memory-pressure.test.ts
+- [x] T094 Write unit tests for memory pressure detection in packages/cloud/tests/unit/memory-pressure.test.ts
 - [ ] T095 Write integration tests for aggressive eviction when memory > 90% in packages/cloud/tests/integration/memory-pressure-eviction.test.ts
 
 ### Implementation for User Story 8
 
-- [ ] T096 [P] Create memory monitor in packages/cloud/src/core/memory.ts using performance.memory API
-- [ ] T097 [P] Implement aggressive eviction: when memory > 90%, evict 50% of cache
-- [ ] T098 Create memory pressure events for observability
-- [ ] T099 Integrate memory monitoring into cache eviction logic
-- [ ] T100 Add fallback for browsers without performance.memory API
+- [x] T096 [P] Create memory monitor in packages/cloud/src/core/memory.ts using performance.memory API
+- [x] T097 [P] Implement aggressive eviction: when memory > 90%, evict 50% of cache
+- [x] T098 Create memory pressure events for observability
+- [x] T099 Integrate memory monitoring into cache eviction logic
+- [x] T100 Add fallback for browsers without performance.memory API
 
 **Checkpoint**: Smart TV memory managed proactively, preventing crashes
 

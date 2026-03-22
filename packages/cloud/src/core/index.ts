@@ -11,3 +11,4 @@ export * from './cdn-adapter';
 export * from './silent-upgrade';
 export * from './retry';
 export * from './circuit-breaker';
+export * from './memory';
