@@ -46,7 +46,7 @@ const CloudProvider = ({ children }: { children: React.ReactNode }) => (
 );
 
 const useCloud = () => {
-  const [stats, setStats] = useState<CacheStats>({ itemCount: 0, totalSize: 0 });
+  const [stats] = useState<CacheStats>({ itemCount: 0, totalSize: 0 });
   const [network, setNetwork] = useState<NetworkStatus>({
     online: typeof navigator !== 'undefined' ? navigator.onLine : true,
     bandwidth: 'unknown',
