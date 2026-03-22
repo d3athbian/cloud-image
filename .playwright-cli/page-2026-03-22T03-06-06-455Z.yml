@@ -1,0 +1,40 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - heading "CLOUD Image Cache Demo" [level=1] [ref=e5]
+    - paragraph [ref=e6]: Testing with 20 images (picsum.photos)
+  - generic [ref=e7]:
+    - generic [ref=e8]:
+      - heading "Cache Stats" [level=2] [ref=e9]
+      - paragraph [ref=e10]: "Items cached: 0"
+      - paragraph [ref=e11]: "Total size: 0.00 MB"
+    - generic [ref=e12]:
+      - heading "Network Status" [level=2] [ref=e13]
+      - paragraph [ref=e14]: "Status: Online"
+      - paragraph [ref=e15]: "Bandwidth: UNKNOWN"
+    - generic [ref=e16]:
+      - heading "Controls" [level=2] [ref=e17]
+      - generic [ref=e18]:
+        - button "Prefetch 10" [ref=e19] [cursor=pointer]
+        - button "Clear Cache" [ref=e20] [cursor=pointer]
+  - main [ref=e21]:
+    - generic [ref=e22]:
+      - img "Demo image 100" [ref=e26]
+      - img "Demo image 110" [ref=e30]
+      - img "Demo image 120" [ref=e34]
+      - img "Demo image 130" [ref=e38]
+      - img "Demo image 140" [ref=e42]
+      - img "Demo image 150" [ref=e46]
+      - img "Demo image 160" [ref=e50]
+      - img "Demo image 170" [ref=e54]
+      - img "Demo image 180" [ref=e58]
+      - img "Demo image 190" [ref=e62]
+      - img "Demo image 200" [ref=e66]
+      - img "Demo image 210" [ref=e70]
+      - img "Demo image 220" [ref=e74]
+      - img "Demo image 230" [ref=e78]
+      - img "Demo image 240" [ref=e82]
+      - img "Demo image 250" [ref=e86]
+      - img "Demo image 260" [ref=e90]
+      - img "Demo image 270" [ref=e94]
+      - img "Demo image 280" [ref=e98]
+      - img "Demo image 290" [ref=e102]

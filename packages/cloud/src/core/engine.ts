@@ -9,6 +9,7 @@ import {
   WorkerResponse,
 } from './types';
 import { ImageCache } from './cache';
+import { createAdapter, type PlatformAdapter } from '../adapters/factory';
 
 export class ImageEngine {
   private cache: ImageCache;
@@ -19,16 +20,24 @@ export class ImageEngine {
     online: typeof navigator !== 'undefined' ? navigator.onLine : true,
     bandwidth: 'unknown',
   };
+  private adapter: PlatformAdapter | null = null;
+  private platform: string = 'memory';
+  private pendingRequests: Map<string, Promise<string | null>> = new Map();
 
   constructor(config: Partial<CacheConfig> = {}) {
+    this.adapter = createAdapter({ platformOverride: config.platformOverride });
+    this.platform = this.adapter.platform;
     this.cache = new ImageCache(config);
+    this.cache.setAdapter(this.adapter);
     this.circuitBreaker = new CircuitBreaker();
     this.setupNetworkListeners();
   }
 
   async init(): Promise<void> {
+    await this.cache.init();
     this.worker = this.createEmbeddedWorker();
     await this.setupWorkerCommunication();
+    console.log(`[ImageEngine] Initialized with ${this.platform} adapter`);
   }
 
   async get(url: string): Promise<string | null> {
@@ -39,12 +48,23 @@ export class ImageEngine {
       return URL.createObjectURL(blob);
     }
 
+    const pending = this.pendingRequests.get(url);
+    if (pending) {
+      return pending;
+    }
+
     if (this.circuitBreaker.getState() === 'open') {
       return null;
     }
 
     try {
-      const result = await this.fetchFromWorker(url);
+      const fetchPromise = this.fetchFromWorker(url);
+      this.pendingRequests.set(url, fetchPromise);
+      
+      const result = await fetchPromise;
+      
+      this.pendingRequests.delete(url);
+      
       if (result) {
         return result;
       }
@@ -52,6 +72,7 @@ export class ImageEngine {
       return null;
     } catch {
       this.circuitBreaker.recordFailure();
+      this.pendingRequests.delete(url);
       return null;
     }
   }
@@ -76,7 +97,10 @@ export class ImageEngine {
   }
 
   async getStats(): Promise<CacheStats> {
-    return this.cache.getStats();
+    const stats = await this.cache.getStats();
+    return {
+      ...stats,
+    };
   }
 
   getNetworkStatus(): NetworkStatus {
@@ -87,10 +111,17 @@ export class ImageEngine {
     return this.circuitBreaker.getState();
   }
 
+  getPlatform(): string {
+    return this.platform;
+  }
+
   destroy(): void {
     if (this.worker) {
       this.worker.terminate();
       this.worker = null;
+    }
+    if (this.adapter) {
+      this.adapter.destroy();
     }
     this.cache.clear();
   }

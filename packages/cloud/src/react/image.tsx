@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { getNetworkMonitor } from '../core/network';
+import { CloudContext } from './hooks';
 
 export interface CloudImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -20,7 +21,7 @@ export interface CloudImageProps extends React.ImgHTMLAttributes<HTMLImageElemen
   enableCrossfade?: boolean;
 }
 
-export type ImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline';
+export type ImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline' | 'cached';
 
 export const CloudImage: React.FC<CloudImageProps> = ({
   src,
@@ -45,6 +46,10 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   className,
   ...props
 }) => {
+  const context = useContext(CloudContext);
+  const engine = context?.engine;
+  const isReady = context?.isReady ?? false;
+  
   const [status, setStatus] = useState<ImageStatus>('pending');
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isInViewport, setIsInViewport] = useState(!preload);
@@ -113,7 +118,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   }, [isInViewport, cancelTransition]);
 
   useEffect(() => {
-    if (!isInViewport) return;
+    if (!isInViewport || !isReady) return;
 
     const loadImage = async () => {
       if (!isOnline) {
@@ -125,9 +130,30 @@ export const CloudImage: React.FC<CloudImageProps> = ({
       setMainImageLoaded(false);
 
       try {
-        const response = await fetch(src);
-        const blob = await response.blob();
-        const url = URL.createObjectURL(blob);
+        let url: string | null = null;
+        let fromCache = false;
+
+        if (engine && !noCache) {
+          url = await engine.get(src);
+          fromCache = !!url;
+        }
+
+        if (!url) {
+          const response = await fetch(src);
+          const blob = await response.blob();
+          url = URL.createObjectURL(blob);
+          
+          if (engine && !noCache) {
+            const arrayBuffer = await blob.arrayBuffer();
+            await engine.set(src, arrayBuffer, {
+              size: arrayBuffer.byteLength,
+              mimeType: blob.type,
+              cachedAt: Date.now(),
+              accessedAt: Date.now(),
+              accessCount: 0,
+            });
+          }
+        }
         
         if (!isInViewport) {
           URL.revokeObjectURL(url);
@@ -146,8 +172,12 @@ export const CloudImage: React.FC<CloudImageProps> = ({
           setMainImageLoaded(true);
         }
         
-        setStatus('loaded');
-        onCacheMiss?.();
+        setStatus(fromCache ? 'cached' : 'loaded');
+        if (fromCache) {
+          onCacheHit?.();
+        } else {
+          onCacheMiss?.();
+        }
         onLoad?.();
       } catch (error) {
         if (!isOnline) {
@@ -163,11 +193,8 @@ export const CloudImage: React.FC<CloudImageProps> = ({
 
     return () => {
       cancelTransition();
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
     };
-  }, [src, isInViewport, resolvedSrc, isOnline, enableCrossfade, hasBlurPlaceholder, transitionDuration, cancelTransition, objectUrl]);
+  }, [src, isInViewport, resolvedSrc, isOnline, enableCrossfade, hasBlurPlaceholder, transitionDuration, cancelTransition, engine, noCache, onCacheHit, onCacheMiss, onLoad, onError, isReady]);
 
   const loadingPriority = isInViewport ? 'high' : 'lazy';
 
@@ -278,7 +305,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
           width={width}
           height={height}
           loading={loadingPriority}
-          fetchPriority={loadingPriority === 'high' ? 'high' : 'auto'}
+          fetchpriority={loadingPriority === 'high' ? 'high' : 'auto'}
           style={{
             width: '100%',
             height: '100%',

@@ -1,101 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { CloudProvider, useCloud, CloudImage } from '@cloudimage/cloud/react';
+import type { CacheStats, NetworkStatus } from '@cloudimage/cloud';
 
-const IMAGE_COUNT = 100;
+const IMAGE_COUNT = 20;
 const BASE_URL = 'https://picsum.photos';
 
-const testImages = Array.from({ length: IMAGE_COUNT }, (_, i) => ({
-  id: i + 1,
-  src: `${BASE_URL}/800/600?random=${i + 1}`,
-  width: 800,
-  height: 600,
-  alt: `Demo image ${i + 1}`,
-}));
-
-interface CacheStats {
-  itemCount: number;
-  totalSize: number;
-}
-
-interface NetworkStatus {
-  online: boolean;
-  bandwidth: 'low' | 'medium' | 'high' | 'unknown';
-  mbps?: number;
-}
-
-// Placeholder components until library is implemented
-// These will be replaced with actual CloudImage, CloudProvider, useCloud
-const CloudImage = ({ src, width, height, alt, style }: {
-  src: string;
-  width?: number;
-  height?: number;
-  alt?: string;
-  style?: React.CSSProperties;
-}) => (
-  <img
-    src={src}
-    width={width}
-    height={height}
-    alt={alt}
-    style={{ width: '100%', height: 'auto', display: 'block', ...style }}
-    loading="lazy"
-  />
-);
-
-const CloudProvider = ({ children }: { children: React.ReactNode }) => (
-  <>{children}</>
-);
-
-const useCloud = () => {
-  const [stats] = useState<CacheStats>({ itemCount: 0, totalSize: 0 });
-  const [network, setNetwork] = useState<NetworkStatus>({
-    online: typeof navigator !== 'undefined' ? navigator.onLine : true,
-    bandwidth: 'unknown',
-  });
-
-  useEffect(() => {
-    const handleOnline = () => setNetwork(n => ({ ...n, online: true }));
-    const handleOffline = () => setNetwork(n => ({ ...n, online: false }));
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    // @ts-ignore - Network Information API
-    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-    if (conn) {
-      const updateBandwidth = () => {
-        setNetwork(n => ({ 
-          ...n, 
-          bandwidth: conn.effectiveType === '4g' ? 'high' : 
-                     conn.effectiveType === '3g' ? 'medium' : 'low',
-          mbps: conn.downlink 
-        }));
-      };
-      updateBandwidth();
-      conn.addEventListener('change', updateBandwidth);
-    }
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
-
+const testImages = Array.from({ length: IMAGE_COUNT }, (_, i) => {
+  const fixedId = 100 + i * 10;
   return {
-    cache: {
-      getStats: async () => stats,
-      prefetch: async (_urls: string[]) => {
-        console.log('Prefetch placeholder - library not implemented');
-      },
-      clear: async () => {
-        console.log('Clear placeholder - library not implemented');
-      },
-      invalidate: async (_url: string) => {
-        console.log('Invalidate placeholder - library not implemented');
-      },
-    },
-    network,
+    id: fixedId,
+    src: `${BASE_URL}/id/${fixedId}/800/600`,
+    width: 800,
+    height: 600,
+    alt: `Demo image ${fixedId}`,
   };
-};
+});
 
 function CacheStatsDisplay({ stats }: { stats: CacheStats | null }) {
   return (
@@ -129,7 +48,6 @@ function NetworkStatusDisplay({ network }: { network: NetworkStatus }) {
         <span style={{ color: bandwidthColors[network.bandwidth] }}>
           {network.bandwidth.toUpperCase()}
         </span>
-        {network.mbps && ` (${network.mbps} Mbps)`}
       </p>
     </div>
   );
@@ -168,47 +86,58 @@ function ImageGrid() {
   );
 }
 
-function App() {
+function AppContent() {
   const { cache, network } = useCloud();
+  const cacheRef = useRef(cache);
   const [stats, setStats] = useState<CacheStats | null>(null);
+
+  cacheRef.current = cache;
 
   useEffect(() => {
     const updateStats = async () => {
-      const s = await cache.getStats();
+      const s = await cacheRef.current.getStats();
       setStats(s);
     };
     updateStats();
     const interval = setInterval(updateStats, 2000);
     return () => clearInterval(interval);
-  }, [cache]);
+  }, []);
 
-  const handlePrefetch = () => {
-    cache.prefetch(testImages.slice(0, 10).map(img => img.src));
-  };
+  const handlePrefetch = useCallback(async () => {
+    await cacheRef.current.prefetch(testImages.slice(0, 10).map(img => img.src));
+    const s = await cacheRef.current.getStats();
+    setStats(s);
+  }, []);
 
-  const handleClear = () => {
-    cache.clear();
-    setStats({ itemCount: 0, totalSize: 0 });
-  };
+  const handleClear = useCallback(async () => {
+    await cacheRef.current.clear();
+    setStats({ itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 });
+  }, []);
 
   return (
-    <CloudProvider>
-      <div style={styles.container}>
-        <header style={styles.header}>
-          <h1>CLOUD Image Cache Demo</h1>
-          <p>Testing with {IMAGE_COUNT} images (picsum.photos)</p>
-        </header>
-        
-        <div style={styles.sidebar}>
-          <CacheStatsDisplay stats={stats} />
-          <NetworkStatusDisplay network={network} />
-          <Controls onPrefetch={handlePrefetch} onClear={handleClear} />
-        </div>
-        
-        <main style={styles.main}>
-          <ImageGrid />
-        </main>
+    <div style={styles.container}>
+      <header style={styles.header}>
+        <h1>CLOUD Image Cache Demo</h1>
+        <p>Testing with {IMAGE_COUNT} images (picsum.photos)</p>
+      </header>
+      
+      <div style={styles.sidebar}>
+        <CacheStatsDisplay stats={stats} />
+        <NetworkStatusDisplay network={network} />
+        <Controls onPrefetch={handlePrefetch} onClear={handleClear} />
       </div>
+      
+      <main style={styles.main}>
+        <ImageGrid />
+      </main>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <CloudProvider devtools={true}>
+      <AppContent />
     </CloudProvider>
   );
 }

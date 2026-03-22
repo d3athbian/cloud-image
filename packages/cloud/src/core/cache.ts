@@ -4,6 +4,7 @@ import {
   CacheStats,
   DEFAULT_CACHE_CONFIG,
 } from './types';
+import type { PlatformAdapter } from '../adapters/types';
 
 export class ImageCache {
   private entries: Map<string, CacheEntry> = new Map();
@@ -17,15 +18,60 @@ export class ImageCache {
   };
   private hits = 0;
   private misses = 0;
+  private adapter: PlatformAdapter | null = null;
+  private adapterInitPromise: Promise<void> | null = null;
 
-  constructor(config: Partial<CacheConfig> = {}) {
+  constructor(config: Partial<CacheConfig> = {}, adapter?: PlatformAdapter) {
     this.config = { ...DEFAULT_CACHE_CONFIG, ...config } as Required<Omit<CacheConfig, 'platformOverride'>> & { platformOverride?: string };
+    this.adapter = adapter ?? null;
+  }
+
+  setAdapter(adapter: PlatformAdapter): void {
+    this.adapter = adapter;
+  }
+
+  async init(): Promise<void> {
+    if (this.adapter) {
+      await this.adapter.init();
+      await this.loadFromAdapter();
+    }
+  }
+
+  private async loadFromAdapter(): Promise<void> {
+    if (!this.adapter) return;
+    
+    try {
+      const keys = await this.adapter.keys();
+      for (const url of keys) {
+        const entry = await this.adapter.get(url);
+        if (entry && !this.isExpired(entry)) {
+          this.entries.set(url, entry);
+          this.stats.totalSize += entry.metadata.size;
+        }
+      }
+      this.stats.itemCount = this.entries.size;
+    } catch (error) {
+      console.warn('[ImageCache] Failed to load from adapter:', error);
+    }
   }
 
   async get(url: string): Promise<CacheEntry | null> {
     const entry = this.entries.get(url);
     
     if (!entry) {
+      if (this.adapter) {
+        const adapterEntry = await this.adapter.get(url);
+        if (adapterEntry && !this.isExpired(adapterEntry)) {
+          this.misses++;
+          this.updateRates();
+          adapterEntry.metadata.accessedAt = Date.now();
+          adapterEntry.metadata.accessCount++;
+          this.entries.set(url, adapterEntry);
+          this.stats.totalSize += adapterEntry.metadata.size;
+          this.stats.itemCount = this.entries.size;
+          return adapterEntry;
+        }
+      }
       this.misses++;
       this.updateRates();
       return null;
@@ -43,6 +89,10 @@ export class ImageCache {
     this.hits++;
     this.updateRates();
     
+    if (this.adapter) {
+      await this.adapter.set(entry).catch(console.warn);
+    }
+    
     return entry;
   }
 
@@ -57,30 +107,43 @@ export class ImageCache {
       await this.evict(entry.metadata.size);
     }
 
-    this.entries.set(entry.url, {
+    const newEntry: CacheEntry = {
       ...entry,
       metadata: {
         ...entry.metadata,
         cachedAt: Date.now(),
         accessedAt: Date.now(),
-        accessCount: 1,
+        accessCount: entry.metadata.accessCount || 1,
       },
-    });
+    };
 
+    this.entries.set(entry.url, newEntry);
     this.stats.itemCount = this.entries.size;
     this.stats.totalSize += entry.metadata.size;
+
+    if (this.adapter) {
+      await this.adapter.set(newEntry).catch(console.warn);
+    }
   }
 
   async delete(url: string): Promise<boolean> {
     const entry = this.entries.get(url);
     
     if (!entry) {
+      if (this.adapter) {
+        const existed = await this.adapter.delete(url);
+        return existed;
+      }
       return false;
     }
 
     this.entries.delete(url);
     this.stats.itemCount = this.entries.size;
     this.stats.totalSize -= entry.metadata.size;
+    
+    if (this.adapter) {
+      await this.adapter.delete(url).catch(console.warn);
+    }
     
     return true;
   }
@@ -92,10 +155,28 @@ export class ImageCache {
     this.hits = 0;
     this.misses = 0;
     this.updateRates();
+    
+    if (this.adapter) {
+      await this.adapter.clear().catch(console.warn);
+    }
   }
 
   async getStats(): Promise<CacheStats> {
+    if (this.adapter) {
+      try {
+        const adapterSize = await this.adapter.getSize();
+        this.stats.totalSize = adapterSize;
+        const keys = await this.adapter.keys();
+        this.stats.itemCount = keys.length;
+      } catch (error) {
+        console.warn('[ImageCache] Failed to get adapter stats:', error);
+      }
+    }
     return { ...this.stats };
+  }
+
+  getAdapterPlatform(): string {
+    return this.adapter?.platform ?? 'memory';
   }
 
   private isExpired(entry: CacheEntry): boolean {
@@ -145,11 +226,17 @@ export class ImageCache {
       for (const entry of toEvict) {
         this.entries.delete(entry.url);
         this.stats.evictionCount++;
+        if (this.adapter) {
+          await this.adapter.delete(entry.url).catch(console.warn);
+        }
       }
     } else {
       for (const { entry } of scoredEntries) {
         this.entries.delete(entry.url);
         this.stats.evictionCount++;
+        if (this.adapter) {
+          await this.adapter.delete(entry.url).catch(console.warn);
+        }
       }
     }
 

@@ -2,13 +2,13 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import { ImageEngine } from '../core/engine';
 import type { CacheConfig, CacheStats, NetworkStatus } from '../core/types';
 
-interface CloudContextValue {
+export interface CloudContextValue {
   engine: ImageEngine | null;
   isReady: boolean;
   error: Error | null;
 }
 
-const CloudContext = createContext<CloudContextValue | null>(null);
+export const CloudContext = createContext<CloudContextValue | null>(null);
 
 export interface CloudProviderProps {
   config?: Partial<CacheConfig>;
@@ -55,7 +55,15 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
 
   return (
     <CloudContext.Provider value={{ engine, isReady, error }}>
-      {children}
+      {isReady ? children : (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ width: 40, height: 40, border: '3px solid #f3f3f3', borderTop: '3px solid #3498db', borderRadius: '50%', animation: 'cloudSpin 1s linear infinite', margin: '0 auto 16px' }} />
+            <p>Initializing CLOUD Image Cache...</p>
+          </div>
+          <style>{`@keyframes cloudSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+        </div>
+      )}
     </CloudContext.Provider>
   );
 };
