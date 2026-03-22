@@ -33,7 +33,16 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
         setEngine(imageEngine);
         setIsReady(true);
 
-        if (devtools && typeof window !== 'undefined') {
+        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+          try {
+            await navigator.serviceWorker.register('/sw.js');
+            console.log('[CloudProvider] Service Worker registered');
+          } catch (swError) {
+            console.log('[CloudProvider] Service Worker not available, using fallback mode');
+          }
+        }
+
+        if (devtools) {
           (window as Window & { __CLOUD__?: CloudContextValue }).__CLOUD__ = {
             engine: imageEngine,
             isReady: true,
