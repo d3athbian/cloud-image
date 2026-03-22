@@ -368,16 +368,16 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for Progressive Rendering (MANDATORY - TDD)
 
-- [ ] T117 Write unit tests for blur placeholder rendering in packages/cloud/tests/unit/blur-placeholder.test.ts
-- [ ] T118 Write unit tests for crossfade transition timing in packages/cloud/tests/unit/crossfade-transition.test.ts
+- [x] T117 Write unit tests for blur placeholder rendering in packages/cloud/tests/unit/blur-placeholder.test.ts
+- [x] T118 Write unit tests for crossfade transition timing in packages/cloud/tests/unit/crossfade-transition.test.ts
 - [ ] T119 Write integration tests for progressive image loading in packages/cloud/tests/integration/progressive-loading.test.ts
 
 ### Implementation for Progressive Rendering
 
-- [ ] T120 [P] Implement blur placeholder in packages/cloud/src/react/image.tsx
-- [ ] T121 [P] Implement crossfade transition (opacity animation, 300ms ease-out)
-- [ ] T122 Add placeholder prop support: CloudImage placeholder="blur-data-url" or placeholder="low-res-url"
-- [ ] T123 Handle animation cancellation if user scrolls away before transition completes
+- [x] T120 [P] Implement blur placeholder in packages/cloud/src/react/image.tsx
+- [x] T121 [P] Implement crossfade transition (opacity animation, 300ms ease-out)
+- [x] T122 Add placeholder prop support: CloudImage placeholder="blur-data-url" or placeholder="low-res-url"
+- [x] T123 Handle animation cancellation if user scrolls away before transition completes
 
 **Checkpoint**: Images load smoothly with blur-up effect, no jarring transitions
 

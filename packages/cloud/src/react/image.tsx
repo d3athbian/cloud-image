@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getNetworkMonitor } from '../core/network';
 
 export interface CloudImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
@@ -15,6 +15,9 @@ export interface CloudImageProps extends React.ImgHTMLAttributes<HTMLImageElemen
   onCacheHit?: () => void;
   onCacheMiss?: () => void;
   offlineFallback?: React.ReactNode;
+  blurPlaceholder?: string;
+  transitionDuration?: number;
+  enableCrossfade?: boolean;
 }
 
 export type ImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline';
@@ -33,6 +36,9 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   onCacheHit,
   onCacheMiss,
   offlineFallback,
+  blurPlaceholder,
+  transitionDuration = 300,
+  enableCrossfade = true,
   width,
   height,
   style,
@@ -43,11 +49,15 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isInViewport, setIsInViewport] = useState(!preload);
   const [isOnline, setIsOnline] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [mainImageLoaded, setMainImageLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const networkMonitorRef = useRef<ReturnType<typeof getNetworkMonitor> | null>(null);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resolvedSrc = cacheKey || src;
+  const hasBlurPlaceholder = blurPlaceholder || placeholder;
 
   useEffect(() => {
     networkMonitorRef.current = getNetworkMonitor();
@@ -88,6 +98,20 @@ export const CloudImage: React.FC<CloudImageProps> = ({
     };
   }, [preload]);
 
+  const cancelTransition = useCallback(() => {
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+      transitionTimeoutRef.current = null;
+    }
+    setIsTransitioning(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isInViewport) {
+      cancelTransition();
+    }
+  }, [isInViewport, cancelTransition]);
+
   useEffect(() => {
     if (!isInViewport) return;
 
@@ -98,13 +122,30 @@ export const CloudImage: React.FC<CloudImageProps> = ({
       }
 
       setStatus('loading');
+      setMainImageLoaded(false);
 
       try {
         const response = await fetch(src);
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         
+        if (!isInViewport) {
+          URL.revokeObjectURL(url);
+          return;
+        }
+
         setObjectUrl(url);
+        
+        if (enableCrossfade && hasBlurPlaceholder) {
+          setIsTransitioning(true);
+          transitionTimeoutRef.current = setTimeout(() => {
+            setMainImageLoaded(true);
+            setIsTransitioning(false);
+          }, transitionDuration);
+        } else {
+          setMainImageLoaded(true);
+        }
+        
         setStatus('loaded');
         onCacheMiss?.();
         onLoad?.();
@@ -121,28 +162,45 @@ export const CloudImage: React.FC<CloudImageProps> = ({
     loadImage();
 
     return () => {
+      cancelTransition();
       if (objectUrl) {
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [src, isInViewport, resolvedSrc, isOnline]);
+  }, [src, isInViewport, resolvedSrc, isOnline, enableCrossfade, hasBlurPlaceholder, transitionDuration, cancelTransition, objectUrl]);
 
   const loadingPriority = isInViewport ? 'high' : 'lazy';
 
-  if (status === 'pending' && placeholder) {
+  const getPlaceholderStyle = (): React.CSSProperties => ({
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    backgroundImage: blurPlaceholder ? `url(${blurPlaceholder})` : placeholder ? `url(${placeholder})` : undefined,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    filter: blurPlaceholder ? 'blur(20px)' : undefined,
+    transform: blurPlaceholder ? 'scale(1.1)' : undefined,
+  });
+
+  if (status === 'pending' && hasBlurPlaceholder) {
     return (
       <div
         ref={imgRef}
         className={className}
         style={{
+          position: 'relative',
+          width: width || '100%',
+          aspectRatio: width && height ? `${width}/${height}` : undefined,
+          overflow: 'hidden',
           ...style,
-          backgroundImage: `url(${placeholder})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
         }}
         role="img"
         aria-label={alt}
-      />
+      >
+        <div style={getPlaceholderStyle()} />
+      </div>
     );
   }
 
@@ -184,10 +242,15 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         position: 'relative',
         width: width || '100%',
         aspectRatio: width && height ? `${width}/${height}` : undefined,
+        overflow: 'hidden',
         ...style,
       }}
     >
-      {showLoading && status === 'loading' && (
+      {hasBlurPlaceholder && !mainImageLoaded && (
+        <div style={getPlaceholderStyle()} />
+      )}
+
+      {showLoading && status === 'loading' && !mainImageLoaded && (
         <div
           style={{
             position: 'absolute',
@@ -200,6 +263,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
             borderTopColor: '#333',
             borderRadius: '50%',
             animation: 'cloudImageSpin 1s linear infinite',
+            zIndex: 2,
           }}
         />
       )}
@@ -219,6 +283,16 @@ export const CloudImage: React.FC<CloudImageProps> = ({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
+            opacity: mainImageLoaded ? 1 : 0,
+            transition: enableCrossfade ? `opacity ${transitionDuration}ms ease-out` : 'none',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+          }}
+          onLoad={() => {
+            if (enableCrossfade && hasBlurPlaceholder) {
+              setMainImageLoaded(true);
+            }
           }}
           {...props}
         />
