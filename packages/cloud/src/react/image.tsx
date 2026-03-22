@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { getNetworkMonitor } from '../core/network';
 
 export interface CloudImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
@@ -13,6 +14,7 @@ export interface CloudImageProps extends React.ImgHTMLAttributes<HTMLImageElemen
   onError?: (error: Error) => void;
   onCacheHit?: () => void;
   onCacheMiss?: () => void;
+  offlineFallback?: React.ReactNode;
 }
 
 export type ImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline';
@@ -30,6 +32,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   onError,
   onCacheHit,
   onCacheMiss,
+  offlineFallback,
   width,
   height,
   style,
@@ -39,10 +42,26 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   const [status, setStatus] = useState<ImageStatus>('pending');
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isInViewport, setIsInViewport] = useState(!preload);
+  const [isOnline, setIsOnline] = useState(true);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const networkMonitorRef = useRef<ReturnType<typeof getNetworkMonitor> | null>(null);
 
   const resolvedSrc = cacheKey || src;
+
+  useEffect(() => {
+    networkMonitorRef.current = getNetworkMonitor();
+    setIsOnline(networkMonitorRef.current.isOnline());
+
+    const unsubscribe = networkMonitorRef.current.subscribe((newStatus) => {
+      setIsOnline(newStatus.online);
+      if (newStatus.online && status === 'offline') {
+        setStatus('pending');
+      }
+    });
+
+    return unsubscribe;
+  }, [status]);
 
   useEffect(() => {
     if (preload) {
@@ -73,6 +92,11 @@ export const CloudImage: React.FC<CloudImageProps> = ({
     if (!isInViewport) return;
 
     const loadImage = async () => {
+      if (!isOnline) {
+        setStatus('offline');
+        return;
+      }
+
       setStatus('loading');
 
       try {
@@ -85,8 +109,12 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         onCacheMiss?.();
         onLoad?.();
       } catch (error) {
-        setStatus('error');
-        onError?.(error as Error);
+        if (!isOnline) {
+          setStatus('offline');
+        } else {
+          setStatus('error');
+          onError?.(error as Error);
+        }
       }
     };
 
@@ -97,7 +125,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         URL.revokeObjectURL(objectUrl);
       }
     };
-  }, [src, isInViewport, resolvedSrc]);
+  }, [src, isInViewport, resolvedSrc, isOnline]);
 
   const loadingPriority = isInViewport ? 'high' : 'lazy';
 
@@ -115,6 +143,37 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         role="img"
         aria-label={alt}
       />
+    );
+  }
+
+  if (status === 'offline') {
+    return (
+      <div
+        className={className}
+        style={{
+          position: 'relative',
+          width: width || '100%',
+          aspectRatio: width && height ? `${width}/${height}` : undefined,
+          ...style,
+        }}
+      >
+        {offlineFallback || fallback || (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#f0f0f0',
+              color: '#666',
+              fontSize: '14px',
+            }}
+          >
+            Offline
+          </div>
+        )}
+      </div>
     );
   }
 
@@ -140,7 +199,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
             border: '2px solid #ccc',
             borderTopColor: '#333',
             borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
+            animation: 'cloudImageSpin 1s linear infinite',
           }}
         />
       )}
@@ -166,7 +225,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
       )}
 
       <style>{`
-        @keyframes spin {
+        @keyframes cloudImageSpin {
           to { transform: translate(-50%, -50%) rotate(360deg); }
         }
       `}</style>

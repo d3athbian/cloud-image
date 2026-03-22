@@ -211,17 +211,17 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 4 (MANDATORY - TDD)
 
-- [ ] T056 Write unit tests for NetworkStatus detection in packages/cloud/tests/unit/network-status.test.ts
+- [x] T056 Write unit tests for NetworkStatus detection in packages/cloud/tests/unit/network-status.test.ts
 - [ ] T057 Write integration tests for offline cache retrieval in packages/cloud/tests/integration/offline-retrieval.test.ts
 - [ ] T058 Write integration tests for network reconnection in packages/cloud/tests/integration/network-reconnect.test.ts
 
 ### Implementation for User Story 4
 
-- [ ] T059 [P] Implement network status monitoring using Navigator.onLine
-- [ ] T060 [P] Create offline detection and caching strategy in packages/cloud/src/core/offline.ts
-- [ ] T061 Update CloudImage to show offline state when network unavailable
-- [ ] T062 Add network.online, network.bandwidth (BandwidthClassification), network.mbps to useCloud() return type
-- [ ] T063 Implement automatic retry when network reconnects
+- [x] T059 [P] Implement network status monitoring using Navigator.onLine
+- [x] T060 [P] Create offline detection and caching strategy in packages/cloud/src/core/offline.ts
+- [x] T061 Update CloudImage to show offline state when network unavailable
+- [x] T062 Add network.online, network.bandwidth (BandwidthClassification), network.mbps to useCloud() return type
+- [x] T063 Implement automatic retry when network reconnects
 
 **Checkpoint**: Cached images display offline, uncached show appropriate offline state
 
