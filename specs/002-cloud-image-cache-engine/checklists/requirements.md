@@ -1,4 +1,4 @@
-# Specification Quality Checklist: VYNX Engine - Smart Image Cache
+# Specification Quality Checklist: CLOUD Engine - Smart Image Cache
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning  
 **Created**: 2026-03-19  

@@ -1,14 +1,14 @@
-# Contract: VynxImage Component
+# Contract: CloudImage Component
 
-**Contract ID**: vynx-image-contract  
+**Contract ID**: cloud-image-contract  
 **Version**: 1.0.0  
-**Feature**: 002-vynx-image-cache-engine
+**Feature**: 002-cloud-image-cache-engine
 
 ---
 
 ## Overview
 
-`VynxImage` is a React component that replaces the standard `<img>` element with automatic caching, state management, and CLS prevention.
+`CloudImage` is a React component that replaces the standard `<img>` element with automatic caching, state management, and CLS prevention.
 
 ---
 
@@ -73,18 +73,18 @@ pending → loading → loaded
 ### 1. Cache Retrieval (<50ms)
 
 **Given**: Image URL is in cache with valid entry  
-**When**: VynxImage renders with that src  
+**When**: CloudImage renders with that src  
 **Then**: Image displays within 50ms with no loading indicator
 
 **Test**:
 ```typescript
 // First load caches
-render(<VynxImage src="https://example.com/img.jpg" />);
+render(<CloudImage src="https://example.com/img.jpg" />);
 await waitForImageLoad();
 
 // Second load from cache
 const start = performance.now();
-render(<VynxImage src="https://example.com/img.jpg" />);
+render(<CloudImage src="https://example.com/img.jpg" />);
 const duration = performance.now() - start;
 
 expect(duration).toBeLessThan(50);
@@ -93,15 +93,15 @@ expect(screen.queryByRole('progressbar')).toBeNull();
 
 ### 2. CLS Prevention
 
-**Given**: VynxImage with width/height or aspect ratio  
+**Given**: CloudImage with width/height or aspect ratio  
 **When**: Image loads  
 **Then**: No layout shift occurs (Cumulative Layout Shift = 0)
 
 **Test**:
 ```typescript
-render(<VynxImage src="..." width={800} height={600} />);
+render(<CloudImage src="..." width={800} height={600} />);
 
-const container = screen.getByTestId('vynx-container');
+const container = screen.getByTestId('cloud-container');
 const initialHeight = container.offsetHeight;
 
 // Wait for image load
@@ -119,7 +119,7 @@ expect(container.offsetHeight).toBe(initialHeight);
 **Test**:
 ```typescript
 const onError = jest.fn();
-render(<VynxImage src="invalid://url" onError={onError} />);
+render(<CloudImage src="invalid://url" onError={onError} />);
 
 await waitForTimeout(5000);
 expect(screen.getByText(/error/i)).toBeInTheDocument();
@@ -155,5 +155,5 @@ expect(onError).toHaveBeenCalledWith(expect.any(Error));
 |----------|-------------------|
 | Same src renders twice | Shares cache entry, single fetch |
 | src changes while loading | Cancels previous, starts new |
-| No VynxProvider ancestor | Creates isolated cache context |
+| No CloudProvider ancestor | Creates isolated cache context |
 | Worker unavailable | Falls back to no-cache mode |

@@ -1,35 +1,35 @@
-# Feature Specification: VYNX Engine - VynxImage Cache
+# Feature Specification: CLOUD Engine - CloudImage Cache
 
-**Feature Branch**: `002-vynx-image-cache-engine`  
+**Feature Branch**: `002-cloud-image-cache-engine`  
 **Created**: 2026-03-19  
 **Status**: Draft  
 **Last Updated**: 2026-03-19  
-**Input**: VYNX Engine - High-performance image cache library for streaming, e-commerce, and galleries on Smart TVs. Features: VynxImage React component, ImageEngine core, multi-platform adapters (Web/Tizen/WebOS), Worker integration, 2ms rule, Zero Layout Shift, <50ms load, offline support, plug-and-play DX, Bandwidth Intelligence, Decode Async, Retry+Backoff, Circuit Breaker
+**Input**: CLOUD Engine - High-performance image cache library for streaming, e-commerce, and galleries on Smart TVs. Features: CloudImage React component, ImageEngine core, multi-platform adapters (Web/Tizen/WebOS), Worker integration, 2ms rule, Zero Layout Shift, <50ms load, offline support, plug-and-play DX, Bandwidth Intelligence, Decode Async, Retry+Backoff, Circuit Breaker
 
 ---
 
 ## User Scenarios & Testing *(mandatory)*
 
-### User Story 1 - Instant Image Display via VynxImage Component (Priority: P1)
+### User Story 1 - Instant Image Display via CloudImage Component (Priority: P1)
 
-As a React application developer, I want to use VynxImage instead of a standard img tag so that images load instantly from cache and display without causing layout shifts.
+As a React application developer, I want to use CloudImage instead of a standard img tag so that images load instantly from cache and display without causing layout shifts.
 
 **Why this priority**: This is the primary developer experience - the component must be a drop-in replacement for img that delivers immediate performance improvements.
 
-**Independent Test**: Can be fully tested by rendering VynxImage with an image URL and verifying it displays correctly, loads from cache on repeat views, and does not cause layout shifts.
+**Independent Test**: Can be fully tested by rendering CloudImage with an image URL and verifying it displays correctly, loads from cache on repeat views, and does not cause layout shifts.
 
 **Acceptance Scenarios**:
 
-1. **Given** an image URL, **When** VynxImage renders with cached content, **Then** the image appears in under 50ms without a loading spinner.
-2. **Given** VynxImage with no cached content, **When** the image loads from network, **Then** the component shows a placeholder matching the image's aspect ratio until ready.
-3. **Given** an image is loading, **When** network fails, **Then** VynxImage displays an error state without crashing the application.
-4. **Given** multiple VynxImage components render simultaneously, **When** images are cached, **Then** no layout shift occurs as each image fills its allocated space.
+1. **Given** an image URL, **When** CloudImage renders with cached content, **Then** the image appears in under 50ms without a loading spinner.
+2. **Given** CloudImage with no cached content, **When** the image loads from network, **Then** the component shows a placeholder matching the image's aspect ratio until ready.
+3. **Given** an image is loading, **When** network fails, **Then** CloudImage displays an error state without crashing the application.
+4. **Given** multiple CloudImage components render simultaneously, **When** images are cached, **Then** no layout shift occurs as each image fills its allocated space.
 
 ---
 
 ### User Story 2 - Seamless Platform Adaptation (Priority: P1)
 
-As a developer targeting Smart TVs and web browsers, I want VYNX to automatically detect the platform and use the best storage mechanism so that my images cache correctly regardless of the device.
+As a developer targeting Smart TVs and web browsers, I want CLOUD to automatically detect the platform and use the best storage mechanism so that my images cache correctly regardless of the device.
 
 **Why this priority**: Platform-specific code creates maintenance burden. Automatic detection with optimal storage ensures consistent behavior across all targets.
 
@@ -37,10 +37,10 @@ As a developer targeting Smart TVs and web browsers, I want VYNX to automaticall
 
 **Acceptance Scenarios**:
 
-1. **Given** VYNX running in a web browser, **When** images are cached, **Then** storage uses IndexedDB or equivalent web storage.
-2. **Given** VYNX running on Tizen or WebOS, **When** images are cached, **Then** storage uses the native FileSystem API.
-3. **Given** VYNX running in a WebView without native APIs, **When** images are cached, **Then** storage uses memory-based fallback with reasonable limits.
-4. **Given** platform detection fails, **When** VYNX initializes, **Then** it falls back to memory storage with clear logging.
+1. **Given** CLOUD running in a web browser, **When** images are cached, **Then** storage uses IndexedDB or equivalent web storage.
+2. **Given** CLOUD running on Tizen or WebOS, **When** images are cached, **Then** storage uses the native FileSystem API.
+3. **Given** CLOUD running in a WebView without native APIs, **When** images are cached, **Then** storage uses memory-based fallback with reasonable limits.
+4. **Given** platform detection fails, **When** CLOUD initializes, **Then** it falls back to memory storage with clear logging.
 
 ---
 
@@ -71,23 +71,23 @@ As a user who loses internet connectivity, I want to continue viewing previously
 **Acceptance Scenarios**:
 
 1. **Given** images previously loaded, **When** network disconnects, **Then** cached images continue to display without errors.
-2. **Given** a VynxImage with an uncached image, **When** network is unavailable, **Then** the component shows an appropriate offline placeholder.
-3. **Given** network reconnects, **When** uncached images are requested, **Then** VYNX resumes normal operation automatically.
+2. **Given** a CloudImage with an uncached image, **When** network is unavailable, **Then** the component shows an appropriate offline placeholder.
+3. **Given** network reconnects, **When** uncached images are requested, **Then** CLOUD resumes normal operation automatically.
 
 ---
 
 ### User Story 5 - Developer Plug-and-Play Integration (Priority: P2)
 
-As a React developer, I want to integrate VYNX with minimal configuration so that I can add high-performance image caching to my app in under 5 minutes.
+As a React developer, I want to integrate CLOUD with minimal configuration so that I can add high-performance image caching to my app in under 5 minutes.
 
 **Why this priority**: Developer experience determines adoption. Complex setup creates friction and reduces library value.
 
-**Independent Test**: Can be fully tested by creating a new React app, installing VYNX, wrapping the app in a Provider, and replacing img with VynxImage - all without reading documentation.
+**Independent Test**: Can be fully tested by creating a new React app, installing CLOUD, wrapping the app in a Provider, and replacing img with CloudImage - all without reading documentation.
 
 **Acceptance Scenarios**:
 
-1. **Given** a React application, **When** I wrap it with VYNX Provider, **Then** no additional configuration is required for basic functionality.
-2. **Given** VYNX Provider is present, **When** I use VynxImage with src prop, **Then** caching begins automatically.
+1. **Given** a React application, **When** I wrap it with CLOUD Provider, **Then** no additional configuration is required for basic functionality.
+2. **Given** CLOUD Provider is present, **When** I use CloudImage with src prop, **Then** caching begins automatically.
 3. **Given** I need custom configuration, **When** I pass options to Provider, **Then** settings apply globally without per-component configuration.
 
 ---
@@ -110,7 +110,7 @@ As a developer, I want to control cache behavior programmatically so that I can 
 
 ### User Story 7 - Resilient Network Handling (Priority: P2)
 
-As a developer, I want VYNX to handle network failures gracefully with automatic retry so that users see images even with unstable connections.
+As a developer, I want CLOUD to handle network failures gracefully with automatic retry so that users see images even with unstable connections.
 
 **Why this priority**: Network failures are transient. Automatic retry with backoff improves success rate without user intervention.
 
@@ -118,15 +118,15 @@ As a developer, I want VYNX to handle network failures gracefully with automatic
 
 **Acceptance Scenarios**:
 
-1. **Given** an image request fails with a transient error, **When** network is temporarily unavailable, **Then** VYNX retries automatically with exponential backoff (100ms, 200ms, 400ms).
-2. **Given** an image request fails 3 times consecutively, **When** the server appears to be down, **Then** VYNX activates circuit breaker and stops requests for 30 seconds.
-3. **Given** a circuit breaker is active, **When** 30 seconds have passed, **Then** VYNX attempts one request to test if server is back.
+1. **Given** an image request fails with a transient error, **When** network is temporarily unavailable, **Then** CLOUD retries automatically with exponential backoff (100ms, 200ms, 400ms).
+2. **Given** an image request fails 3 times consecutively, **When** the server appears to be down, **Then** CLOUD activates circuit breaker and stops requests for 30 seconds.
+3. **Given** a circuit breaker is active, **When** 30 seconds have passed, **Then** CLOUD attempts one request to test if server is back.
 
 ---
 
 ### User Story 8 - Memory Pressure Awareness (Priority: P2)
 
-As a developer targeting Smart TVs with limited RAM, I want VYNX to detect memory pressure and aggressively manage cache to prevent application crashes.
+As a developer targeting Smart TVs with limited RAM, I want CLOUD to detect memory pressure and aggressively manage cache to prevent application crashes.
 
 **Why this priority**: Smart TVs have limited memory. Aggressive cache management prevents out-of-memory errors.
 
@@ -134,9 +134,9 @@ As a developer targeting Smart TVs with limited RAM, I want VYNX to detect memor
 
 **Acceptance Scenarios**:
 
-1. **Given** device memory usage exceeds 90%, **When** VYNX needs to cache an image, **Then** it aggressively evicts 50% of cache to free memory.
-2. **Given** memory pressure is detected, **When** a VynxImage component renders, **Then** it shows a low-resolution version if available.
-3. **Given** memory usage returns to normal, **When** VYNX caches new images, **Then** it resumes normal eviction policy.
+1. **Given** device memory usage exceeds 90%, **When** CLOUD needs to cache an image, **Then** it aggressively evicts 50% of cache to free memory.
+2. **Given** memory pressure is detected, **When** a CloudImage component renders, **Then** it shows a low-resolution version if available.
+3. **Given** memory usage returns to normal, **When** CLOUD caches new images, **Then** it resumes normal eviction policy.
 
 ---
 
@@ -152,10 +152,10 @@ As a user on a slow network connection, I want to see images load quickly even i
 
 **Acceptance Scenarios**:
 
-1. **Given** VYNX measures bandwidth < 0.5 Mbps (LOW), **When** fetching an uncached image, **Then** it requests the small variant and caches with upgradeable=true.
-2. **Given** VYNX measures bandwidth > 2 Mbps (HIGH), **When** fetching an uncached image, **Then** it requests full resolution and caches with upgradeable=false.
-3. **Given** images are cached at low quality with upgradeable=true, **When** connection improves and an event triggers (online/visibilitychange/bandwidthChange), **Then** VYNX silently fetches high quality and overwrites the cache blob.
-4. **Given** CDN does not support variants, **When** connection is slow, **Then** VYNX proceeds with normal fetch and marks as upgradeable=false.
+1. **Given** CLOUD measures bandwidth < 0.5 Mbps (LOW), **When** fetching an uncached image, **Then** it requests the small variant and caches with upgradeable=true.
+2. **Given** CLOUD measures bandwidth > 2 Mbps (HIGH), **When** fetching an uncached image, **Then** it requests full resolution and caches with upgradeable=false.
+3. **Given** images are cached at low quality with upgradeable=true, **When** connection improves and an event triggers (online/visibilitychange/bandwidthChange), **Then** CLOUD silently fetches high quality and overwrites the cache blob.
+4. **Given** CDN does not support variants, **When** connection is slow, **Then** CLOUD proceeds with normal fetch and marks as upgradeable=false.
 
 ---
 
@@ -169,7 +169,7 @@ As a user, I want to see images load progressively from blur to sharp so the exp
 
 **Acceptance Scenarios**:
 
-1. **Given** VynxImage renders with a blur placeholder, **When** the image loads, **Then** it crossfades from blur to sharp over 300ms.
+1. **Given** CloudImage renders with a blur placeholder, **When** the image loads, **Then** it crossfades from blur to sharp over 300ms.
 2. **Given** a low-quality placeholder URL is provided, **When** the component mounts, **Then** it displays the placeholder immediately before fetching the full image.
 3. **Given** the full image loads faster than expected, **When** the placeholder is still visible, **Then** it transitions immediately without waiting.
 
@@ -183,7 +183,7 @@ As a user, I want to see images load progressively from blur to sharp so the exp
 | Extremely large images (>50MB) | Configurable threshold, reject and show error state |
 | Device storage completely full | Aggressive eviction until space available, or reject new images with error |
 | Animated images (GIF, WebP) | Treated as regular images, animation preserved via ImageBitmap |
-| Multiple VynxImage request same uncached URL | Request deduplication via Worker - only one network request |
+| Multiple CloudImage request same uncached URL | Request deduplication via Worker - only one network request |
 | Same URL returns different content | ETag/Last-Modified validation, re-cache if content changed |
 | Worker thread crashes | Graceful degradation to main-thread fallback, log error |
 | Network fails repeatedly | Circuit breaker activates after 3 failures, stops requests for 30s |
@@ -198,11 +198,11 @@ As a user, I want to see images load progressively from blur to sharp so the exp
 ### Functional Requirements
 
 **Core Component (FR-001 to FR-006)**
-- **FR-001**: System MUST provide VynxImage, a React component that replaces the standard img tag with automatic caching.
-- **FR-002**: VynxImage MUST support src, alt, className, and style props compatible with standard img element.
-- **FR-003**: VynxImage MUST handle loading states (pending, loading, loaded, error) without requiring additional state management.
-- **FR-004**: VynxImage MUST prevent layout shifts by reserving space based on aspect ratio or explicit dimensions.
-- **FR-005**: System MUST provide a Provider component that initializes ImageEngine and makes cache accessible to VynxImage.
+- **FR-001**: System MUST provide CloudImage, a React component that replaces the standard img tag with automatic caching.
+- **FR-002**: CloudImage MUST support src, alt, className, and style props compatible with standard img element.
+- **FR-003**: CloudImage MUST handle loading states (pending, loading, loaded, error) without requiring additional state management.
+- **FR-004**: CloudImage MUST prevent layout shifts by reserving space based on aspect ratio or explicit dimensions.
+- **FR-005**: System MUST provide a Provider component that initializes ImageEngine and makes cache accessible to CloudImage.
 - **FR-006**: ImageEngine MUST coordinate network requests, cache operations, and Worker communication.
 
 **Platform Support (FR-007 to FR-010)**
@@ -235,14 +235,14 @@ As a user, I want to see images load progressively from blur to sharp so the exp
 - **FR-025**: System MUST support bandwidth-aware CDN delivery: request image size based on bandwidth classification (LOW→small, MEDIUM→medium, HIGH→full).
 - **FR-026**: Cache MUST store images with quality tier (low/medium/high) and upgradeable flag. When connection improves, silently fetch higher quality and update cache.
 - **FR-027**: System MUST react to browser events (online/offline, visibilitychange, connectionchange) to trigger cache upgrades.
-- **FR-028**: VynxImage MUST support progressive blur-up rendering with configurable placeholder.
+- **FR-028**: CloudImage MUST support progressive blur-up rendering with configurable placeholder.
 
 ---
 
 ### Key Entities
 
-- **VynxImage**: React component that wraps img functionality with caching, state management, and placeholder handling.
-- **VynxProvider**: React context provider that initializes ImageEngine and distributes configuration to child components.
+- **CloudImage**: React component that wraps img functionality with caching, state management, and placeholder handling.
+- **CloudProvider**: React context provider that initializes ImageEngine and distributes configuration to child components.
 - **ImageEngine**: Core orchestration module that coordinates cache operations, platform detection, and Worker communication.
 - **PlatformAdapter**: Interface for platform-specific storage operations (Web, Tizen, WebOS, Fallback).
 - **CacheEntry**: Data structure containing cached image URL, binary data, metadata (size, timestamps, access count), qualityTier (low/medium/high), and upgradeable flag.
@@ -262,7 +262,7 @@ As a user, I want to see images load progressively from blur to sharp so the exp
 - **SC-002**: Main thread never blocks for more than 2ms during any cache operation.
 - **SC-003**: Applications maintain 55+ fps during image-heavy scrolling on Smart TV devices.
 - **SC-004**: Previously viewed images remain accessible for at least 7 days without network connectivity.
-- **SC-005**: Developers can integrate VYNX into a new React app and see cache benefits within 5 minutes of installation.
+- **SC-005**: Developers can integrate CLOUD into a new React app and see cache benefits within 5 minutes of installation.
 - **SC-006**: Zero layout shift occurs when images load, verified by Layout Shift Score of 0.
 - **SC-007**: Cache hit rate exceeds 80% for typical navigation patterns where users revisit content.
 - **SC-008**: Memory usage stays within configured limits with automatic eviction of oldest items.
@@ -330,7 +330,7 @@ On new image write:
 
 ### Memory Pressure Handling
 
-Smart TVs have limited RAM. When memory pressure is detected, VYNX becomes aggressive:
+Smart TVs have limited RAM. When memory pressure is detected, CLOUD becomes aggressive:
 
 ```
 When performance.memory.usedJSHeapSize / jsHeapSizeLimit > 0.9:
@@ -368,7 +368,7 @@ State: OPEN (reset timer)
 
 ### Bandwidth Intelligence Architecture
 
-VYNX implements an event-driven bandwidth intelligence system that adapts image quality based on network conditions.
+CLOUD implements an event-driven bandwidth intelligence system that adapts image quality based on network conditions.
 
 #### BandwidthMonitor (Worker)
 
@@ -491,7 +491,7 @@ HIGH bandwidth:
 
 ## Assumptions
 
-1. **React as primary framework**: VynxImage component assumes React 18+ as the primary consumption framework, with potential for framework-agnostic core.
+1. **React as primary framework**: CloudImage component assumes React 18+ as the primary consumption framework, with potential for framework-agnostic core.
 2. **Modern JavaScript environments**: ES2020+ features and standard Web APIs available on target platforms.
 3. **Network-first with offline fallback**: Default behavior assumes connectivity; offline is a fallback mode.
 4. **Visual content priority**: Target applications (streaming, e-commerce, galleries) treat images as critical content, not decorative elements.
@@ -500,7 +500,7 @@ HIGH bandwidth:
 7. **CDN with variants support (optional)**: Bandwidth intelligence works best with CDN that supports size variants. Without it, feature degrades gracefully to normal fetch.
 8. **Memory pressure API available**: performance.memory is available in Chromium-based browsers. On other browsers, memory pressure detection is skipped.
 9. **Testing with playwright-cli**: Integration and e2e tests use the project's `playwright-cli` skill for efficient browser automation.
-10. **Demo app outside bundle**: Demo app located in /demos/ (outside packages/vynx) to ensure clean npm bundle that excludes demo code.
+10. **Demo app outside bundle**: Demo app located in /demos/ (outside packages/cloud) to ensure clean npm bundle that excludes demo code.
 11. **Distribution-ready**: Library bundle excludes /demos/ directory via vite config, ready for npm publish.
 
 ---

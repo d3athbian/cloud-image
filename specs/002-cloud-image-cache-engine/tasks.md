@@ -1,12 +1,12 @@
 ---
 
-description: "Task list for VYNX Engine - Visual Asset Orchestration System"
+description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ---
 
-# Tasks: VYNX Engine - Visual Asset Orchestration System
+# Tasks: CLOUD Engine - Visual Asset Orchestration System
 
-**Input**: Design documents from `specs/002-vynx-image-cache-engine/`  
+**Input**: Design documents from `specs/002-cloud-image-cache-engine/`  
 **Prerequisites**: plan.md (required), spec.md (required), data-model.md, contracts/, research.md
 
 **Note**: Tests are MANDATORY per Constitution (Test-First principle). All public APIs MUST have unit tests. Integration tests required for library contracts.
@@ -30,8 +30,8 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 **⚠️ This phase requires USER INPUT before proceeding**
 
 - [ ] T0.1 Create /scripts/setup-repository.sh - Interactive script that asks:
-  - Repository name (e.g., `vynx` or custom)
-  - npm scope (e.g., `@vynx/vynx` or custom)
+  - Repository name (e.g., `cloud` or custom)
+  - npm scope (e.g., `@cloudimage/cloud` or custom)
   - Git remote URL
   - Initial commit message
   - Branch protection (main/dev)
@@ -39,8 +39,8 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 **Script will prompt user with questions like:**
 ```bash
-? Repository name: vynx
-? npm scope (press enter for @vynx/vynx): 
+? Repository name: cloud
+? npm scope (press enter for @cloudimage/cloud): 
 ? Git remote URL (press enter to skip): 
 ? Initial branch (main): 
 ? Create GitHub Actions workflow? (Y/n)
@@ -51,7 +51,11 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Demo App & Testing
 
-- [ ] T141 Create demo app in /demos/vynx-demo/ (outside packages/vynx to exclude from bundle)
+- [ ] T141 Create demo app in /demos/cloud-demo/ using Vite + React 18+ (outside packages/cloud to exclude from bundle). Demo must include:
+  - Grid of 100+ images (use picsum.photos)
+  - Cache stats display (itemCount, totalSize)
+  - Network status indicator (online/offline, bandwidth classification)
+  - Controls (prefetch, clear cache)
 - [ ] T142 Configure vite.config to explicitly exclude /demos from npm bundle
 - [ ] T143 Generate playwright-cli scripts for:
   - Cache hit test (verify <50ms retrieval)
@@ -72,13 +76,13 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 **Purpose**: Initialize monorepo structure and configure build tools
 
-- [ ] T001 Initialize TypeScript 5.x project with strict mode in packages/vynx/
+- [ ] T001 Initialize TypeScript 5.x project with strict mode in packages/cloud/
 - [ ] T002 Configure Vite for library bundling with tree-shaking support
 - [ ] T003 Configure Vitest for unit testing with coverage thresholds
 - [ ] T004 Configure Playwright for integration/e2e testing (use `playwright-cli` skill)
 - [ ] T005 [P] Create package.json with exports map for tree-shaking
 - [ ] T006 [P] Setup ESLint + Prettier with checked-in config
-- [ ] T007 [P] Create packages/vynx/src/ directory structure (core/, adapters/, worker/, react/)
+- [ ] T007 [P] Create packages/cloud/src/ directory structure (core/, adapters/, worker/, react/)
 - [ ] T008 Create initial tsconfig.json extending base strict config
 
 ---
@@ -91,56 +95,56 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for Foundational Phase (MANDATORY - TDD)
 
-- [ ] T009 Write unit tests for CacheEntry validation rules in packages/vynx/tests/unit/cache-entry.test.ts
-- [ ] T010 Write unit tests for CacheConfig validation rules in packages/vynx/tests/unit/cache-config.test.ts
-- [ ] T011 Write unit tests for WorkerMessage serialization in packages/vynx/tests/unit/worker-message.test.ts
+- [ ] T009 Write unit tests for CacheEntry validation rules in packages/cloud/tests/unit/cache-entry.test.ts
+- [ ] T010 Write unit tests for CacheConfig validation rules in packages/cloud/tests/unit/cache-config.test.ts
+- [ ] T011 Write unit tests for WorkerMessage serialization in packages/cloud/tests/unit/worker-message.test.ts
 
 ### Implementation for Foundational Phase
 
-- [ ] T012 Create packages/vynx/src/core/types.ts with CacheEntry, CacheConfig, CacheStats, PlatformType, CircuitBreakerState interfaces
-- [ ] T013 Create packages/vynx/src/core/engine.ts with ImageEngine class skeleton
-- [ ] T014 Create packages/vynx/src/core/cache.ts with LRU/TTL eviction logic:
+- [ ] T012 Create packages/cloud/src/core/types.ts with CacheEntry, CacheConfig, CacheStats, PlatformType, CircuitBreakerState interfaces
+- [ ] T013 Create packages/cloud/src/core/engine.ts with ImageEngine class skeleton
+- [ ] T014 Create packages/cloud/src/core/cache.ts with LRU/TTL eviction logic:
   - 90% threshold trigger
   - LRU dual scoring (accessCount × 0.6 + recencyFactor × 0.4)
   - TTL expiration check (always evicts expired first)
   - 20% batch eviction on trigger
-- [ ] T015 Create packages/vynx/src/core/queue.ts with priority queue implementation
-- [ ] T016 Create packages/vynx/src/worker/worker.ts with embedded Blob URL pattern
-- [ ] T017 [P] Create packages/vynx/src/worker/fetch.ts with network operations, deduplication, and ImageBitmap decoding
-- [ ] T018 [P] Create packages/vynx/src/worker/storage.ts with adapter communication
-- [ ] T019 Create packages/vynx/src/worker/compression.ts with ArrayBuffer transfer handling
-- [ ] T020 Create packages/vynx/src/contracts/worker-protocol.ts with message type definitions
+- [ ] T015 Create packages/cloud/src/core/queue.ts with priority queue implementation
+- [ ] T016 Create packages/cloud/src/worker/worker.ts with embedded Blob URL pattern
+- [ ] T017 [P] Create packages/cloud/src/worker/fetch.ts with network operations, deduplication, and ImageBitmap decoding
+- [ ] T018 [P] Create packages/cloud/src/worker/storage.ts with adapter communication
+- [ ] T019 Create packages/cloud/src/worker/compression.ts with ArrayBuffer transfer handling
+- [ ] T020 Create packages/cloud/src/contracts/worker-protocol.ts with message type definitions
 - [ ] T021 Implement Worker message handler with request-response pattern
 
 **Checkpoint**: Foundation ready - ImageEngine can coordinate cache + Worker operations
 
 ---
 
-## Phase 3: User Story 1 - Instant Image Display via VynxImage Component (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - Instant Image Display via CloudImage Component (Priority: P1) 🎯 MVP
 
-**Goal**: VynxImage component as drop-in img replacement with automatic caching
+**Goal**: CloudImage component as drop-in img replacement with automatic caching
 
-**Independent Test**: Render VynxImage with URL, verify display, cache retrieval (<50ms), CLS prevention
+**Independent Test**: Render CloudImage with URL, verify display, cache retrieval (<50ms), CLS prevention
 
 ### Tests for User Story 1 (MANDATORY - TDD)
 
-- [ ] T022 Write unit tests for VynxImage component states in packages/vynx/tests/unit/image-component.test.tsx
-- [ ] T023 Write unit tests for VynxImage loading states in packages/vynx/tests/unit/image-states.test.tsx
-- [ ] T024 Write integration tests for VynxImage cache hit scenario in packages/vynx/tests/integration/image-cache-hit.test.tsx
-- [ ] T025 Write integration tests for VynxImage CLS prevention in packages/vynx/tests/integration/image-cls.test.tsx
+- [ ] T022 Write unit tests for CloudImage component states in packages/cloud/tests/unit/image-component.test.tsx
+- [ ] T023 Write unit tests for CloudImage loading states in packages/cloud/tests/unit/image-states.test.tsx
+- [ ] T024 Write integration tests for CloudImage cache hit scenario in packages/cloud/tests/integration/image-cache-hit.test.tsx
+- [ ] T025 Write integration tests for CloudImage CLS prevention in packages/cloud/tests/integration/image-cls.test.tsx
 
 ### Implementation for User Story 1
 
-- [ ] T026 [P] Create packages/vynx/src/react/image.tsx with VynxImage component
-- [ ] T027 [P] Implement VynxImage state machine (pending, loading, loaded, error, offline)
+- [ ] T026 [P] Create packages/cloud/src/react/image.tsx with CloudImage component
+- [ ] T027 [P] Implement CloudImage state machine (pending, loading, loaded, error, offline)
 - [ ] T026.5 [P] Implement priority hints: `fetchpriority="high"` for above-fold images, `loading="lazy"` for below-fold (viewport detection via IntersectionObserver)
-- [ ] T028 [P] Implement aspect-ratio placeholder for CLS prevention in VynxImage
-- [ ] T029 Implement useSyncExternalStore integration for cache state in packages/vynx/src/react/hooks.ts
-- [ ] T030 Create packages/vynx/src/contracts/image-contract.ts with VynxImageProps interface
-- [ ] T031 Integrate VynxImage with Worker communication via engine.get()
-- [ ] T032 Add onCacheHit and onCacheMiss callbacks to VynxImage
+- [ ] T028 [P] Implement aspect-ratio placeholder for CLS prevention in CloudImage
+- [ ] T029 Implement useSyncExternalStore integration for cache state in packages/cloud/src/react/hooks.ts
+- [ ] T030 Create packages/cloud/src/contracts/image-contract.ts with CloudImageProps interface
+- [ ] T031 Integrate CloudImage with Worker communication via engine.get()
+- [ ] T032 Add onCacheHit and onCacheMiss callbacks to CloudImage
 
-**Checkpoint**: VynxImage works as img replacement with automatic caching and CLS prevention
+**Checkpoint**: CloudImage works as img replacement with automatic caching and CLS prevention
 
 ---
 
@@ -152,19 +156,19 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 2 (MANDATORY - TDD)
 
-- [ ] T033 Write unit tests for platform detection in packages/vynx/tests/unit/platform-detection.test.ts
-- [ ] T034 Write unit tests for WebAdapter (IndexedDB) in packages/vynx/tests/unit/adapters/web.test.ts
-- [ ] T035 Write unit tests for MemoryAdapter in packages/vynx/tests/unit/adapters/memory.test.ts
-- [ ] T036 Write integration tests for adapter fallback chain in packages/vynx/tests/integration/adapter-fallback.test.ts
+- [ ] T033 Write unit tests for platform detection in packages/cloud/tests/unit/platform-detection.test.ts
+- [ ] T034 Write unit tests for WebAdapter (IndexedDB) in packages/cloud/tests/unit/adapters/web.test.ts
+- [ ] T035 Write unit tests for MemoryAdapter in packages/cloud/tests/unit/adapters/memory.test.ts
+- [ ] T036 Write integration tests for adapter fallback chain in packages/cloud/tests/integration/adapter-fallback.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T037 [P] Create packages/vynx/src/adapters/web.ts with IndexedDB implementation using idb
-- [ ] T038 [P] Create packages/vynx/src/adapters/memory.ts with in-memory LRU cache
-- [ ] T039 [P] Create packages/vynx/src/adapters/tizen.ts with Tizen FileSystem API adapter
-- [ ] T040 [P] Create packages/vynx/src/adapters/webos.ts with WebOS FileSystem API adapter
-- [ ] T041 Create packages/vynx/src/adapters/index.ts with detectPlatform() and createAdapter() factory
-- [ ] T042 Create packages/vynx/src/adapters/factory.ts implementing auto-detection logic
+- [ ] T037 [P] Create packages/cloud/src/adapters/web.ts with IndexedDB implementation using idb
+- [ ] T038 [P] Create packages/cloud/src/adapters/memory.ts with in-memory LRU cache
+- [ ] T039 [P] Create packages/cloud/src/adapters/tizen.ts with Tizen FileSystem API adapter
+- [ ] T040 [P] Create packages/cloud/src/adapters/webos.ts with WebOS FileSystem API adapter
+- [ ] T041 Create packages/cloud/src/adapters/index.ts with detectPlatform() and createAdapter() factory
+- [ ] T042 Create packages/cloud/src/adapters/factory.ts implementing auto-detection logic
 - [ ] T043 Integrate platform adapter into ImageEngine initialization
 - [ ] T044 Add platform override config option for testing
 
@@ -180,16 +184,16 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 3 (MANDATORY - TDD)
 
-- [ ] T045 Write unit tests for Worker message throughput in packages/vynx/tests/unit/worker-throughput.test.ts
-- [ ] T046 Write integration tests for main thread isolation in packages/vynx/tests/integration/main-thread-isolation.test.ts
-- [ ] T047 Write performance tests for 2ms rule compliance in packages/vynx/tests/performance/thread-blocking.test.ts
-- [ ] T048 Write unit tests for ImageBitmap decoding in Worker in packages/vynx/tests/unit/imagebitmap-decoding.test.ts
+- [ ] T045 Write unit tests for Worker message throughput in packages/cloud/tests/unit/worker-throughput.test.ts
+- [ ] T046 Write integration tests for main thread isolation in packages/cloud/tests/integration/main-thread-isolation.test.ts
+- [ ] T047 Write performance tests for 2ms rule compliance in packages/cloud/tests/performance/thread-blocking.test.ts
+- [ ] T048 Write unit tests for ImageBitmap decoding in Worker in packages/cloud/tests/unit/imagebitmap-decoding.test.ts
 
 ### Implementation for User Story 3
 
 - [ ] T049 [P] Implement ImageBitmap decoding in Worker using createImageBitmap() API
 - [ ] T050 [P] Implement Worker message batching for high-frequency operations
-- [ ] T051 Create performance monitor in packages/vynx/src/core/performance.ts
+- [ ] T051 Create performance monitor in packages/cloud/src/core/performance.ts
 - [ ] T052 Add main thread blocking detection and reporting
 - [ ] T053 Implement Worker crash detection and graceful degradation
 - [ ] T054 Add structured logging with correlation IDs to all Worker operations
@@ -207,16 +211,16 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 4 (MANDATORY - TDD)
 
-- [ ] T056 Write unit tests for NetworkStatus detection in packages/vynx/tests/unit/network-status.test.ts
-- [ ] T057 Write integration tests for offline cache retrieval in packages/vynx/tests/integration/offline-retrieval.test.ts
-- [ ] T058 Write integration tests for network reconnection in packages/vynx/tests/integration/network-reconnect.test.ts
+- [ ] T056 Write unit tests for NetworkStatus detection in packages/cloud/tests/unit/network-status.test.ts
+- [ ] T057 Write integration tests for offline cache retrieval in packages/cloud/tests/integration/offline-retrieval.test.ts
+- [ ] T058 Write integration tests for network reconnection in packages/cloud/tests/integration/network-reconnect.test.ts
 
 ### Implementation for User Story 4
 
 - [ ] T059 [P] Implement network status monitoring using Navigator.onLine
-- [ ] T060 [P] Create offline detection and caching strategy in packages/vynx/src/core/offline.ts
-- [ ] T061 Update VynxImage to show offline state when network unavailable
-- [ ] T062 Add network.online, network.bandwidth (BandwidthClassification), network.mbps to useVynx() return type
+- [ ] T060 [P] Create offline detection and caching strategy in packages/cloud/src/core/offline.ts
+- [ ] T061 Update CloudImage to show offline state when network unavailable
+- [ ] T062 Add network.online, network.bandwidth (BandwidthClassification), network.mbps to useCloud() return type
 - [ ] T063 Implement automatic retry when network reconnects
 
 **Checkpoint**: Cached images display offline, uncached show appropriate offline state
@@ -227,25 +231,25 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 **Goal**: Zero-config Provider setup, 5-minute integration time
 
-**Independent Test**: New React app + npm install + Provider + VynxImage = working
+**Independent Test**: New React app + npm install + Provider + CloudImage = working
 
 ### Tests for User Story 5 (MANDATORY - TDD)
 
-- [ ] T064 Write unit tests for VynxProvider initialization in packages/vynx/tests/unit/provider.test.tsx
-- [ ] T065 Write integration tests for Provider context propagation in packages/vynx/tests/integration/provider-context.test.tsx
-- [ ] T066 Write integration tests for zero-config defaults in packages/vynx/tests/integration/zero-config.test.tsx
+- [ ] T064 Write unit tests for CloudProvider initialization in packages/cloud/tests/unit/provider.test.tsx
+- [ ] T065 Write integration tests for Provider context propagation in packages/cloud/tests/integration/provider-context.test.tsx
+- [ ] T066 Write integration tests for zero-config defaults in packages/cloud/tests/integration/zero-config.test.tsx
 
 ### Implementation for User Story 5
 
-- [ ] T067 [P] Create packages/vynx/src/react/provider.tsx with VynxProvider component
+- [ ] T067 [P] Create packages/cloud/src/react/provider.tsx with CloudProvider component
 - [ ] T068 [P] Implement Worker creation via Blob URL in Provider
-- [ ] T069 [P] Create React Context and distribution via useVynx() hook
-- [ ] T070 Create packages/vynx/src/contracts/provider-contract.ts with VynxProviderConfig interface
+- [ ] T069 [P] Create React Context and distribution via useCloud() hook
+- [ ] T070 Create packages/cloud/src/contracts/provider-contract.ts with CloudProviderConfig interface
 - [ ] T071 Implement default configuration with sensible values (100MB, 7 days, 20MB memory)
-- [ ] T072 Create packages/vynx/src/index.ts with public API exports
+- [ ] T072 Create packages/cloud/src/index.ts with public API exports
 - [ ] T073 Generate package.json exports map for tree-shaking (core, react, adapters individually importable)
 
-**Checkpoint**: Developer installs package, wraps app in Provider, uses VynxImage - works out of box
+**Checkpoint**: Developer installs package, wraps app in Provider, uses CloudImage - works out of box
 
 ---
 
@@ -257,17 +261,17 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 6 (MANDATORY - TDD)
 
-- [ ] T074 Write unit tests for LRU eviction algorithm with dual scoring in packages/vynx/tests/unit/lru-eviction.test.ts
-- [ ] T075 Write unit tests for TTL expiration and TTL override of LRU in packages/vynx/tests/unit/ttl-expiration.test.ts
-- [ ] T076 Write integration tests for 90% threshold trigger and 20% batch eviction in packages/vynx/tests/integration/auto-eviction.test.ts
-- [ ] T077 Write integration tests for prefetch queue in packages/vynx/tests/integration/prefetch-queue.test.ts
+- [ ] T074 Write unit tests for LRU eviction algorithm with dual scoring in packages/cloud/tests/unit/lru-eviction.test.ts
+- [ ] T075 Write unit tests for TTL expiration and TTL override of LRU in packages/cloud/tests/unit/ttl-expiration.test.ts
+- [ ] T076 Write integration tests for 90% threshold trigger and 20% batch eviction in packages/cloud/tests/integration/auto-eviction.test.ts
+- [ ] T077 Write integration tests for prefetch queue in packages/cloud/tests/integration/prefetch-queue.test.ts
 
 ### Implementation for User Story 6
 
-- [ ] T078 [P] Complete LRU eviction with dual scoring: Score = (accessCount × 0.6) + (recencyFactor × 0.4) in packages/vynx/src/core/cache.ts
+- [ ] T078 [P] Complete LRU eviction with dual scoring: Score = (accessCount × 0.6) + (recencyFactor × 0.4) in packages/cloud/src/core/cache.ts
 - [ ] T079 [P] Implement TTL override: expired entries ALWAYS evicted before LRU calculation
-- [ ] T080 [P] Create prefetch queue with priority support in packages/vynx/src/core/prefetch.ts
-- [ ] T081 Expose cache.clear(), cache.invalidate(url), cache.prefetch(urls[]) via useVynx() hook
+- [ ] T080 [P] Create prefetch queue with priority support in packages/cloud/src/core/prefetch.ts
+- [ ] T081 Expose cache.clear(), cache.invalidate(url), cache.prefetch(urls[]) via useCloud() hook
 - [ ] T082 Expose cache.getStats() returning CacheStats (itemCount, totalSize, hitRate, etc.)
 - [ ] T083 Add manual invalidation endpoint to Worker protocol
 - [ ] Note: Request deduplication is part of T017 (Worker fetch.ts)
@@ -284,18 +288,18 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 7 (MANDATORY - TDD)
 
-- [ ] T084 Write unit tests for exponential backoff in packages/vynx/tests/unit/exponential-backoff.test.ts
-- [ ] T085 Write unit tests for circuit breaker state machine in packages/vynx/tests/unit/circuit-breaker.test.ts
-- [ ] T086 Write integration tests for retry behavior in packages/vynx/tests/integration/retry-behavior.test.ts
-- [ ] T087 Write integration tests for circuit breaker activation/deactivation in packages/vynx/tests/integration/circuit-breaker.test.ts
+- [ ] T084 Write unit tests for exponential backoff in packages/cloud/tests/unit/exponential-backoff.test.ts
+- [ ] T085 Write unit tests for circuit breaker state machine in packages/cloud/tests/unit/circuit-breaker.test.ts
+- [ ] T086 Write integration tests for retry behavior in packages/cloud/tests/integration/retry-behavior.test.ts
+- [ ] T087 Write integration tests for circuit breaker activation/deactivation in packages/cloud/tests/integration/circuit-breaker.test.ts
 
 ### Implementation for User Story 7
 
-- [ ] T088 [P] Implement exponential backoff in packages/vynx/src/core/retry.ts (100ms, 200ms, 400ms)
+- [ ] T088 [P] Implement exponential backoff in packages/cloud/src/core/retry.ts (100ms, 200ms, 400ms)
 - [ ] T089 [P] Implement CircuitBreaker class with states: CLOSED → OPEN → HALF_OPEN → CLOSED
 - [ ] T090 Create CircuitBreaker configuration (3 failures = OPEN, 30s wait)
 - [ ] T091 Integrate CircuitBreaker into Worker fetch logic
-- [ ] T092 Expose circuit breaker status via useVynx() hook (circuitBreaker.state, circuitBreaker.failures)
+- [ ] T092 Expose circuit breaker status via useCloud() hook (circuitBreaker.state, circuitBreaker.failures)
 - [ ] T093 Add circuit breaker events for observability (open, close, halfOpen)
 
 **Checkpoint**: Network failures handled gracefully, circuit breaker prevents request spam
@@ -308,12 +312,12 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 8 (MANDATORY - TDD)
 
-- [ ] T094 Write unit tests for memory pressure detection in packages/vynx/tests/unit/memory-pressure.test.ts
-- [ ] T095 Write integration tests for aggressive eviction when memory > 90% in packages/vynx/tests/integration/memory-pressure-eviction.test.ts
+- [ ] T094 Write unit tests for memory pressure detection in packages/cloud/tests/unit/memory-pressure.test.ts
+- [ ] T095 Write integration tests for aggressive eviction when memory > 90% in packages/cloud/tests/integration/memory-pressure-eviction.test.ts
 
 ### Implementation for User Story 8
 
-- [ ] T096 [P] Create memory monitor in packages/vynx/src/core/memory.ts using performance.memory API
+- [ ] T096 [P] Create memory monitor in packages/cloud/src/core/memory.ts using performance.memory API
 - [ ] T097 [P] Implement aggressive eviction: when memory > 90%, evict 50% of cache
 - [ ] T098 Create memory pressure events for observability
 - [ ] T099 Integrate memory monitoring into cache eviction logic
@@ -334,19 +338,19 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for Bandwidth Intelligence (MANDATORY - TDD)
 
-- [ ] T101 Write unit tests for bandwidth ring buffer sampling in packages/vynx/tests/unit/bandwidth-sampling.test.ts
-- [ ] T102 Write unit tests for bandwidth classification (LOW/MEDIUM/HIGH thresholds) in packages/vynx/tests/unit/bandwidth-classification.test.ts
-- [ ] T103 Write unit tests for CDN variant URL generation in packages/vynx/tests/unit/cdn-variants.test.ts
-- [ ] T104 Write integration tests for event-based triggers (online/offline/visibilitychange) in packages/vynx/tests/integration/bandwidth-triggers.test.ts
-- [ ] T105 Write integration tests for silent cache upgrade in packages/vynx/tests/integration/silent-upgrade.test.ts
+- [ ] T101 Write unit tests for bandwidth ring buffer sampling in packages/cloud/tests/unit/bandwidth-sampling.test.ts
+- [ ] T102 Write unit tests for bandwidth classification (LOW/MEDIUM/HIGH thresholds) in packages/cloud/tests/unit/bandwidth-classification.test.ts
+- [ ] T103 Write unit tests for CDN variant URL generation in packages/cloud/tests/unit/cdn-variants.test.ts
+- [ ] T104 Write integration tests for event-based triggers (online/offline/visibilitychange) in packages/cloud/tests/integration/bandwidth-triggers.test.ts
+- [ ] T105 Write integration tests for silent cache upgrade in packages/cloud/tests/integration/silent-upgrade.test.ts
 
 ### Implementation for Bandwidth Intelligence
 
-- [ ] T106 [P] Create BandwidthMonitor class in packages/vynx/src/core/bandwidth.ts with ring buffer (10 samples)
+- [ ] T106 [P] Create BandwidthMonitor class in packages/cloud/src/core/bandwidth.ts with ring buffer (10 samples)
 - [ ] T107 [P] Implement bandwidth sampling: bytes / download_time per request
 - [ ] T108 [P] Implement connection classification: LOW (<0.5Mbps), MEDIUM (0.5-2Mbps), HIGH (>2Mbps)
 - [ ] T109 Implement fallback to RTT when navigator.connection unavailable
-- [ ] T110 Create CDN adapter interface in packages/vynx/src/core/cdn-adapter.ts
+- [ ] T110 Create CDN adapter interface in packages/cloud/src/core/cdn-adapter.ts
 - [ ] T111 Implement URL variant generator based on bandwidth (e.g., img.jpg?size=small for LOW)
 - [ ] T112 Create config for CDN variants: { domain: 'cdn.com', variants: ['small', 'medium', 'large'] }
 - [ ] T113 Update CacheEntry to include qualityTier ('low'/'medium'/'high') and upgradeable flag
@@ -364,15 +368,15 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for Progressive Rendering (MANDATORY - TDD)
 
-- [ ] T117 Write unit tests for blur placeholder rendering in packages/vynx/tests/unit/blur-placeholder.test.ts
-- [ ] T118 Write unit tests for crossfade transition timing in packages/vynx/tests/unit/crossfade-transition.test.ts
-- [ ] T119 Write integration tests for progressive image loading in packages/vynx/tests/integration/progressive-loading.test.ts
+- [ ] T117 Write unit tests for blur placeholder rendering in packages/cloud/tests/unit/blur-placeholder.test.ts
+- [ ] T118 Write unit tests for crossfade transition timing in packages/cloud/tests/unit/crossfade-transition.test.ts
+- [ ] T119 Write integration tests for progressive image loading in packages/cloud/tests/integration/progressive-loading.test.ts
 
 ### Implementation for Progressive Rendering
 
-- [ ] T120 [P] Implement blur placeholder in packages/vynx/src/react/image.tsx
+- [ ] T120 [P] Implement blur placeholder in packages/cloud/src/react/image.tsx
 - [ ] T121 [P] Implement crossfade transition (opacity animation, 300ms ease-out)
-- [ ] T122 Add placeholder prop support: VynxImage placeholder="blur-data-url" or placeholder="low-res-url"
+- [ ] T122 Add placeholder prop support: CloudImage placeholder="blur-data-url" or placeholder="low-res-url"
 - [ ] T123 Handle animation cancellation if user scrolls away before transition completes
 
 **Checkpoint**: Images load smoothly with blur-up effect, no jarring transitions
@@ -385,10 +389,10 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 ### Tests for Edge Cases (MANDATORY - TDD)
 
-- [ ] T124 Write unit tests for corrupted cache entry detection in packages/vynx/tests/unit/corrupted-cache.test.ts
-- [ ] T125 Write unit tests for large image rejection (>50MB) in packages/vynx/tests/unit/large-image.test.ts
-- [ ] T126 Write integration tests for animated image handling in packages/vynx/tests/integration/animated-images.test.ts
-- [ ] T127 Write integration tests for content-change detection in packages/vynx/tests/integration/content-change.test.ts
+- [ ] T124 Write unit tests for corrupted cache entry detection in packages/cloud/tests/unit/corrupted-cache.test.ts
+- [ ] T125 Write unit tests for large image rejection (>50MB) in packages/cloud/tests/unit/large-image.test.ts
+- [ ] T126 Write integration tests for animated image handling in packages/cloud/tests/integration/animated-images.test.ts
+- [ ] T127 Write integration tests for content-change detection in packages/cloud/tests/integration/content-change.test.ts
 
 ### Implementation for Edge Cases
 
@@ -405,12 +409,12 @@ description: "Task list for VYNX Engine - Visual Asset Orchestration System"
 
 **Purpose**: Integration testing, performance validation, documentation
 
-- [ ] T132 [P] Write e2e tests for complete user flows in tests/e2e/vynx-flows.test.ts (use `playwright-cli` skill)
+- [ ] T132 [P] Write e2e tests for complete user flows in tests/e2e/cloud-flows.test.ts (use `playwright-cli` skill)
 - [ ] T133 [P] Write platform-specific tests for Smart TV scenarios in tests/platform/smart-tv.test.ts (use `playwright-cli` skill)
-- [ ] T134 Create performance benchmark suite in packages/vynx/tests/performance/benchmarks.ts
+- [ ] T134 Create performance benchmark suite in packages/cloud/tests/performance/benchmarks.ts
 - [ ] T135 Validate <100KB initial bundle size (tree-shaking working)
 - [ ] T136 [P] Update README.md with installation and quickstart
-- [ ] T137 [P] Create packages/vynx/README.md with API documentation
+- [ ] T137 [P] Create packages/cloud/README.md with API documentation
 - [ ] T138 Generate CHANGELOG.md with version tracking
 - [ ] T139 Run full test suite and verify 100% pass rate
 - [ ] T140 Verify coverage above 80% for new code
@@ -479,8 +483,8 @@ US7        US8      US9     (Blur)
 
 1. Complete Phase 1: Setup
 2. Complete Phase 2: Foundational (BLOCKS ALL)
-3. Complete Phase 3: User Story 1 (VynxImage)
-4. **STOP and VALIDATE**: VynxImage caches images, displays <50ms, no CLS
+3. Complete Phase 3: User Story 1 (CloudImage)
+4. **STOP and VALIDATE**: CloudImage caches images, displays <50ms, no CLS
 5. Demo to validate core value proposition
 
 ### MVP+ (Phases 4-8)
@@ -543,7 +547,7 @@ US7        US8      US9     (Blur)
 - TypeScript setup, Vite, Vitest
 - Core cache with LRU/TTL
 - Web Worker infrastructure
-- VynxImage component
+- CloudImage component
 
 ### MVP+ (Phases 4-8): 48 tasks
 - Platform adapters (Web/Tizen/WebOS)

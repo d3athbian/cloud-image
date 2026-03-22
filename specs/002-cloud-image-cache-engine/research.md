@@ -1,7 +1,7 @@
-# Research: VYNX Engine - Technical Decisions
+# Research: CLOUD Engine - Technical Decisions
 
 **Date**: 2026-03-19  
-**Feature**: 002-vynx-image-cache-engine
+**Feature**: 002-cloud-image-cache-engine
 
 ---
 
@@ -202,7 +202,7 @@ function useCacheStatus(url: string) {
 
 **Implementation**:
 ```tsx
-<div style={{ aspectRatio: width / height }} class="vynx-placeholder">
+<div style={{ aspectRatio: width / height }} class="cloud-placeholder">
   <img loading="lazy" ... />
 </div>
 ```

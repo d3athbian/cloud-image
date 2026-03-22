@@ -1,4 +1,4 @@
-# Quickstart: VYNX Engine
+# Quickstart: CLOUD Engine
 
 **Time to complete**: ~5 minutes  
 **Prerequisites**: React 18+ project with npm/pnpm/yarn
@@ -8,11 +8,11 @@
 ## Installation
 
 ```bash
-npm install vynx
+npm install @cloudimage/cloud
 # or
-pnpm add vynx
+pnpm add @cloudimage/cloud
 # or
-yarn add vynx
+yarn add @cloudimage/cloud
 ```
 
 ---
@@ -21,13 +21,13 @@ yarn add vynx
 
 ```tsx
 // src/App.tsx
-import { VynxProvider } from 'vynx';
+import { CloudProvider } from '@cloudimage/cloud';
 
 function App() {
   return (
-    <VynxProvider>
+    <CloudProvider>
       {/* Your app content */}
-    </VynxProvider>
+    </CloudProvider>
   );
 }
 ```
@@ -39,7 +39,7 @@ function App() {
 
 ---
 
-## Step 2: Replace `<img>` with `<VynxImage>` (1 minute)
+## Step 2: Replace `<img>` with `<CloudImage>` (1 minute)
 
 ```tsx
 // Before (vanilla img)
@@ -50,10 +50,10 @@ function App() {
   height={600}
 />
 
-// After (VYNX)
-import { VynxImage } from 'vynx';
+// After (CLOUD)
+import { CloudImage } from '@cloudimage/cloud';
 
-<VynxImage 
+<CloudImage 
   src="https://example.com/hero.jpg" 
   alt="Hero image" 
   width={800} 
@@ -72,7 +72,7 @@ import { VynxImage } from 'vynx';
 
 ```tsx
 // Always specify dimensions for CLS prevention
-<VynxImage 
+<CloudImage 
   src="https://example.com/gallery/photo.jpg"
   width={1920}
   height={1080}
@@ -85,7 +85,7 @@ import { VynxImage } from 'vynx';
 ## Advanced: Custom Configuration
 
 ```tsx
-<VynxProvider
+<CloudProvider
   config={{
     maxSize: 200 * 1024 * 1024, // 200MB cache
     defaultTTL: 14 * 24 * 60 * 60 * 1000, // 14 days
@@ -94,7 +94,7 @@ import { VynxImage } from 'vynx';
   }}
 >
   <App />
-</VynxProvider>
+</CloudProvider>
 ```
 
 ---
@@ -102,10 +102,10 @@ import { VynxImage } from 'vynx';
 ## Advanced: Programmatic Cache Control
 
 ```tsx
-import { useVynx } from 'vynx';
+import { useCloud } from '@cloudimage/cloud';
 
 function GalleryControls() {
-  const { cache, network } = useVynx();
+  const { cache, network } = useCloud();
   
   const handlePrefetch = async () => {
     await cache.prefetch([
@@ -164,7 +164,7 @@ Falls back to memory caching by default.
 2. Verify network is accessible
 3. Try with debug mode enabled:
    ```tsx
-   <VynxProvider config={{ debug: true }}>
+   <CloudProvider config={{ debug: true }}>
    ```
 
 ### Layout shifts occurring
@@ -172,10 +172,10 @@ Falls back to memory caching by default.
 1. Always provide width/height props
 2. Use aspect ratio for responsive images:
    ```tsx
-   <VynxImage 
-     src="..." 
-     style={{ aspectRatio: '16/9' }}
-   />
+<CloudImage 
+      src="..." 
+      style={{ aspectRatio: '16/9' }}
+    />
    ```
 
 ### Slow on Smart TV
@@ -183,7 +183,7 @@ Falls back to memory caching by default.
 1. Reduce memory tier size (TVs have limited RAM)
 2. Clear cache and rebuild:
    ```tsx
-   const { cache } = useVynx();
+   const { cache } = useCloud();
    await cache.clear();
    ```
 

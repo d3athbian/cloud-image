@@ -4,13 +4,13 @@ Auto-generated from all feature plans. Last updated: 2026-03-19
 
 ## Active Technologies
 
-- TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression) (002-vynx-image-cache-engine)
+- TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression) (002-cloud-image-cache-engine)
 
 ## Project Structure
 
 ```text
 packages/
-├── vynx/                    # Main library
+├── cloud/                    # Main library
 │   ├── src/
 │   │   ├── core/           # Framework-agnostic engine
 │   │   │   ├── cache.ts    # LRU/TTL eviction (90% trigger, dual scoring)
@@ -21,10 +21,10 @@ packages/
 │   │   │   └── cdn-adapter.ts
 │   │   ├── adapters/       # Platform storage (tree-shakeable)
 │   │   ├── worker/         # Web Worker + ImageBitmap decoding
-│   │   ├── react/          # VynxImage, VynxProvider, useVynx
+│   │   ├── react/          # CloudImage, CloudProvider, useCloud
 │   │   └── index.ts
 │   └── tests/
-└── vynx-devtools/         # Developer tools
+└── cloud-devtools/         # Developer tools
 
 tests/
 ├── e2e/                    # End-to-end tests
@@ -62,11 +62,11 @@ TypeScript 5.x (strict mode): Follow standard conventions
 
 ## Recent Changes
 
-- 002-vynx-image-cache-engine: Added TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression)
-- 002-vynx-image-cache-engine: Added Network Resilience (Retry + Circuit Breaker)
-- 002-vynx-image-cache-engine: Added Memory Pressure Awareness
-- 002-vynx-image-cache-engine: Added Latency-Aware CDN delivery
-- 002-vynx-image-cache-engine: Added ImageBitmap Decode Async
+- 002-cloud-image-cache-engine: Added TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression)
+- 002-cloud-image-cache-engine: Added Network Resilience (Retry + Circuit Breaker)
+- 002-cloud-image-cache-engine: Added Memory Pressure Awareness
+- 002-cloud-image-cache-engine: Added Bandwidth Intelligence delivery
+- 002-cloud-image-cache-engine: Added ImageBitmap Decode Async
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

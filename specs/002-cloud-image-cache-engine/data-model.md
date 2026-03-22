@@ -1,7 +1,7 @@
-# Data Model: VYNX Engine
+# Data Model: CLOUD Engine
 
 **Date**: 2026-03-19  
-**Feature**: 002-vynx-image-cache-engine
+**Feature**: 002-cloud-image-cache-engine
 
 ---
 
@@ -248,12 +248,12 @@ interface BandwidthEvent {
 
 ## React Component Types
 
-### VynxImageProps
+### CloudImageProps
 
-Props for the VynxImage component (extends native img).
+Props for the CloudImage component (extends native img).
 
 ```typescript
-interface VynxImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+interface CloudImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   /** Image source URL */
   src: string;
   
@@ -282,15 +282,14 @@ interface VynxImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   onCacheMiss?: () => void;
 }
 
-type VynxImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline';
-```
+type CloudImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline';
 
-### VynxProviderConfig
+### CloudProviderConfig
 
-Configuration passed to VynxProvider.
+Configuration passed to CloudProvider.
 
 ```typescript
-interface VynxProviderConfig {
+interface CloudProviderConfig {
   /** Cache configuration */
   cache?: Partial<CacheConfig>;
   
@@ -308,12 +307,12 @@ interface VynxProviderConfig {
 }
 ```
 
-### useVynxReturn
+### useCloudReturn
 
-Return type for useVynx hook.
+Return type for useCloud hook.
 
 ```typescript
-interface useVynxReturn {
+interface useCloudReturn {
   /** Cache API */
   cache: {
     /** Get cached image */
@@ -447,7 +446,7 @@ interface StatsMessage extends WorkerMessage {
 
 ## State Machines
 
-### VynxImage Component State
+### CloudImage Component State
 
 ```
                     ┌─────────────┐
@@ -509,7 +508,7 @@ interface StatsMessage extends WorkerMessage {
 3. `memoryTierSize` MUST be less than `maxSize`
 4. `platformOverride` MUST be valid `PlatformType`
 
-### VynxImageProps Validation
+### CloudImageProps Validation
 
 1. `src` MUST be provided
 2. `alt` SHOULD be provided for accessibility

@@ -1,21 +1,21 @@
-# Contract: VynxProvider Component
+# Contract: CloudProvider Component
 
-**Contract ID**: vynx-provider-contract  
+**Contract ID**: cloud-provider-contract  
 **Version**: 1.0.0  
-**Feature**: 002-vynx-image-cache-engine
+**Feature**: 002-cloud-image-cache-engine
 
 ---
 
 ## Overview
 
-`VynxProvider` initializes the VYNX engine, creates the Web Worker, and provides configuration via React Context.
+`CloudProvider` initializes the CLOUD engine, creates the Web Worker, and provides configuration via React Context.
 
 ---
 
 ## Props API
 
 ```typescript
-interface VynxProviderProps {
+interface CloudProviderProps {
   /** Cache configuration */
   config?: Partial<CacheConfig>;
   
@@ -48,10 +48,10 @@ interface VynxProviderProps {
 
 ## Context API
 
-### useVynxContext
+### useCloudContext
 
 ```typescript
-interface VynxContextValue {
+interface CloudContextValue {
   /** Engine instance */
   engine: ImageEngine;
   
@@ -73,13 +73,13 @@ interface VynxContextValue {
 
 ```typescript
 // Internal context (not exported)
-const VynxContext = React.createContext<VynxContextValue | null>(null);
+const CloudContext = React.createContext<CloudContextValue | null>(null);
 
 // Public hook
-function useVynx(): VynxContextValue {
-  const context = useContext(VynxContext);
+function useCloud(): CloudContextValue {
+  const context = useContext(CloudContext);
   if (!context) {
-    throw new Error('useVynx must be used within VynxProvider');
+    throw new Error('useCloud must be used within CloudProvider');
   }
   return context;
 }
@@ -113,7 +113,7 @@ function useVynx(): VynxContextValue {
 
 ### 1. Single Provider Required
 
-**Given**: Multiple VynxProviders nested  
+**Given**: Multiple CloudProviders nested  
 **When**: Inner provider mounts  
 **Then**: Inner provider takes precedence, outer is ignored
 
@@ -121,24 +121,24 @@ function useVynx(): VynxContextValue {
 
 ### 2. Context Propagation
 
-**Given**: VynxProvider with config  
-**When**: VynxImage renders  
-**Then**: VynxImage receives same config from context
+**Given**: CloudProvider with config  
+**When**: CloudImage renders  
+**Then**: CloudImage receives same config from context
 
 **Test**:
 ```typescript
 render(
-  <VynxProvider config={{ maxSize: 50 * 1024 * 1024 }}>
-    <VynxImage src="..." />
-  </VynxProvider>
+  <CloudProvider config={{ maxSize: 50 * 1024 * 1024 }}>
+    <CloudImage src="..." />
+  </CloudProvider>
 );
 
-// VynxImage should use 50MB limit
+// CloudImage should use 50MB limit
 ```
 
 ### 3. Provider Unmount Cleanup
 
-**Given**: VynxProvider with active cache  
+**Given**: CloudProvider with active cache  
 **When**: Provider unmounts  
 **Then**: Worker terminated, Blob URLs revoked, resources freed
 
@@ -147,9 +147,9 @@ render(
 const workerPostMessage = jest.spyOn(worker, 'postMessage');
 
 render(
-  <VynxProvider>
-    <VynxImage src="..." />
-  </VynxProvider>
+  <CloudProvider>
+    <CloudImage src="..." />
+  </CloudProvider>
 );
 
 unmount();
@@ -166,13 +166,13 @@ expect(workerPostMessage).toHaveBeenCalledWith(
 When `devtools: true`:
 
 1. **Overlay**: Visual indicator showing cache stats
-2. **Global**: Expose `window.__VYNX__` for console access
+2. **Global**: Expose `window.__CLOUD__` for console access
 3. **Events**: Log all cache operations to console
 
 ### DevTools API
 
 ```typescript
-interface VynxDevTools {
+interface CloudDevTools {
   /** Get cache statistics */
   getStats(): CacheStats;
   

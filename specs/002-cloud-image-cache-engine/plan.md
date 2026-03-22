@@ -1,11 +1,11 @@
-# Implementation Plan: VYNX Engine - Visual Asset Orchestration System
+# Implementation Plan: CLOUD Engine - Visual Asset Orchestration System
 
-**Branch**: `002-vynx-image-cache-engine` | **Date**: 2026-03-19 | **Spec**: [spec.md](./spec.md)  
-**Input**: Feature specification from `specs/002-vynx-image-cache-engine/spec.md`
+**Branch**: `002-cloud-image-cache-engine` | **Date**: 2026-03-19 | **Spec**: [spec.md](./spec.md)  
+**Input**: Feature specification from `specs/002-cloud-image-cache-engine/spec.md`
 
 ## Summary
 
-VYNX is a Visual Asset Orchestration System designed to eliminate browser performance limitations, especially on resource-constrained Smart TVs. The system provides near-zero perceived latency for image loading through a layered architecture: Presentation (React components), Orchestration (priority/eviction engine), Transport (Web Worker), and Adaptation (platform-specific storage). Key differentiators include the 2ms blocking rule, automatic platform detection, predictive caching, and zero-setup DX.
+CLOUD is a Visual Asset Orchestration System designed to eliminate browser performance limitations, especially on resource-constrained Smart TVs. The system provides near-zero perceived latency for image loading through a layered architecture: Presentation (React components), Orchestration (priority/eviction engine), Transport (Web Worker), and Adaptation (platform-specific storage). Key differentiators include the 2ms blocking rule, automatic platform detection, predictive caching, and zero-setup DX.
 
 ## Technical Context
 
@@ -25,7 +25,7 @@ VYNX is a Visual Asset Orchestration System designed to eliminate browser perfor
 
 | Principle | Status | Notes |
 |----------|--------|-------|
-| I. Library-First | ✅ PASS | VYNX is a standalone library with clear API surface |
+| I. Library-First | ✅ PASS | CLOUD is a standalone library with clear API surface |
 | II. Observability & DevTools | ✅ PASS | Chrome DevTools MCP + structured logging |
 | III. Test-First | ✅ PASS | Unit + integration tests (Vitest + playwright-cli) |
 | IV. Versioning | ✅ PASS | SemVer with changelog per release |
@@ -37,15 +37,15 @@ VYNX is a Visual Asset Orchestration System designed to eliminate browser perfor
 ### Documentation (this feature)
 
 ```text
-specs/002-vynx-image-cache-engine/
+specs/002-cloud-image-cache-engine/
 ├── plan.md              # This file
 ├── research.md          # Phase 0 output
 ├── data-model.md        # Phase 1 output
 ├── quickstart.md        # Phase 1 output
 ├── contracts/           # Phase 1 output
-│   ├── vynx-image-contract.md
-│   ├── vynx-provider-contract.md
-│   └── vynx-worker-protocol.md
+│   ├── cloud-image-contract.md
+│   ├── cloud-provider-contract.md
+│   └── cloud-worker-protocol.md
 └── tasks.md             # Phase 2 output (/speckit.tasks)
 ```
 
@@ -53,7 +53,7 @@ specs/002-vynx-image-cache-engine/
 
 ```text
 packages/
-├── vynx/                    # Main library package (published to npm)
+├── cloud/                    # Main library package (published to npm)
 │   ├── src/
 │   │   ├── core/            # Framework-agnostic engine
 │   │   │   ├── engine.ts    # ImageEngine - orchestration logic
@@ -72,20 +72,20 @@ packages/
 │   │   │   ├── storage.ts   # Adapter communication
 │   │   │   └── compression.ts
 │   │   ├── react/            # React bindings
-│   │   │   ├── provider.tsx  # VynxProvider
-│   │   │   ├── image.tsx     # VynxImage component
-│   │   │   └── hooks.ts      # useVynx hook
+│   │   │   ├── provider.tsx  # CloudProvider
+│   │   │   ├── image.tsx     # CloudImage component
+│   │   │   └── hooks.ts      # useCloud hook
 │   │   └── index.ts         # Package exports
 │   ├── tests/
 │   │   ├── unit/
 │   │   ├── integration/
 │   │   └── performance/
 │   └── package.json
-└── vynx-devtools/           # Developer debugging tools (optional)
+└── cloud-devtools/           # Developer debugging tools (optional)
     └── src/cli.ts
 
 demos/                        # Demo app (EXCLUDED from npm bundle)
-└── vynx-demo/               # Testing demo with 100+ images
+└── cloud-demo/               # Testing demo with 100+ images
 
 docs/
 └── DISTRIBUTION.md           # npm install instructions, usage examples
@@ -133,9 +133,9 @@ No violations requiring complexity tracking at this stage.
 
 | Contract | Purpose | Status |
 |----------|---------|--------|
-| `vynx-image-contract.md` | VynxImage props, states, events | ✅ |
-| `vynx-provider-contract.md` | VynxProvider config, context shape | ✅ |
-| `vynx-worker-protocol.md` | Worker message protocol (requests/responses) | ✅ |
+| `cloud-image-contract.md` | CloudImage props, states, events | ✅ |
+| `cloud-provider-contract.md` | CloudProvider config, context shape | ✅ |
+| `cloud-worker-protocol.md` | Worker message protocol (requests/responses) | ✅ |
 
 ### Quickstart
 
@@ -173,11 +173,11 @@ No violations requiring complexity tracking at this stage.
 - Uses the project's `playwright-cli` skill for efficient test execution
 - Located in `tests/e2e/` and `tests/platform/`
 
-### Demo App: /demos/vynx-demo
+### Demo App: /demos/cloud-demo
 - Minimal React app for testing with 100+ images
 - Stress test with configurable image count
 - Offline testing capabilities
-- **NOTE**: Located OUTSIDE packages/vynx to exclude from npm bundle
+- **NOTE**: Located OUTSIDE packages/cloud to exclude from npm bundle
 
 ### Distribution Testing Scripts (via playwright-cli)
 ```bash
@@ -199,7 +199,7 @@ playwright-cli screenshot --measure-load-time --url "http://localhost:3000"
 npm test                    # Vitest unit tests
 npm run test:e2e           # Playwright e2e tests (via playwright-cli)
 npm run test:performance    # Custom performance benchmarks
-npm run demo               # Start demo app (demos/vynx-demo)
+npm run demo               # Start demo app (demos/cloud-demo)
 ```
 
 ---

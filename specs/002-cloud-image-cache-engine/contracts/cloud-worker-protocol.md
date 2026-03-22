@@ -1,8 +1,8 @@
-# Contract: VYNX Worker Protocol
+# Contract: CLOUD Worker Protocol
 
-**Contract ID**: vynx-worker-protocol  
+**Contract ID**: cloud-worker-protocol  
 **Version**: 1.0.0  
-**Feature**: 002-vynx-image-cache-engine
+**Feature**: 002-cloud-image-cache-engine
 
 ---
 
