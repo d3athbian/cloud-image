@@ -235,19 +235,19 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 5 (MANDATORY - TDD)
 
-- [ ] T064 Write unit tests for CloudProvider initialization in packages/cloud/tests/unit/provider.test.tsx
+- [x] T064 Write unit tests for CloudProvider initialization in packages/cloud/tests/unit/provider.test.tsx
 - [ ] T065 Write integration tests for Provider context propagation in packages/cloud/tests/integration/provider-context.test.tsx
 - [ ] T066 Write integration tests for zero-config defaults in packages/cloud/tests/integration/zero-config.test.tsx
 
 ### Implementation for User Story 5
 
-- [ ] T067 [P] Create packages/cloud/src/react/provider.tsx with CloudProvider component
-- [ ] T068 [P] Implement Worker creation via Blob URL in Provider
-- [ ] T069 [P] Create React Context and distribution via useCloud() hook
-- [ ] T070 Create packages/cloud/src/contracts/provider-contract.ts with CloudProviderConfig interface
-- [ ] T071 Implement default configuration with sensible values (100MB, 7 days, 20MB memory)
-- [ ] T072 Create packages/cloud/src/index.ts with public API exports
-- [ ] T073 Generate package.json exports map for tree-shaking (core, react, adapters individually importable)
+- [x] T067 [P] Create packages/cloud/src/react/provider.tsx with CloudProvider component
+- [x] T068 [P] Implement Worker creation via Blob URL in Provider
+- [x] T069 [P] Create React Context and distribution via useCloud() hook
+- [x] T070 Create packages/cloud/src/contracts/provider-contract.ts with CloudProviderConfig interface
+- [x] T071 Implement default configuration with sensible values (100MB, 7 days, 20MB memory)
+- [x] T072 Create packages/cloud/src/index.ts with public API exports
+- [x] T073 Generate package.json exports map for tree-shaking (core, react, adapters individually importable)
 
 **Checkpoint**: Developer installs package, wraps app in Provider, uses CloudImage - works out of box
 
