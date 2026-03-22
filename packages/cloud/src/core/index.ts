@@ -12,3 +12,5 @@ export * from './silent-upgrade';
 export * from './retry';
 export * from './circuit-breaker';
 export * from './memory';
+export * from './image-validator';
+export * from './content-detection';

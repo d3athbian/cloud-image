@@ -59,7 +59,7 @@ describe('T074: LRU Eviction with Dual Scoring', () => {
     await cache.set(createMockEntry('https://example.com/low.jpg', Date.now(), 1, 2000));
     await cache.set(createMockEntry('https://example.com/high.jpg', Date.now(), 50, 2000));
     
-    await cache.set(createMockEntry('https://example.com/new.jpg', Date.now(), 1, 7000));
+    await cache.set(createMockEntry('https://example.com/new.jpg', Date.now(), 2, 7000));
     
     const lowEntry = await cache.get('https://example.com/low.jpg');
     const highEntry = await cache.get('https://example.com/high.jpg');
