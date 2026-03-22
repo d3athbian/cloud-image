@@ -338,25 +338,25 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for Bandwidth Intelligence (MANDATORY - TDD)
 
-- [ ] T101 Write unit tests for bandwidth ring buffer sampling in packages/cloud/tests/unit/bandwidth-sampling.test.ts
-- [ ] T102 Write unit tests for bandwidth classification (LOW/MEDIUM/HIGH thresholds) in packages/cloud/tests/unit/bandwidth-classification.test.ts
-- [ ] T103 Write unit tests for CDN variant URL generation in packages/cloud/tests/unit/cdn-variants.test.ts
+- [x] T101 Write unit tests for bandwidth ring buffer sampling in packages/cloud/tests/unit/bandwidth-sampling.test.ts
+- [x] T102 Write unit tests for bandwidth classification (LOW/MEDIUM/HIGH thresholds) in packages/cloud/tests/unit/bandwidth-classification.test.ts
+- [x] T103 Write unit tests for CDN variant URL generation in packages/cloud/tests/unit/cdn-variants.test.ts
 - [ ] T104 Write integration tests for event-based triggers (online/offline/visibilitychange) in packages/cloud/tests/integration/bandwidth-triggers.test.ts
 - [ ] T105 Write integration tests for silent cache upgrade in packages/cloud/tests/integration/silent-upgrade.test.ts
 
 ### Implementation for Bandwidth Intelligence
 
-- [ ] T106 [P] Create BandwidthMonitor class in packages/cloud/src/core/bandwidth.ts with ring buffer (10 samples)
-- [ ] T107 [P] Implement bandwidth sampling: bytes / download_time per request
-- [ ] T108 [P] Implement connection classification: LOW (<0.5Mbps), MEDIUM (0.5-2Mbps), HIGH (>2Mbps)
-- [ ] T109 Implement fallback to RTT when navigator.connection unavailable
-- [ ] T110 Create CDN adapter interface in packages/cloud/src/core/cdn-adapter.ts
-- [ ] T111 Implement URL variant generator based on bandwidth (e.g., img.jpg?size=small for LOW)
-- [ ] T112 Create config for CDN variants: { domain: 'cdn.com', variants: ['small', 'medium', 'large'] }
-- [ ] T113 Update CacheEntry to include qualityTier ('low'/'medium'/'high') and upgradeable flag
-- [ ] T114 Implement event listeners: online, offline, visibilitychange, connectionchange
-- [ ] T115 Implement silent upgrade: fetch high quality, overwrite cache blob (NOT DOM)
-- [ ] T116 Add graceful degradation: if CDN adapter not configured, proceed with normal fetch
+- [x] T106 [P] Create BandwidthMonitor class in packages/cloud/src/core/bandwidth.ts with ring buffer (10 samples)
+- [x] T107 [P] Implement bandwidth sampling: bytes / download_time per request
+- [x] T108 [P] Implement connection classification: LOW (<0.5Mbps), MEDIUM (0.5-2Mbps), HIGH (>2Mbps)
+- [x] T109 Implement fallback to RTT when navigator.connection unavailable
+- [x] T110 Create CDN adapter interface in packages/cloud/src/core/cdn-adapter.ts
+- [x] T111 Implement URL variant generator based on bandwidth (e.g., img.jpg?size=small for LOW)
+- [x] T112 Create config for CDN variants: { domain: 'cdn.com', variants: ['small', 'medium', 'large'] }
+- [x] T113 Update CacheEntry to include qualityTier ('low'/'medium'/'high') and upgradeable flag
+- [x] T114 Implement event listeners: online, offline, visibilitychange, connectionchange
+- [x] T115 Implement silent upgrade: fetch high quality, overwrite cache blob (NOT DOM)
+- [x] T116 Add graceful degradation: if CDN adapter not configured, proceed with normal fetch
 
 **Checkpoint**: Images adapt to bandwidth automatically; cache silently upgrades when connection improves
 

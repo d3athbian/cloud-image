@@ -6,3 +6,6 @@ export * from './logger';
 export * from './network';
 export * from './offline';
 export * from './prefetch';
+export * from './bandwidth';
+export * from './cdn-adapter';
+export * from './silent-upgrade';
