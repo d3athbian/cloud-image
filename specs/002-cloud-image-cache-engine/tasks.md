@@ -261,19 +261,19 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 6 (MANDATORY - TDD)
 
-- [ ] T074 Write unit tests for LRU eviction algorithm with dual scoring in packages/cloud/tests/unit/lru-eviction.test.ts
-- [ ] T075 Write unit tests for TTL expiration and TTL override of LRU in packages/cloud/tests/unit/ttl-expiration.test.ts
+- [x] T074 Write unit tests for LRU eviction algorithm with dual scoring in packages/cloud/tests/unit/lru-eviction.test.ts
+- [x] T075 Write unit tests for TTL expiration and TTL override of LRU in packages/cloud/tests/unit/ttl-expiration.test.ts
 - [ ] T076 Write integration tests for 90% threshold trigger and 20% batch eviction in packages/cloud/tests/integration/auto-eviction.test.ts
-- [ ] T077 Write integration tests for prefetch queue in packages/cloud/tests/integration/prefetch-queue.test.ts
+- [x] T077 Write integration tests for prefetch queue in packages/cloud/tests/integration/prefetch-queue.test.ts
 
 ### Implementation for User Story 6
 
-- [ ] T078 [P] Complete LRU eviction with dual scoring: Score = (accessCount × 0.6) + (recencyFactor × 0.4) in packages/cloud/src/core/cache.ts
-- [ ] T079 [P] Implement TTL override: expired entries ALWAYS evicted before LRU calculation
-- [ ] T080 [P] Create prefetch queue with priority support in packages/cloud/src/core/prefetch.ts
-- [ ] T081 Expose cache.clear(), cache.invalidate(url), cache.prefetch(urls[]) via useCloud() hook
-- [ ] T082 Expose cache.getStats() returning CacheStats (itemCount, totalSize, hitRate, etc.)
-- [ ] T083 Add manual invalidation endpoint to Worker protocol
+- [x] T078 [P] Complete LRU eviction with dual scoring: Score = (accessCount × 0.6) + (recencyFactor × 0.4) in packages/cloud/src/core/cache.ts
+- [x] T079 [P] Implement TTL override: expired entries ALWAYS evicted before LRU calculation
+- [x] T080 [P] Create prefetch queue with priority support in packages/cloud/src/core/prefetch.ts
+- [x] T081 Expose cache.clear(), cache.invalidate(url), cache.prefetch(urls[]) via useCloud() hook
+- [x] T082 Expose cache.getStats() returning CacheStats (itemCount, totalSize, hitRate, etc.)
+- [x] T083 Add manual invalidation endpoint to Worker protocol
 - [ ] Note: Request deduplication is part of T017 (Worker fetch.ts)
 
 **Checkpoint**: Developers can control cache programmatically, eviction works correctly

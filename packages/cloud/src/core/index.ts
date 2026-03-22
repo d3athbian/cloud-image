@@ -5,3 +5,4 @@ export * from './performance';
 export * from './logger';
 export * from './network';
 export * from './offline';
+export * from './prefetch';
