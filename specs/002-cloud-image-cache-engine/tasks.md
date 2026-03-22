@@ -409,15 +409,17 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 **Purpose**: Integration testing, performance validation, documentation
 
-- [ ] T132 [P] Write e2e tests for complete user flows in tests/e2e/cloud-flows.test.ts (use `playwright-cli` skill)
-- [ ] T133 [P] Write platform-specific tests for Smart TV scenarios in tests/platform/smart-tv.test.ts (use `playwright-cli` skill)
-- [ ] T134 Create performance benchmark suite in packages/cloud/tests/performance/benchmarks.ts
-- [ ] T135 Validate <100KB initial bundle size (tree-shaking working)
-- [ ] T136 [P] Update README.md with installation and quickstart
-- [ ] T137 [P] Create packages/cloud/README.md with API documentation
-- [ ] T138 Generate CHANGELOG.md with version tracking
-- [ ] T139 Run full test suite and verify 100% pass rate
-- [ ] T140 Verify coverage above 80% for new code
+- [x] T132 [P] Write e2e tests for complete user flows in tests/e2e/cloud-flows.test.ts (use `playwright-cli` skill)
+- [x] T133 [P] Write platform-specific tests for Smart TV scenarios in tests/platform/smart-tv.test.ts (use `playwright-cli` skill)
+- [x] T134 Create performance benchmark suite in packages/cloud/tests/performance/benchmarks.ts
+- [x] T135 Validate <100KB initial bundle size (69.81 KB, 17.31 KB gzipped)
+- [x] T136 [P] Update README.md with installation and quickstart
+- [x] T137 [P] Create packages/cloud/README.md with API documentation
+- [x] T138 Generate CHANGELOG.md with version tracking
+- [x] T139 Run full test suite and verify 100% pass rate (318 tests)
+- [ ] T140 Verify coverage above 80% for new code (core 69.86%, branches 82.49%)
+
+**Note**: React components and worker require e2e testing. Core library coverage is 69.86% lines, 82.49% branches.
 
 ---
 
