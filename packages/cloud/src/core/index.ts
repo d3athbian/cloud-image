@@ -9,3 +9,5 @@ export * from './prefetch';
 export * from './bandwidth';
 export * from './cdn-adapter';
 export * from './silent-upgrade';
+export * from './retry';
+export * from './circuit-breaker';

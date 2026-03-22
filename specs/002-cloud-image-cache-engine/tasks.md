@@ -288,19 +288,19 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 7 (MANDATORY - TDD)
 
-- [ ] T084 Write unit tests for exponential backoff in packages/cloud/tests/unit/exponential-backoff.test.ts
-- [ ] T085 Write unit tests for circuit breaker state machine in packages/cloud/tests/unit/circuit-breaker.test.ts
+- [x] T084 Write unit tests for exponential backoff in packages/cloud/tests/unit/exponential-backoff.test.ts
+- [x] T085 Write unit tests for circuit breaker state machine in packages/cloud/tests/unit/circuit-breaker.test.ts
 - [ ] T086 Write integration tests for retry behavior in packages/cloud/tests/integration/retry-behavior.test.ts
 - [ ] T087 Write integration tests for circuit breaker activation/deactivation in packages/cloud/tests/integration/circuit-breaker.test.ts
 
 ### Implementation for User Story 7
 
-- [ ] T088 [P] Implement exponential backoff in packages/cloud/src/core/retry.ts (100ms, 200ms, 400ms)
-- [ ] T089 [P] Implement CircuitBreaker class with states: CLOSED → OPEN → HALF_OPEN → CLOSED
-- [ ] T090 Create CircuitBreaker configuration (3 failures = OPEN, 30s wait)
-- [ ] T091 Integrate CircuitBreaker into Worker fetch logic
-- [ ] T092 Expose circuit breaker status via useCloud() hook (circuitBreaker.state, circuitBreaker.failures)
-- [ ] T093 Add circuit breaker events for observability (open, close, halfOpen)
+- [x] T088 [P] Implement exponential backoff in packages/cloud/src/core/retry.ts (100ms, 200ms, 400ms)
+- [x] T089 [P] Implement CircuitBreaker class with states: CLOSED → OPEN → HALF_OPEN → CLOSED
+- [x] T090 Create CircuitBreaker configuration (3 failures = OPEN, 30s wait)
+- [x] T091 Integrate CircuitBreaker into Worker fetch logic
+- [x] T092 Expose circuit breaker status via useCloud() hook (circuitBreaker.state, circuitBreaker.failures)
+- [x] T093 Add circuit breaker events for observability (open, close, halfOpen)
 
 **Checkpoint**: Network failures handled gracefully, circuit breaker prevents request spam
 
