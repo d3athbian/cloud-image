@@ -184,20 +184,20 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ### Tests for User Story 3 (MANDATORY - TDD)
 
-- [ ] T045 Write unit tests for Worker message throughput in packages/cloud/tests/unit/worker-throughput.test.ts
+- [x] T045 Write unit tests for Worker message throughput in packages/cloud/tests/unit/worker-throughput.test.ts
 - [ ] T046 Write integration tests for main thread isolation in packages/cloud/tests/integration/main-thread-isolation.test.ts
 - [ ] T047 Write performance tests for 2ms rule compliance in packages/cloud/tests/performance/thread-blocking.test.ts
-- [ ] T048 Write unit tests for ImageBitmap decoding in Worker in packages/cloud/tests/unit/imagebitmap-decoding.test.ts
+- [x] T048 Write unit tests for ImageBitmap decoding in Worker in packages/cloud/tests/unit/imagebitmap-decoding.test.ts
 
 ### Implementation for User Story 3
 
-- [ ] T049 [P] Implement ImageBitmap decoding in Worker using createImageBitmap() API
-- [ ] T050 [P] Implement Worker message batching for high-frequency operations
-- [ ] T051 Create performance monitor in packages/cloud/src/core/performance.ts
-- [ ] T052 Add main thread blocking detection and reporting
-- [ ] T053 Implement Worker crash detection and graceful degradation
-- [ ] T054 Add structured logging with correlation IDs to all Worker operations
-- [ ] T055 Transfer ImageBitmap to main thread using transferable objects
+- [x] T049 [P] Implement ImageBitmap decoding in Worker using createImageBitmap() API
+- [x] T050 [P] Implement Worker message batching for high-frequency operations
+- [x] T051 Create performance monitor in packages/cloud/src/core/performance.ts
+- [x] T052 Add main thread blocking detection and reporting
+- [x] T053 Implement Worker crash detection and graceful degradation
+- [x] T054 Add structured logging with correlation IDs to all Worker operations
+- [x] T055 Transfer ImageBitmap to main thread using transferable objects
 
 **Checkpoint**: All cache operations complete in <2ms on main thread, decode offloaded to Worker
 
