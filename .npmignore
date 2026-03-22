@@ -1,0 +1,40 @@
+# Source files
+src/
+
+# Specs and docs
+specs/
+docs/
+*.md
+
+# Config files
+tsconfig.json
+vite.config.ts
+vitest.config.ts
+eslint.config.*
+.prettierrc*
+
+# Demo app
+demos/
+
+# Tests
+tests/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+Jenkinsfile
+
+# Development
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Keep package.json
+package.json

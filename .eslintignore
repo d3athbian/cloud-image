@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+
+# Demo app
+demos/
+
+# Config
+*.config.js
+*.config.ts
+
+# Coverage
+coverage/
+
+# Logs
+*.log
