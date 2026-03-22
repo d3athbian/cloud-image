@@ -1,2 +1,2 @@
 // Adapters module - platform-specific storage implementations
-export * from './types';
+// Phase 4: T037-T042 will implement actual adapters

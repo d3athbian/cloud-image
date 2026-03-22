@@ -7,7 +7,7 @@ import {
 
 export class ImageCache {
   private entries: Map<string, CacheEntry> = new Map();
-  private config: Required<CacheConfig>;
+  private config: Required<Omit<CacheConfig, 'platformOverride'>> & { platformOverride?: string };
   private stats: CacheStats = {
     itemCount: 0,
     totalSize: 0,
@@ -19,7 +19,7 @@ export class ImageCache {
   private misses = 0;
 
   constructor(config: Partial<CacheConfig> = {}) {
-    this.config = { ...DEFAULT_CACHE_CONFIG, ...config };
+    this.config = { ...DEFAULT_CACHE_CONFIG, ...config } as Required<Omit<CacheConfig, 'platformOverride'>> & { platformOverride?: string };
   }
 
   async get(url: string): Promise<CacheEntry | null> {

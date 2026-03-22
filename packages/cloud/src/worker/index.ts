@@ -1,2 +1,2 @@
 // Worker module - Web Worker for off-main-thread operations
-export * from './worker';
+// Phase 5: Will implement ImageBitmap decoding worker

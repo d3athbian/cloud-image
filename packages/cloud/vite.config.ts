@@ -14,6 +14,9 @@ export default defineConfig({
     rollupOptions: {
       // Explicitly exclude demos from bundle
       external: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
         /^demos/,
       ],
       output: {

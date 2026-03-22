@@ -1,4 +1,3 @@
-// React components module
-export * from './provider';
-export * from './image';
-export * from './hooks';
+export { CloudProvider, useCloud } from './hooks';
+export { CloudImage } from './image';
+export type { CloudImageProps, ImageStatus } from './image';
