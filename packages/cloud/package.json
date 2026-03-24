@@ -13,10 +13,14 @@
     "./react": {
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.js"
+    },
+    "./sw.js": {
+      "import": "./dist/sw.js"
     }
   },
   "files": [
-    "dist"
+    "dist",
+    "src/service-worker/sw.js"
   ],
   "scripts": {
     "build": "vite build",
