@@ -28,7 +28,11 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
   useEffect(() => {
     const initEngine = async () => {
       try {
-        const imageEngine = new ImageEngine(config);
+        const engineConfig = {
+          ...config,
+          debug: devtools,
+        };
+        const imageEngine = new ImageEngine(engineConfig);
         await imageEngine.init();
         setEngine(imageEngine);
         setIsReady(true);

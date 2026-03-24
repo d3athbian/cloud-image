@@ -43,3 +43,7 @@ demos/*/.output/
 # Temporary
 *.tmp
 *.temp
+
+.playwright-cli
+.playwright
+.opencode

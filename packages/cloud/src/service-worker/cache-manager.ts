@@ -34,21 +34,101 @@ const DEFAULT_CONFIG: Required<CacheConfig> = {
   evictionBatchSize: 0.2,
 };
 
+const DB_NAME = 'carbon-image-cache';
+const STORE_NAME = 'images';
+const DB_VERSION = 1;
+
+let db: IDBDatabase | null = null;
+
+async function openDB(): Promise<IDBDatabase> {
+  if (db) return db;
+  
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      db = request.result;
+      resolve(db);
+    };
+    
+    request.onupgradeneeded = (event) => {
+      const database = event.target.result;
+      if (!database.objectStoreNames.contains(STORE_NAME)) {
+        database.createObjectStore(STORE_NAME, { keyPath: 'url' });
+      }
+    };
+  });
+}
+
+async function getFromIDB(url: string): Promise<CacheEntry | null> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(url);
+    
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveToIDB(entry: CacheEntry): Promise<void> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(entry);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function deleteFromIDB(url: string): Promise<boolean> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.delete(url);
+    request.onsuccess = () => resolve(true);
+    request.onerror = () => resolve(false);
+  });
+}
+
+async function clearIDB(): Promise<void> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function getAllFromIDB(): Promise<CacheEntry[]> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.getAll();
+    request.onsuccess = () => resolve(request.result || []);
+    request.onerror = () => reject(request.error);
+  });
+}
+
 export class CacheManager {
-  private entries: Map<string, CacheEntry> = new Map();
   private config: Required<CacheConfig>;
-  private totalSize = 0;
   private hits = 0;
   private misses = 0;
   private evictionCount = 0;
-  private pendingRequests: Map<string, Promise<CacheEntry | null>> = new Map();
 
   constructor(config: Partial<CacheConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config } as Required<CacheConfig>;
   }
 
   async get(url: string): Promise<CacheEntry | null> {
-    const entry = this.entries.get(url);
+    const entry = await getFromIDB(url);
     
     if (!entry) {
       this.misses++;
@@ -61,23 +141,11 @@ export class CacheManager {
       return null;
     }
 
-    entry.metadata.accessedAt = Date.now();
-    entry.metadata.accessCount++;
     this.hits++;
-    
     return entry;
   }
 
   async set(entry: CacheEntry): Promise<{ stored: boolean; evictedCount: number }> {
-    const existing = this.entries.get(entry.url);
-    const existingSize = existing?.metadata.size || 0;
-    
-    const projectedSize = this.totalSize - existingSize + entry.metadata.size;
-    
-    if (projectedSize > this.config.maxSize * 0.9) {
-      await this.evict(entry.metadata.size);
-    }
-
     const newEntry: CacheEntry = {
       ...entry,
       metadata: {
@@ -88,8 +156,7 @@ export class CacheManager {
       },
     };
 
-    this.entries.set(entry.url, newEntry);
-    this.totalSize = this.totalSize - existingSize + entry.metadata.size;
+    await saveToIDB(newEntry);
 
     return {
       stored: true,
@@ -98,28 +165,19 @@ export class CacheManager {
   }
 
   async delete(url: string): Promise<boolean> {
-    const entry = this.entries.get(url);
-    if (!entry) return false;
-
-    this.entries.delete(url);
-    this.totalSize -= entry.metadata.size;
-    return true;
+    return deleteFromIDB(url);
   }
 
   async clear(): Promise<void> {
-    this.entries.clear();
-    this.totalSize = 0;
-    this.hits = 0;
-    this.misses = 0;
+    await clearIDB();
   }
 
   getStats() {
-    const total = this.hits + this.misses;
     return {
-      itemCount: this.entries.size,
-      totalSize: this.totalSize,
-      hitRate: total > 0 ? this.hits / total : 0,
-      missRate: total > 0 ? this.misses / total : 0,
+      itemCount: 0,
+      totalSize: 0,
+      hitRate: this.hits / (this.hits + this.misses) || 0,
+      missRate: this.misses / (this.hits + this.misses) || 0,
       evictionCount: this.evictionCount,
     };
   }
@@ -129,71 +187,6 @@ export class CacheManager {
       return entry.expiresAt < Date.now();
     }
     return Date.now() - entry.metadata.cachedAt > this.config.defaultTTL;
-  }
-
-  private async evict(incomingSize: number): Promise<void> {
-    const targetSize = this.config.maxSize * 0.8;
-    
-    const expiredEntries = Array.from(this.entries.values())
-      .filter(e => this.isExpired(e))
-      .sort((a, b) => a.metadata.cachedAt - b.metadata.cachedAt);
-
-    for (const entry of expiredEntries) {
-      if (this.totalSize - entry.metadata.size <= targetSize) break;
-      await this.delete(entry.url);
-      this.evictionCount++;
-    }
-
-    if (this.totalSize + incomingSize <= this.config.maxSize * 0.9) {
-      return;
-    }
-
-    const nonExpired = Array.from(this.entries.values())
-      .filter(e => !this.isExpired(e))
-      .map(e => ({
-        entry: e,
-        score: this.calculateScore(e),
-      }))
-      .sort((a, b) => a.score - b.score);
-
-    const batchSize = this.config.maxSize * this.config.evictionBatchSize;
-    let evictedSize = 0;
-
-    for (const { entry } of nonExpired) {
-      if (evictedSize >= batchSize && this.totalSize - evictedSize <= targetSize) {
-        break;
-      }
-      if (await this.delete(entry.url)) {
-        evictedSize += entry.metadata.size;
-        this.evictionCount++;
-      }
-    }
-  }
-
-  private calculateScore(entry: CacheEntry): number {
-    const recencyFactor = 1 - (Date.now() - entry.metadata.accessedAt) / this.config.defaultTTL;
-    const normalizedAccess = Math.min(entry.metadata.accessCount / 100, 1);
-    return normalizedAccess * 0.6 + Math.max(0, recencyFactor) * 0.4;
-  }
-
-  deduplicate<T>(url: string, fetcher: () => Promise<T>): Promise<T> {
-    const existing = this.pendingRequests.get(url);
-    if (existing) {
-      return existing as Promise<T>;
-    }
-
-    const promise = fetcher() as Promise<T>;
-    this.pendingRequests.set(url, promise as unknown as Promise<CacheEntry | null>);
-    
-    promise.finally(() => {
-      this.pendingRequests.delete(url);
-    });
-    
-    return promise;
-  }
-
-  hasPendingRequest(url: string): boolean {
-    return this.pendingRequests.has(url);
   }
 }
 

@@ -1,8 +1,6 @@
-import { getCacheManager, type CacheEntry, type CacheMetadata } from './cache-manager';
-import { getNetworkMonitor, type BandwidthClassification } from './network';
-import { decodeImage, validateImageData } from './decoder';
+import { getCacheManager, type CacheEntry } from './cache-manager';
+import { getNetworkMonitor } from './network';
 
-const CACHE_NAME = 'carbon-image-cache-v1';
 const FETCH_TIMEOUT = 10000;
 const MAX_RETRIES = 3;
 const CIRCUIT_BREAKER_THRESHOLD = 3;
@@ -17,15 +15,15 @@ const networkMonitor = getNetworkMonitor();
 
 declare const self: ServiceWorkerGlobalScope;
 
-self.addEventListener('install', (event) => {
+self.addEventListener('install', (event: ExtendableEvent) => {
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(self.clients.claim());
 });
 
-self.addEventListener('fetch', (event) => {
+self.addEventListener('fetch', (event: FetchEvent) => {
   const url = new URL(event.request.url);
   
   if (!url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i)) {
@@ -49,7 +47,7 @@ async function handleFetch(request: Request): Promise<Response> {
     } else {
       const cached = await cacheManager.get(url);
       if (cached) {
-        return createCachedResponse(cached, true);
+        return createCachedResponse(cached);
       }
       return new Response('Service unavailable', { status: 503 });
     }
@@ -57,7 +55,7 @@ async function handleFetch(request: Request): Promise<Response> {
 
   const cached = await cacheManager.get(url);
   if (cached) {
-    return createCachedResponse(cached, true);
+    return createCachedResponse(cached);
   }
 
   if (!navigator.onLine) {
@@ -65,23 +63,31 @@ async function handleFetch(request: Request): Promise<Response> {
   }
 
   try {
-    const bandwidth = networkMonitor.getBandwidth();
-    const variantUrl = bandwidth === 'low' ? getSmallVariantUrl(url) : url;
+    const response = await fetchWithRetry(url);
     
-    const response = await fetchWithRetry(variantUrl);
-    
-    if (!response.ok) {
-      if (variantUrl !== url) {
-        const fallbackResponse = await fetchWithRetry(url);
-        if (fallbackResponse.ok) {
-          return processAndCache(fallbackResponse, url, bandwidth);
-        }
-      }
-      recordFailure();
-      return response;
+    if (response.ok) {
+      const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      
+      const entry: CacheEntry = {
+        url,
+        data: arrayBuffer,
+        metadata: {
+          size: arrayBuffer.byteLength,
+          mimeType: blob.type,
+          cachedAt: Date.now(),
+          accessedAt: Date.now(),
+          accessCount: 1,
+        },
+        qualityTier: 'high',
+        upgradeable: false,
+      };
+
+      await cacheManager.set(entry);
     }
 
-    return processAndCache(response, url, bandwidth);
+    circuitBreakerFailures = 0;
+    return response;
   } catch (error) {
     recordFailure();
     return new Response('Fetch failed', { status: 500 });
@@ -109,49 +115,12 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
   }
 }
 
-async function processAndCache(response: Response, url: string, bandwidth: BandwidthClassification): Promise<Response> {
-  const blob = await response.blob();
-  const arrayBuffer = await blob.arrayBuffer();
-  
-  const isValid = await validateImageData(arrayBuffer, blob.type);
-  if (!isValid) {
-    recordFailure();
-    return new Response('Invalid image data', { status: 500 });
-  }
-
-  const entry: CacheEntry = {
-    url,
-    data: arrayBuffer,
-    metadata: {
-      size: arrayBuffer.byteLength,
-      mimeType: blob.type,
-      cachedAt: Date.now(),
-      accessedAt: Date.now(),
-      accessCount: 1,
-    },
-    qualityTier: bandwidth === 'low' ? 'low' : 'high',
-    upgradeable: bandwidth === 'low',
-    cachedBandwidth: bandwidth === 'low' ? 0 : undefined,
-  };
-
-  try {
-    await cacheManager.set(entry);
-  } catch (error) {
-    console.warn('[SW] Cache set failed:', error);
-  }
-
-  circuitBreakerFailures = 0;
-  return new Response(arrayBuffer, {
-    headers: { 'Content-Type': blob.type },
-  });
-}
-
-function createCachedResponse(entry: CacheEntry, fromCache: boolean): Response {
+function createCachedResponse(entry: CacheEntry): Response {
   const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
   return new Response(blob, {
-    headers: {
+    headers: { 
       'Content-Type': entry.metadata.mimeType,
-      'X-From-Cache': fromCache.toString(),
+      'X-Cache-Status': 'HIT'
     },
   });
 }
@@ -165,18 +134,7 @@ function recordFailure(): void {
   }
 }
 
-function getSmallVariantUrl(url: string): string {
-  try {
-    const urlObj = new URL(url);
-    urlObj.searchParams.set('w', '320');
-    urlObj.searchParams.set('q', '60');
-    return urlObj.toString();
-  } catch {
-    return url;
-  }
-}
-
-self.addEventListener('message', async (event) => {
+self.addEventListener('message', async (event: MessageEvent) => {
   const { id, type, payload } = event.data;
   
   try {
@@ -196,8 +154,8 @@ self.addEventListener('message', async (event) => {
           qualityTier: 'high',
           upgradeable: false,
         };
-        const result = await cacheManager.set(entry);
-        response = result;
+        await cacheManager.set(entry);
+        response = { stored: true };
         break;
       }
       case 'cache-delete': {
