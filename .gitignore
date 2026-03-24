@@ -46,4 +46,4 @@ demos/*/.output/
 
 .playwright-cli
 .playwright
-.opencode
+demos/cloud-demo/public/register.js
