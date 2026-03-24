@@ -14,13 +14,14 @@
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.js"
     },
-    "./sw.js": {
-      "import": "./dist/sw.js"
+    "./register": {
+      "import": "./dist/register.js"
     }
   },
   "files": [
     "dist",
-    "src/service-worker/sw.js"
+    "src/service-worker/sw.js",
+    "src/service-worker/register.js"
   ],
   "scripts": {
     "build": "vite build",

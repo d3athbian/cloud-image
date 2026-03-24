@@ -17,6 +17,14 @@ export default defineConfig({
           copyFileSync(srcSw, destSw);
           console.log('[Build] Service Worker copied to dist/sw.js');
         }
+
+        const srcRegister = resolve(__dirname, 'src/service-worker/register.js');
+        const destRegister = resolve(destDir, 'register.js');
+        
+        if (existsSync(srcRegister)) {
+          copyFileSync(srcRegister, destRegister);
+          console.log('[Build] Register script copied to dist/register.js');
+        }
       }
     }
   ],

@@ -2,6 +2,38 @@ import React, { createContext, useContext, useState, useEffect, useMemo } from '
 import { ImageEngine } from '../core/engine';
 import type { CacheConfig, CacheStats, NetworkStatus } from '../core/types';
 
+const SW_STATE_KEY = '__CLOUD_SW_STATE__';
+const SW_REGISTRY_KEY = '__CLOUD_SW_REGISTERED__';
+const SW_PATH = '/sw.js';
+
+const swScript = `
+(function() {
+  'use strict';
+  var KEY = '__CLOUD_SW_REGISTERED__';
+  var STATE_KEY = '__CLOUD_SW_STATE__';
+  var PATH = '/sw.js';
+  if (typeof navigator === 'undefined' || !navigator.serviceWorker) return;
+  if (window[KEY]) return;
+  window[KEY] = true;
+  navigator.serviceWorker.register(PATH).then(function(reg) {
+    window[STATE_KEY] = 'registered';
+    console.log('[CloudImage] Service Worker registered via inline:', reg.scope);
+  }).catch(function(e) {
+    window[STATE_KEY] = 'failed';
+    console.warn('[CloudImage] SW blocked by CSP. Use manual: <script src="register.js"></script>');
+  });
+})();
+`;
+
+if (typeof document !== 'undefined' && !document.getElementById('cloud-sw-register')) {
+  const script = document.createElement('script');
+  script.id = 'cloud-sw-register';
+  script.textContent = swScript;
+  if (document.head) {
+    document.head.appendChild(script);
+  }
+}
+
 export interface CloudContextValue {
   engine: ImageEngine | null;
   isReady: boolean;
@@ -37,13 +69,12 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
         setEngine(imageEngine);
         setIsReady(true);
 
-        if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-          try {
-            await navigator.serviceWorker.register('/sw.js');
-            console.log('[CloudProvider] Service Worker registered');
-          } catch (swError) {
-            console.log('[CloudProvider] Service Worker not available, using fallback mode');
-          }
+        const swState = (window as unknown as Record<string, unknown>)[SW_STATE_KEY];
+        if (swState === 'registered' && devtools) {
+          console.log('[CloudImage] Service Worker ready (inline registration)');
+        } else if (swState === 'failed' && devtools) {
+          console.warn('[CloudImage] Service Worker blocked by CSP');
+          console.warn('[CloudImage] To fix: add <script src="register.js"></script> in your HTML head');
         }
 
         if (devtools) {
