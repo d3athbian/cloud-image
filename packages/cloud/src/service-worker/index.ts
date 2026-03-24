@@ -1,5 +1,3 @@
-import type { SWRequest, SWResponse } from './sw';
-
 export type MessageType = 
   | 'fetch'
   | 'cache-get'
@@ -11,24 +9,34 @@ export type MessageType =
   | 'init'
   | 'destroy';
 
-export { generateMessageId, createSWRequest } from './sw';
-
 export interface ServiceWorkerConfig {
   scope?: string;
   debug?: boolean;
 }
 
-export interface CloudEngineConfig {
-  maxSize?: number;
-  defaultTTL?: number;
-  debug?: boolean;
+export interface SWResponse {
+  id: string;
+  type: 'success' | 'error';
+  payload?: unknown;
+  error?: string;
 }
 
-const DEFAULT_CONFIG: Required<CloudEngineConfig> = {
-  maxSize: 100 * 1024 * 1024,
-  defaultTTL: 7 * 24 * 60 * 60 * 1000,
+const DEFAULT_CONFIG: Required<ServiceWorkerConfig> = {
+  scope: '/',
   debug: false,
 };
+
+function generateMessageId(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+}
+
+function createSWRequest(type: MessageType, payload?: unknown) {
+  return {
+    id: generateMessageId(),
+    type,
+    payload,
+  } as { id: string; type: MessageType; payload?: unknown };
+}
 
 class ServiceWorkerClient {
   private registration: ServiceWorkerRegistration | null = null;
@@ -97,36 +105,36 @@ class ServiceWorkerClient {
     }
   }
 
-  private async sendMessage<T>(type: MessageType, payload?: unknown): Promise<SWResponse<T>> {
+  private async sendMessage(type: MessageType, payload?: unknown): Promise<SWResponse> {
     if (this.fallbackMode) {
-      return this.fallbackMessage<T>(type, payload);
+      return this.fallbackMessage(type, payload);
     }
 
-    const request = createSWRequest<T>(type, payload);
+    const request = createSWRequest(type, payload);
 
     return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => {
+      setTimeout(() => {
         this.pending.delete(request.id);
         reject(new Error(`Message ${type} timed out`));
       }, 30000);
 
       this.pending.set(request.id, {
-        resolve: resolve as (r: SWResponse) => void,
+        resolve,
         reject,
       });
 
       if (this.controller) {
         this.controller.postMessage(request);
       } else {
-        this.fallbackMessage<T>(type, payload)
+        this.fallbackMessage(type, payload)
           .then(resolve)
           .catch(reject);
       }
     });
   }
 
-  private async fallbackMessage<T>(type: MessageType, payload?: unknown): Promise<SWResponse<T>> {
-    const id = crypto.randomUUID();
+  private async fallbackMessage(type: MessageType, payload?: unknown): Promise<SWResponse> {
+    const id = generateMessageId();
     
     switch (type) {
       case 'fetch': {
@@ -152,25 +160,25 @@ class ServiceWorkerClient {
           this.stats.totalSize += arrayBuffer.byteLength;
 
           const blobUrl = URL.createObjectURL(blob);
-          return { id, type: 'success', payload: { blobUrl, fromCache: false, size: arrayBuffer.byteLength, mimeType: blob.type } } as SWResponse<T>;
+          return { id, type: 'success', payload: { blobUrl, fromCache: false, size: arrayBuffer.byteLength, mimeType: blob.type } };
         } catch (error) {
           this.stats.misses++;
-          return { id, type: 'error', error: error instanceof Error ? error.message : 'Fetch failed' } as SWResponse<T>;
+          return { id, type: 'error', error: error instanceof Error ? error.message : 'Fetch failed' };
         }
       }
       case 'stats': {
-        return { id, type: 'success', payload: this.stats } as SWResponse<T>;
+        return { id, type: 'success', payload: this.stats };
       }
       case 'cache-clear': {
         this.memoryCache.clear();
         this.stats = { hits: 0, misses: 0, itemCount: 0, totalSize: 0, evictionCount: 0 };
-        return { id, type: 'success', payload: { cleared: true } } as SWResponse<T>;
+        return { id, type: 'success', payload: { cleared: true } };
       }
       case 'ping': {
-        return { id, type: 'success', payload: { alive: true } } as SWResponse<T>;
+        return { id, type: 'success', payload: { alive: true } };
       }
       default:
-        return { id, type: 'error', error: 'Operation not supported in fallback mode' } as SWResponse<T>;
+        return { id, type: 'error', error: 'Operation not supported in fallback mode' };
     }
   }
 
@@ -192,18 +200,20 @@ class ServiceWorkerClient {
     this.log('[SW Client] Getting:', url);
 
     if (this.fallbackMode) {
-      const response = await this.sendMessage<{ blobUrl: string; fromCache: boolean; size: number; mimeType: string }>('fetch', { url });
+      const response = await this.sendMessage('fetch', { url });
       if (response.type === 'success' && response.payload) {
-        return response.payload.blobUrl;
+        const payload = response.payload as { blobUrl: string; fromCache: boolean; size: number; mimeType: string };
+        return payload.blobUrl;
       }
       return null;
     }
 
     try {
-      const response = await this.sendMessage<{ blobUrl: string; fromCache: boolean; size: number; mimeType: string }>('fetch', { url });
+      const response = await this.sendMessage('fetch', { url });
       
       if (response.type === 'success' && response.payload) {
-        return response.payload.blobUrl;
+        const payload = response.payload as { blobUrl: string; fromCache: boolean; size: number; mimeType: string };
+        return payload.blobUrl;
       }
       
       return null;
@@ -227,8 +237,9 @@ class ServiceWorkerClient {
       return this.memoryCache.delete(url);
     }
 
-    const response = await this.sendMessage<{ deleted: boolean }>('cache-delete', { url });
-    return response.type === 'success' && response.payload?.deleted === true;
+    const response = await this.sendMessage('cache-delete', { url });
+    const payload = response.payload as { deleted?: boolean } | undefined;
+    return response.type === 'success' && payload?.deleted === true;
   }
 
   async clear(): Promise<void> {
@@ -245,14 +256,15 @@ class ServiceWorkerClient {
       return this.stats;
     }
 
-    const response = await this.sendMessage<typeof this.stats>('stats');
-    return response.payload || this.stats;
+    const response = await this.sendMessage('stats');
+    return (response.payload as typeof this.stats) || this.stats;
   }
 
   async ping(): Promise<boolean> {
     try {
-      const response = await this.sendMessage<{ alive: boolean }>('ping');
-      return response.type === 'success' && response.payload?.alive === true;
+      const response = await this.sendMessage('ping');
+      const payload = response.payload as { alive?: boolean } | undefined;
+      return response.type === 'success' && payload?.alive === true;
     } catch {
       return this.fallbackMode;
     }
@@ -261,7 +273,7 @@ class ServiceWorkerClient {
 
 let clientInstance: ServiceWorkerClient | null = null;
 
-export function createCloudEngine(config?: CloudEngineConfig): ServiceWorkerClient {
+export function createCloudEngine(config?: ServiceWorkerConfig): ServiceWorkerClient {
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
   
   if (!clientInstance) {
@@ -272,5 +284,3 @@ export function createCloudEngine(config?: CloudEngineConfig): ServiceWorkerClie
 }
 
 export { ServiceWorkerClient };
-export type { CloudEngineConfig as CloudEngineConfig };
-export type { ServiceWorkerConfig };
