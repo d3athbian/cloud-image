@@ -10,7 +10,7 @@ Refactor the image caching library to use Service Workers as the sole processing
 
 **Language/Version**: TypeScript 5.x (strict mode)  
 **Primary Dependencies**: Vitest (testing), Vite (build)  
-**Storage**: Browser Cache API (IndexedDB-backed)  
+**Storage**: IndexedDB (primary persistent storage via Service Worker)  
 **Testing**: Vitest (unit), Playwright (integration)  
 **Target Platform**: Web browsers with Service Worker support  
 **Project Type**: JavaScript library  

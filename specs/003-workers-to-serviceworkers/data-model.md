@@ -2,6 +2,12 @@
 
 **Feature**: 003-workers-to-serviceworkers
 
+## IndexedDB Schema
+
+| Database | Version | Object Store | KeyPath |
+|----------|---------|--------------|---------|
+| `carbon-image-cache` | 1 | `images` | `url` |
+
 ## Entities
 
 ### 1. ImageCacheEntry

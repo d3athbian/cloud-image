@@ -4,7 +4,14 @@
 
 ## Overview
 
-This library provides a persistent image caching solution using Service Workers. All image operations run off the main thread for optimal performance.
+This library provides a persistent image caching solution using Service Workers with IndexedDB storage. All image operations run off the main thread for optimal performance.
+
+## Storage Architecture
+
+- **IndexedDB Database**: `carbon-image-cache`
+- **Object Store**: `images` with URL as key
+- **Persistence**: Images survive browser restarts
+- **Service Worker**: Intercepts fetch requests, manages cache
 
 ## Setup
 

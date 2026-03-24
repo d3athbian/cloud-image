@@ -87,3 +87,23 @@ src/service-worker/
 3. If not supported: fallback to direct fetch with memory cache only
 
 **Rationale**: Maintains functionality on older browsers while delivering enhanced experience on modern browsers.
+
+## Decision 7: IndexedDB as Primary Storage
+
+**Decision**: Use IndexedDB (NOT Cache API) for persistent image caching
+
+**Implementation**:
+- Database: `carbon-image-cache`
+- Object Store: `images` with `keyPath: 'url'`
+- Store complete image data as ArrayBuffer with metadata
+
+**Rationale**:
+- IndexedDB provides true persistence across browser restarts
+- More reliable for large binary data (images)
+- Better query capabilities for cache management
+- Works reliably with Service Worker fetch interception
+
+**Alternatives considered**:
+- Cache API → Rejected: issues with CDN redirects (302), less reliable for large data
+- localStorage → Rejected: 5MB limit, not suitable for images
+- SessionStorage → Rejected: not persistent across sessions

@@ -1,7 +1,8 @@
-# Feature Specification: Refactor Web Workers to Service Workers
+# Feature Specification: Service Worker with IndexedDB Cache
 
 **Feature Branch**: `003-workers-to-serviceworkers`  
 **Created**: 2026-03-22  
+**Updated**: 2026-03-24  
 **Status**: Draft  
 **Input**: "necesitamos refactorizar el código ya que se implemento con web workers y necesitamos usar service workers"
 
@@ -111,16 +112,18 @@ As a user, I want the system to adapt image delivery based on network conditions
 - **FR-002**: System MUST remove all Web Worker code and related infrastructure
 - **FR-003**: System MUST delete all Web Worker-related test files
 - **FR-004**: System MUST register a Service Worker that persists across page reloads and browser restarts
-- **FR-005**: System MUST intercept ALL image fetch requests and route through Service Worker
-- **FR-006**: System MUST fetch images from network when not cached and store for future use
-- **FR-007**: System MUST implement LRU cache eviction when storage reaches 90% capacity
-- **FR-008**: System MUST evict expired entries (based on TTL) before applying LRU scoring
-- **FR-009**: System MUST measure network RTT and select appropriate image variants
-- **FR-010**: System MUST handle Service Worker updates with stale-while-revalidate pattern
-- **FR-011**: System MUST provide cache manipulation API (get, set, clear, stats)
-- **FR-012**: System MUST maintain cache statistics (hit rate, miss rate, eviction count)
-- **FR-013**: System MUST deduplicate concurrent requests for the same resource
-- **FR-014**: System MUST detect browser support and fail gracefully when Service Workers are unsupported
+- **FR-005**: System MUST intercept ALL image fetch requests and route through Service Worker (including CDN redirects like picsum.photos)
+- **FR-006**: System MUST store cached images in IndexedDB for persistent storage across sessions
+- **FR-007**: System MUST fetch images from network when not in IndexedDB cache and store for future use
+- **FR-008**: System MUST implement LRU cache eviction when storage reaches 90% capacity
+- **FR-009**: System MUST evict expired entries (based on TTL) before applying LRU scoring
+- **FR-010**: System MUST measure network RTT and select appropriate image variants
+- **FR-011**: System MUST handle Service Worker updates with stale-while-revalidate pattern
+- **FR-012**: System MUST provide cache manipulation API (get, set, clear, stats)
+- **FR-013**: System MUST maintain cache statistics (hit rate, miss rate, eviction count)
+- **FR-014**: System MUST deduplicate concurrent requests for the same resource
+- **FR-015**: System MUST use IndexedDB as primary persistent storage (NOT Cache API)
+- **FR-016**: System MUST detect browser support and fail gracefully when Service Workers or IndexedDB are unsupported
 
 ### Key Entities
 
@@ -146,8 +149,10 @@ As a user, I want the system to adapt image delivery based on network conditions
 ## Assumptions
 
 - Browser supports Service Worker API (Chrome 40+, Firefox 33+, Safari 11.1+)
+- Browser supports IndexedDB for persistent storage
 - Service Worker scope limited to same origin or configured path
-- Cache storage uses Cache API backed by IndexedDB
+- IndexedDB database name: `carbon-image-cache`
+- IndexedDB object store: `images` with `url` as keyPath
 - Image variants available at CDN with predictable URL patterns
 - Default cache max size: 100MB
 - Default TTL: 7 days
