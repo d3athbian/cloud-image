@@ -1,62 +1,173 @@
-import { getCacheManager, type CacheEntry } from './cache-manager';
-import { getNetworkMonitor } from './network';
-
 const FETCH_TIMEOUT = 10000;
 const MAX_RETRIES = 3;
 const CIRCUIT_BREAKER_THRESHOLD = 3;
 const CIRCUIT_BREAKER_TIMEOUT = 30000;
 
+const DB_NAME = 'carbon-image-cache';
+const STORE_NAME = 'images';
+const DB_VERSION = 1;
+
+let db: IDBDatabase | null = null;
 let circuitBreakerFailures = 0;
 let circuitBreakerLastFailure = 0;
 let circuitBreakerOpen = false;
 
-const cacheManager = getCacheManager();
-const networkMonitor = getNetworkMonitor();
+const stats = { hits: 0, misses: 0 };
+
+interface CacheEntry {
+  url: string;
+  data: ArrayBuffer;
+  metadata: {
+    size: number;
+    mimeType: string;
+    cachedAt: number;
+    accessedAt: number;
+    accessCount: number;
+  };
+  qualityTier: 'low' | 'medium' | 'high';
+  upgradeable: boolean;
+}
+
+async function openDB(): Promise<IDBDatabase> {
+  if (db) return db;
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      db = request.result;
+      resolve(db);
+    };
+    request.onupgradeneeded = (event) => {
+      const database = event.target.result;
+      if (!database.objectStoreNames.contains(STORE_NAME)) {
+        database.createObjectStore(STORE_NAME, { keyPath: 'url' });
+      }
+    };
+  });
+}
+
+async function getFromIDB(url: string): Promise<CacheEntry | null> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.get(url);
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function saveToIDB(entry: CacheEntry): Promise<void> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.put(entry);
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function deleteFromIDB(url: string): Promise<boolean> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.delete(url);
+    request.onsuccess = () => resolve(true);
+    request.onerror = () => resolve(false);
+  });
+}
+
+async function clearIDB(): Promise<void> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.clear();
+    request.onsuccess = () => resolve();
+    request.onerror = () => reject(request.error);
+  });
+}
+
+async function getStatsFromIDB() {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.getAll();
+    request.onsuccess = () => {
+      const entries = request.result || [];
+      const totalSize = entries.reduce((sum, e) => sum + (e.metadata?.size || 0), 0);
+      const total = stats.hits + stats.misses;
+      resolve({
+        itemCount: entries.length,
+        totalSize,
+        hitRate: total > 0 ? stats.hits / total : 0,
+        missRate: total > 0 ? stats.misses / total : 0,
+        evictionCount: 0,
+      });
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+function isImageURL(url: string): boolean {
+  try {
+    const urlObj = new URL(url);
+    const pathname = urlObj.pathname.toLowerCase();
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico'];
+    const hasImageExtension = imageExtensions.some(ext => pathname.endsWith(ext));
+    const isPicsum = urlObj.hostname.includes('picsum');
+    return hasImageExtension || isPicsum;
+  } catch {
+    return false;
+  }
+}
 
 declare const self: ServiceWorkerGlobalScope;
 
 self.addEventListener('install', (event: ExtendableEvent) => {
+  console.log('[SW] Installing...');
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event: ExtendableEvent) => {
+  console.log('[SW] Activating...');
   event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener('fetch', (event: FetchEvent) => {
-  const url = new URL(event.request.url);
-  
-  if (!url.pathname.match(/\.(jpg|jpeg|png|gif|webp|svg|ico)$/i)) {
-    return;
-  }
+  const url = event.request.url;
 
-  if (event.request.mode === 'navigate') {
-    return;
-  }
+  if (!isImageURL(url)) return;
+  if (event.request.mode === 'navigate') return;
 
-  event.respondWith(handleFetch(event.request));
+  event.respondWith(handleFetch(url));
 });
 
-async function handleFetch(request: Request): Promise<Response> {
-  const url = request.url;
-
+async function handleFetch(url: string): Promise<Response> {
   if (circuitBreakerOpen) {
     if (Date.now() - circuitBreakerLastFailure > CIRCUIT_BREAKER_TIMEOUT) {
       circuitBreakerOpen = false;
       circuitBreakerFailures = 0;
     } else {
-      const cached = await cacheManager.get(url);
+      const cached = await getFromIDB(url);
       if (cached) {
+        stats.hits++;
         return createCachedResponse(cached);
       }
       return new Response('Service unavailable', { status: 503 });
     }
   }
 
-  const cached = await cacheManager.get(url);
+  const cached = await getFromIDB(url);
   if (cached) {
+    stats.hits++;
     return createCachedResponse(cached);
   }
+
+  stats.misses++;
 
   if (!navigator.onLine) {
     return new Response('Offline', { status: 503 });
@@ -64,11 +175,9 @@ async function handleFetch(request: Request): Promise<Response> {
 
   try {
     const response = await fetchWithRetry(url);
-    
     if (response.ok) {
       const blob = await response.blob();
       const arrayBuffer = await blob.arrayBuffer();
-      
       const entry: CacheEntry = {
         url,
         data: arrayBuffer,
@@ -82,14 +191,16 @@ async function handleFetch(request: Request): Promise<Response> {
         qualityTier: 'high',
         upgradeable: false,
       };
-
-      await cacheManager.set(entry);
+      await saveToIDB(entry);
     }
-
     circuitBreakerFailures = 0;
     return response;
   } catch (error) {
-    recordFailure();
+    circuitBreakerFailures++;
+    circuitBreakerLastFailure = Date.now();
+    if (circuitBreakerFailures >= CIRCUIT_BREAKER_THRESHOLD) {
+      circuitBreakerOpen = true;
+    }
     return new Response('Fetch failed', { status: 500 });
   }
 }
@@ -98,12 +209,7 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-    
-    const response = await fetch(url, {
-      signal: controller.signal,
-      cache: 'no-store',
-    });
-    
+    const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
     clearTimeout(timeout);
     return response;
   } catch (error) {
@@ -118,31 +224,17 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
 function createCachedResponse(entry: CacheEntry): Response {
   const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
   return new Response(blob, {
-    headers: { 
-      'Content-Type': entry.metadata.mimeType,
-      'X-Cache-Status': 'HIT'
-    },
+    headers: { 'Content-Type': entry.metadata.mimeType, 'X-Cache-Status': 'HIT' },
   });
-}
-
-function recordFailure(): void {
-  circuitBreakerFailures++;
-  circuitBreakerLastFailure = Date.now();
-  
-  if (circuitBreakerFailures >= CIRCUIT_BREAKER_THRESHOLD) {
-    circuitBreakerOpen = true;
-  }
 }
 
 self.addEventListener('message', async (event: MessageEvent) => {
   const { id, type, payload } = event.data;
-  
   try {
     let response: unknown;
-    
     switch (type) {
       case 'cache-get': {
-        const entry = await cacheManager.get(payload.url);
+        const entry = await getFromIDB(payload.url);
         response = entry ? { found: true, data: entry.data, metadata: entry.metadata } : { found: false };
         break;
       }
@@ -154,51 +246,64 @@ self.addEventListener('message', async (event: MessageEvent) => {
           qualityTier: 'high',
           upgradeable: false,
         };
-        await cacheManager.set(entry);
+        await saveToIDB(entry);
         response = { stored: true };
         break;
       }
       case 'cache-delete': {
-        const result = await cacheManager.delete(payload.url);
-        response = { deleted: result };
+        response = { deleted: await deleteFromIDB(payload.url) };
         break;
       }
       case 'cache-clear': {
-        await cacheManager.clear();
+        await clearIDB();
         response = { cleared: true };
         break;
       }
       case 'stats': {
-        response = cacheManager.getStats();
+        response = await getStatsFromIDB();
         break;
       }
       case 'ping': {
         response = { alive: true };
         break;
       }
-      case 'measure-rtt': {
-        const rtt = await networkMonitor.measureRTT(payload.url);
-        response = { rtt, bandwidth: networkMonitor.getBandwidth() };
-        break;
-      }
       default:
         throw new Error(`Unknown message type: ${type}`);
     }
-    
     self.clients.matchAll().then(clients => {
-      clients.forEach(client => {
-        client.postMessage({ id, type: 'success', payload: response });
-      });
+      clients.forEach(client => client.postMessage({ id, type: 'success', payload: response }));
     });
   } catch (error) {
     self.clients.matchAll().then(clients => {
-      clients.forEach(client => {
-        client.postMessage({ 
-          id, 
-          type: 'error', 
-          error: error instanceof Error ? error.message : 'Unknown error' 
-        });
-      });
+      clients.forEach(client => client.postMessage({ id, type: 'error', error: error instanceof Error ? error.message : 'Unknown error' }));
     });
   }
 });
+
+export interface SWRequest<T = unknown> {
+  id: string;
+  type: string;
+  payload?: T;
+  timestamp: number;
+}
+
+export interface SWResponse<T = unknown> {
+  id: string;
+  type: 'success' | 'error';
+  payload?: T;
+  error?: string;
+  timestamp: number;
+}
+
+export function generateMessageId(): string {
+  return crypto.randomUUID();
+}
+
+export function createSWRequest<T>(type: string, payload?: T): SWRequest<T> {
+  return {
+    id: generateMessageId(),
+    type,
+    payload,
+    timestamp: Date.now(),
+  };
+}

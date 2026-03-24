@@ -1,5 +1,17 @@
-import type { MessageType, SWRequest, SWResponse } from './messages';
-import { createSWRequest } from './messages';
+import type { SWRequest, SWResponse } from './sw';
+
+export type MessageType = 
+  | 'fetch'
+  | 'cache-get'
+  | 'cache-set'
+  | 'cache-delete'
+  | 'cache-clear'
+  | 'stats'
+  | 'ping'
+  | 'init'
+  | 'destroy';
+
+export { generateMessageId, createSWRequest } from './sw';
 
 export interface ServiceWorkerConfig {
   scope?: string;
