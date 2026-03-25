@@ -209,7 +209,11 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-    const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+    const response = await fetch(url, { 
+      signal: controller.signal, 
+      cache: 'no-store',
+      redirect: 'follow' 
+    });
     clearTimeout(timeout);
     return response;
   } catch (error) {
@@ -233,6 +237,39 @@ self.addEventListener('message', async (event: MessageEvent) => {
   try {
     let response: unknown;
     switch (type) {
+      case 'fetch': {
+        const url = payload.url;
+        const cached = await getFromIDB(url);
+        if (cached) {
+          const blobUrl = URL.createObjectURL(new Blob([cached.data], { type: cached.metadata.mimeType }));
+          response = { blobUrl, fromCache: true, size: cached.data.byteLength, mimeType: cached.metadata.mimeType };
+        } else {
+          const fetchResp = await fetch(url, { redirect: 'follow' });
+          if (fetchResp.ok) {
+            const blob = await fetchResp.blob();
+            const arrayBuffer = await blob.arrayBuffer();
+            const entry: CacheEntry = {
+              url,
+              data: arrayBuffer,
+              metadata: {
+                size: arrayBuffer.byteLength,
+                mimeType: blob.type,
+                cachedAt: Date.now(),
+                accessedAt: Date.now(),
+                accessCount: 1,
+              },
+              qualityTier: 'high',
+              upgradeable: false,
+            };
+            await saveToIDB(entry);
+            const blobUrl = URL.createObjectURL(blob);
+            response = { blobUrl, fromCache: false, size: arrayBuffer.byteLength, mimeType: blob.type };
+          } else {
+            response = { error: 'Fetch failed', status: fetchResp.status };
+          }
+        }
+        break;
+      }
       case 'cache-get': {
         const entry = await getFromIDB(payload.url);
         response = entry ? { found: true, data: entry.data, metadata: entry.metadata } : { found: false };

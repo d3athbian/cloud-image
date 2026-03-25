@@ -1,7 +1,7 @@
 // Service Worker para CLOUD Image Cache
 // Usa IndexedDB para persistencia
 
-const DB_NAME = 'carbon-image-cache';
+const DB_NAME = 'cloud-image-cache';
 const STORE_NAME = 'images';
 const DB_VERSION = 1;
 
@@ -151,7 +151,7 @@ async function handleImageRequest(url) {
   }
 
   try {
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url, { cache: 'no-store', redirect: 'follow' });
     
     if (response.ok) {
       const blob = await response.blob();

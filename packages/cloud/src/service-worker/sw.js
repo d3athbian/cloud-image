@@ -151,7 +151,7 @@ async function handleImageRequest(url) {
   }
 
   try {
-    const response = await fetch(url, { cache: 'no-store' });
+    const response = await fetch(url, { cache: 'no-store', redirect: 'follow' });
     
     if (response.ok) {
       const blob = await response.blob();
