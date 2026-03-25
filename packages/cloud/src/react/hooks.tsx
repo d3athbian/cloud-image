@@ -3,8 +3,6 @@ import { ImageEngine } from '../core/engine';
 import type { CacheConfig, CacheStats, NetworkStatus } from '../core/types';
 
 const SW_STATE_KEY = '__CLOUD_SW_STATE__';
-const SW_REGISTRY_KEY = '__CLOUD_SW_REGISTERED__';
-const SW_PATH = '/sw.js';
 
 const swScript = `
 (function() {

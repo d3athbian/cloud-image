@@ -89,7 +89,7 @@ export class CloudinaryCDNAdapter implements CDNAdapter {
   }
 
   generateUrl(url: string, variant: CDNVariant): string {
-    const publicId = this.extractPublicId(url);
+    const _extractedId = this.extractPublicId(url);
     const transformations = this.buildTransformations(variant);
     return `https://res.cloudinary.com/${this.cloudName}/image/fetch/${transformations}/${encodeURIComponent(url)}`;
   }
@@ -132,11 +132,11 @@ export class CloudinaryCDNAdapter implements CDNAdapter {
 export class ImgixCDNAdapter implements CDNAdapter {
   readonly name = 'imgix';
   private domain: string;
-  private apiKey?: string;
+  private _apiKey?: string;
 
   constructor(domain: string, apiKey?: string) {
     this.domain = domain;
-    this.apiKey = apiKey;
+    this._apiKey = apiKey;
   }
 
   generateUrl(url: string, variant: CDNVariant): string {

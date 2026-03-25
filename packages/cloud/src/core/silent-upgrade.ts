@@ -1,5 +1,5 @@
-import { getBandwidthMonitor, type BandwidthMonitor, type BandwidthSample } from './bandwidth';
-import { createCDNAdapter, type CDNAdapter, type CDNConfig, type CDNVariant } from './cdn-adapter';
+import { getBandwidthMonitor, type BandwidthMonitor } from './bandwidth';
+import { createCDNAdapter, type CDNAdapter, type CDNVariant } from './cdn-adapter';
 import type { CacheEntry, BandwidthClassification } from './types';
 
 export interface SilentUpgradeConfig {
@@ -92,7 +92,7 @@ export class SilentUpgradeManager {
     this.isProcessing = false;
   }
 
-  private async performUpgrade(url: string, entry: CacheEntry): Promise<void> {
+  private async performUpgrade(url: string, _entry: CacheEntry): Promise<void> {
     if (!this.upgradeCallback) return;
 
     const variant = this.cdnAdapter.getVariantForBandwidth('high');

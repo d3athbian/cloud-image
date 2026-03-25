@@ -1,5 +1,5 @@
-import { getNetworkMonitor, type NetworkMonitor } from './network';
 import type { CacheEntry } from './types';
+import { getNetworkMonitor } from './network';
 
 export interface OfflineStrategy {
   readonly name: string;

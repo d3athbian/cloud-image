@@ -48,20 +48,20 @@ export class WebOSAdapter implements PlatformAdapter {
     });
   }
 
-  async get(url: string): Promise<CacheEntry | null> {
+  async get(_url: string): Promise<CacheEntry | null> {
     if (!this.initialized) return null;
-    const data = await this.readFile(this.getPath(url));
+    const data = await this.readFile(this.getPath(_url));
     if (!data) return null;
     return null;
   }
 
-  async set(entry: CacheEntry): Promise<void> {}
+  async set(_entry: CacheEntry): Promise<void> {}
 
-  async delete(url: string): Promise<boolean> {
+  async delete(_url: string): Promise<boolean> {
     return true;
   }
 
-  async has(url: string): Promise<boolean> {
+  async has(_url: string): Promise<boolean> {
     return false;
   }
 

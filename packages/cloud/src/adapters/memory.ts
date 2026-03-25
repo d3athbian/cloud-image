@@ -31,6 +31,9 @@ export class MemoryAdapter implements PlatformAdapter {
     if (existing) {
       this.size -= existing.metadata.size;
     }
+    if (this.size + entry.metadata.size > this.maxSize) {
+      await this.evictLRU(entry.metadata.size);
+    }
     this.cache.set(entry.url, { ...entry });
     this.size += entry.metadata.size;
   }

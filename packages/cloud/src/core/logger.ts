@@ -60,7 +60,7 @@ export class Logger {
     this.log('error', operation, message, metadata);
   }
 
-  logDuration(correlationId: string, operation: string, duration: number, metadata?: Record<string, unknown>): void {
+  logDuration(_correlationId: string, operation: string, duration: number, metadata?: Record<string, unknown>): void {
     this.log('info', operation, `Completed in ${duration.toFixed(2)}ms`, metadata, duration);
   }
 

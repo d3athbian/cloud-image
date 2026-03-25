@@ -294,16 +294,3 @@ export interface SWResponse<T = unknown> {
   error?: string;
   timestamp: number;
 }
-
-export function generateMessageId(): string {
-  return crypto.randomUUID();
-}
-
-export function createSWRequest<T>(type: string, payload?: T): SWRequest<T> {
-  return {
-    id: generateMessageId(),
-    type,
-    payload,
-    timestamp: Date.now(),
-  };
-}

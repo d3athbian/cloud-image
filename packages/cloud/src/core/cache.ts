@@ -19,7 +19,6 @@ export class ImageCache {
   private hits = 0;
   private misses = 0;
   private adapter: PlatformAdapter | null = null;
-  private adapterInitPromise: Promise<void> | null = null;
 
   constructor(config: Partial<CacheConfig> = {}, adapter?: PlatformAdapter) {
     this.config = { ...DEFAULT_CACHE_CONFIG, ...config } as Required<Omit<CacheConfig, 'platformOverride'>> & { platformOverride?: string };
@@ -194,7 +193,7 @@ export class ImageCache {
     return projectedSize > this.config.maxSize * 0.9;
   }
 
-  private async evict(incomingSize: number): Promise<void> {
+  private async evict(_incomingSize: number): Promise<void> {
     const targetSize = this.config.maxSize * 0.8;
     const entries = Array.from(this.entries.values());
     

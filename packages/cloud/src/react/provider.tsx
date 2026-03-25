@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from 'react';
 import { ImageEngine } from '../core/engine';
-import { getNetworkMonitor, type NetworkMonitor } from '../core/network';
-import { createOfflineStrategy, type OfflineStrategy } from '../core/offline';
+import { getNetworkMonitor } from '../core/network';
+import { createOfflineStrategy } from '../core/offline';
 import { createAdapter } from '../adapters/factory';
 import type { CacheConfig, CacheStats, BandwidthClassification, NetworkStatus } from '../core/types';
 

@@ -76,11 +76,11 @@ export class TizenAdapter implements PlatformAdapter {
     });
   }
 
-  async delete(url: string): Promise<boolean> {
+  async delete(_url: string): Promise<boolean> {
     return true;
   }
 
-  async has(url: string): Promise<boolean> {
+  async has(_url: string): Promise<boolean> {
     return false;
   }
 
