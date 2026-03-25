@@ -167,31 +167,24 @@ As a developer, I want modules to have clear interfaces and minimal dependencies
 ### 1. Unified IndexedDB ✅ COMPLETADO
 - DB_NAME ahora es `cloud-image-cache` en todos los lugares
 
-### 2. Adapter Fallback Logic (Priority: HIGH)
-- El motor debe usar fallback cuando IndexedDB no está disponible
-- actualmente hay lógica pero no está unificada
-
-**Problema**: 
-- Si SW no está disponible, el web adapter debería usarse
-- Si web adapter falla, memory adapter debería usarse
-- Actualmente: cada módulo tiene su propia lógica de fallback
-
-**Propuesta**:
-- Unificar fallback logic en engine.ts
-- Orden: SW → web adapter → memory adapter
+### 2. Adapter Fallback Logic ✅ IMPLEMENTADO
+- engine.ts ahora tiene fallback chain: SW → adapter → direct fetch
+- El método get() ahora prueba SW primero, luego adapter, luego fetch directo
+- Esto asegura que siempre haya una forma de obtener la imagen
 
 ### 3. Retry Logic Reuse (Priority: MEDIUM)
 - service-worker/sw.ts tiene su propia función `fetchWithRetry`
 - Podría reusar `core/retry.ts` RetryHandler
+- Estado: Por hacer (no crítico, funciona bien)
 
-### 4. Memory Adapter como Fallback Final (Priority: MEDIUM)
-- Cuando IndexedDB no está disponible, usar memory adapter
-- Necesita estar correctamente integrado
+### 4. Memory Adapter como Fallback Final ✅ FUNCIONANDO
+- Cuando IndexedDB no está disponible, el factory usa memory adapter
+- Ya integrado en el adapter factory
 
-### 5. Error Handling para IndexedDB Failures (Priority: MEDIUM)
-- Qué pasa cuando IndexedDB falla?
-- Necesita manejo de errores claro
-- Fallback a memoria sin perder funcionalidad
+### 5. Error Handling para IndexedDB Failures ✅ MEJORADO
+- El nuevo fallback chain maneja errores en cada nivel
+- Si IndexedDB falla, usa memoria
+- Si todo falla, hace fetch directo
 
 ---
 
