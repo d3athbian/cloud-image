@@ -234,16 +234,21 @@ function createCachedResponse(entry: CacheEntry): Response {
 
 self.addEventListener('message', async (event: MessageEvent) => {
   const { id, type, payload } = event.data;
+  console.log('[SW] Received message:', type, id);
+  
   try {
     let response: unknown;
     switch (type) {
       case 'fetch': {
         const url = payload.url;
+        console.log('[SW] Fetch request for:', url);
         const cached = await getFromIDB(url);
         if (cached) {
+          console.log('[SW] Found in cache:', url);
           const blobUrl = URL.createObjectURL(new Blob([cached.data], { type: cached.metadata.mimeType }));
           response = { blobUrl, fromCache: true, size: cached.data.byteLength, mimeType: cached.metadata.mimeType };
         } else {
+          console.log('[SW] Not in cache, fetching:', url);
           const fetchResp = await fetch(url, { redirect: 'follow' });
           if (fetchResp.ok) {
             const blob = await fetchResp.blob();
@@ -262,9 +267,11 @@ self.addEventListener('message', async (event: MessageEvent) => {
               upgradeable: false,
             };
             await saveToIDB(entry);
+            console.log('[SW] Cached new image:', url, 'size:', arrayBuffer.byteLength);
             const blobUrl = URL.createObjectURL(blob);
             response = { blobUrl, fromCache: false, size: arrayBuffer.byteLength, mimeType: blob.type };
           } else {
+            console.log('[SW] Fetch failed with status:', fetchResp.status);
             response = { error: 'Fetch failed', status: fetchResp.status };
           }
         }
@@ -311,6 +318,7 @@ self.addEventListener('message', async (event: MessageEvent) => {
       clients.forEach(client => client.postMessage({ id, type: 'success', payload: response }));
     });
   } catch (error) {
+    console.log('[SW] Error handling message:', error);
     self.clients.matchAll().then(clients => {
       clients.forEach(client => client.postMessage({ id, type: 'error', error: error instanceof Error ? error.message : 'Unknown error' }));
     });

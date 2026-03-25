@@ -176,11 +176,40 @@ async function handleImageRequest(url) {
 // Message Handler - para comandos desde el main thread
 self.addEventListener('message', async (event) => {
   const { id, type, payload } = event.data;
+  console.log('[SW] Received message:', type, id);
   
   try {
     let response;
     
     switch (type) {
+      case 'fetch': {
+        const url = payload.url;
+        console.log('[SW] Fetch request for:', url);
+        const cached = await getFromIDB(url);
+        if (cached) {
+          console.log('[SW] Found in cache:', url);
+          const blobUrl = URL.createObjectURL(new Blob([cached.data], { type: cached.metadata.mimeType }));
+          response = { blobUrl, fromCache: true, size: cached.data.byteLength, mimeType: cached.metadata.mimeType };
+        } else {
+          console.log('[SW] Not in cache, fetching:', url);
+          const fetchResp = await fetch(url, { redirect: 'follow' });
+          if (fetchResp.ok) {
+            const blob = await fetchResp.blob();
+            const arrayBuffer = await blob.arrayBuffer();
+            await saveToIDB(url, arrayBuffer, {
+              size: arrayBuffer.byteLength,
+              mimeType: blob.type,
+            });
+            console.log('[SW] Cached new image:', url, 'size:', arrayBuffer.byteLength);
+            const blobUrl = URL.createObjectURL(blob);
+            response = { blobUrl, fromCache: false, size: arrayBuffer.byteLength, mimeType: blob.type };
+          } else {
+            console.log('[SW] Fetch failed with status:', fetchResp.status);
+            response = { error: 'Fetch failed', status: fetchResp.status };
+          }
+        }
+        break;
+      }
       case 'cache-get': {
         const entry = await getFromIDB(payload.url);
         response = entry ? { found: true, data: entry.data, metadata: entry.metadata } : { found: false };
