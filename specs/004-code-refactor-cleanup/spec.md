@@ -86,6 +86,9 @@ As a developer, I want modules to have clear interfaces and minimal dependencies
 - **FR-007**: System MUST preserve CSP fallback mechanism (register.js manual inclusion)
 - **FR-008**: System MUST keep adapter pattern modular (web, tizen, webos, memory)
 - **FR-009**: System MUST reuse core/ retry logic in service-worker/ (currently duplicated)
+- **FR-010**: System MUST use single IndexedDB name `cloud-image-cache` everywhere
+- **FR-011**: System MUST implement unified fallback chain (SW → web adapter → memory)
+- **FR-012**: System MUST handle IndexedDB errors gracefully with fallback to memory
 
 ### Identified Issues (Pre-Refactor Analysis)
 
@@ -144,3 +147,77 @@ As a developer, I want modules to have clear interfaces and minimal dependencies
 - The library API remains backward compatible
 - Users can continue using CloudProvider without changes
 - CSP fallback mechanism is acceptable to users who need it
+
+---
+
+## UPDATE 2026-03-25: IndexedDB Fix Applied
+
+### Problema Encontrado
+- Service Worker usaba `carbon-image-cache`
+- Web adapter usaba `cloud-image-cache`
+- Imágenes no se encontrában entre sí
+
+### Fix Aplicado
+- Unificado a `cloud-image-cache` en service-worker/sw.ts y sw.js
+
+---
+
+## Oportunidades de Mejora Identificadas
+
+### 1. Unified IndexedDB ✅ COMPLETADO
+- DB_NAME ahora es `cloud-image-cache` en todos los lugares
+
+### 2. Adapter Fallback Logic (Priority: HIGH)
+- El motor debe usar fallback cuando IndexedDB no está disponible
+- actualmente hay lógica pero no está unificada
+
+**Problema**: 
+- Si SW no está disponible, el web adapter debería usarse
+- Si web adapter falla, memory adapter debería usarse
+- Actualmente: cada módulo tiene su propia lógica de fallback
+
+**Propuesta**:
+- Unificar fallback logic en engine.ts
+- Orden: SW → web adapter → memory adapter
+
+### 3. Retry Logic Reuse (Priority: MEDIUM)
+- service-worker/sw.ts tiene su propia función `fetchWithRetry`
+- Podría reusar `core/retry.ts` RetryHandler
+
+### 4. Memory Adapter como Fallback Final (Priority: MEDIUM)
+- Cuando IndexedDB no está disponible, usar memory adapter
+- Necesita estar correctamente integrado
+
+### 5. Error Handling para IndexedDB Failures (Priority: MEDIUM)
+- Qué pasa cuando IndexedDB falla?
+- Necesita manejo de errores claro
+- Fallback a memoria sin perder funcionalidad
+
+---
+
+## User Stories for Improvements
+
+### User Story 5 - Unified Fallback Logic (Priority: P2)
+
+As a developer, I want the caching system to automatically fall back to the next available storage method when the primary one fails, so that the application remains functional regardless of browser capabilities.
+
+**Why this priority**: Improves resilience
+
+**Acceptance Scenarios**:
+
+1. **Given** Service Worker is not available, **When** image is requested, **Then** use web adapter IndexedDB
+2. **Given** IndexedDB is not available, **When** image is requested, **Then** use memory adapter
+3. **Given** All storage fails, **When** image is requested, **Then** fetch from network directly
+
+---
+
+### User Story 6 - Centralized Error Handling (Priority: P2)
+
+As a developer, I want clear error handling when storage operations fail, so that I can debug issues and provide fallback behavior.
+
+**Why this priority**: Better debuggability
+
+**Acceptance Scenarios**:
+
+1. **Given** IndexedDB is full, **When** saving image, **Then** evict old entries automatically
+2. **Given** IndexedDB throws error, **When** operation fails, **Then** log error and use fallback

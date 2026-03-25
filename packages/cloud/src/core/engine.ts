@@ -46,24 +46,69 @@ export class ImageEngine {
   }
 
   async get(url: string): Promise<string | null> {
-    if (this.swClient.isFallbackMode()) {
-      return this.swClient.get(url);
-    }
+    // Try Service Worker first (preferred path for network interception)
+    if (!this.swClient.isFallbackMode()) {
+      if (this.pendingRequests.has(url)) {
+        return this.pendingRequests.get(url)!;
+      }
 
-    if (this.pendingRequests.has(url)) {
-      return this.pendingRequests.get(url)!;
+      const pending = this.swClient.get(url);
+      this.pendingRequests.set(url, pending);
+      
+      try {
+        const result = await pending;
+        this.pendingRequests.delete(url);
+        
+        // Also cache locally via adapter for backup
+        if (result && !result.includes('blob:')) {
+          // SW returned URL directly, nothing to cache
+        }
+        
+        return result;
+      } catch (error) {
+        this.pendingRequests.delete(url);
+        this.log('[ImageEngine] SW get failed, trying adapter:', error);
+        // Fall through to adapter fallback
+      }
     }
-
-    const pending = this.swClient.get(url);
-    this.pendingRequests.set(url, pending);
     
+    // Fallback: use adapter directly (web/memory adapter with IndexedDB)
     try {
-      const result = await pending;
-      this.pendingRequests.delete(url);
-      return result;
-    } catch (error) {
-      this.pendingRequests.delete(url);
-      this.log('[ImageEngine] Get failed:', error);
+      const entry = await this.cache.get(url);
+      if (entry) {
+        const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
+        return URL.createObjectURL(blob);
+      }
+    } catch (adapterError) {
+      this.log('[ImageEngine] Adapter failed:', adapterError);
+    }
+    
+    // Final fallback: direct fetch
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const arrayBuffer = await blob.arrayBuffer();
+      
+      // Cache for next time
+      const newEntry: CacheEntry = {
+        url,
+        data: arrayBuffer,
+        metadata: {
+          size: arrayBuffer.byteLength,
+          mimeType: blob.type,
+          cachedAt: Date.now(),
+          accessedAt: Date.now(),
+          accessCount: 1,
+          defaultTTL: 7 * 24 * 60 * 60 * 1000,
+        },
+        qualityTier: 'high',
+        upgradeable: false,
+      };
+      await this.cache.set(newEntry);
+      
+      return URL.createObjectURL(blob);
+    } catch (fetchError) {
+      this.log('[ImageEngine] All fallbacks failed:', fetchError);
       return null;
     }
   }

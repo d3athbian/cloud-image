@@ -1,7 +1,7 @@
 // Service Worker para CLOUD Image Cache
 // Usa IndexedDB para persistencia
 
-const DB_NAME = 'carbon-image-cache';
+const DB_NAME = 'cloud-image-cache';
 const STORE_NAME = 'images';
 const DB_VERSION = 1;
 
