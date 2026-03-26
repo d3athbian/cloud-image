@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cloudimage/cloud": "file:../../packages/cloud",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

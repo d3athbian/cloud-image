@@ -2,19 +2,33 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { CloudProvider, useCloud, CloudImage } from '@cloudimage/cloud/react';
 import type { CacheStats, NetworkStatus } from '@cloudimage/cloud';
 
-const IMAGE_COUNT = 20;
-const BASE_URL = 'https://picsum.photos';
+const API_URL = 'https://picsum.photos/v2/list?page=1&limit=20';
 
-const testImages = Array.from({ length: IMAGE_COUNT }, (_, i) => {
-  const fixedId = 100 + i * 10;
-  return {
-    id: fixedId,
-    src: `${BASE_URL}/id/${fixedId}/800/600`,
-    width: 800,
-    height: 600,
-    alt: `Demo image ${fixedId}`,
-  };
-});
+interface PicsumImage {
+  id: string;
+  author: string;
+  width: number;
+  height: number;
+  url: string;
+  download_url: string;
+}
+
+function usePicsumImages() {
+  const [images, setImages] = useState<PicsumImage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(API_URL)
+      .then(res => res.json())
+      .then((data: PicsumImage[]) => {
+        setImages(data);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  return { images, loading };
+}
 
 function CacheStatsDisplay({ stats }: { stats: CacheStats | null }) {
   return (
@@ -69,16 +83,16 @@ function Controls({ onPrefetch, onClear }: { onPrefetch: () => void; onClear: ()
   );
 }
 
-function ImageGrid() {
+function ImageGrid({ images }: { images: PicsumImage[] }) {
   return (
     <div style={styles.grid}>
-      {testImages.map((img) => (
+      {images.map((img) => (
         <div key={img.id} style={styles.imageWrapper}>
           <CloudImage
-            src={img.src}
-            width={img.width}
-            height={img.height}
-            alt={img.alt}
+            src={`https://picsum.photos/id/${img.id}/800/600`}
+            width={800}
+            height={600}
+            alt={`${img.author} - ${img.id}`}
           />
         </div>
       ))}
@@ -87,6 +101,7 @@ function ImageGrid() {
 }
 
 function AppContent() {
+  const { images, loading } = usePicsumImages();
   const { cache, network } = useCloud();
   const cacheRef = useRef(cache);
   const [stats, setStats] = useState<CacheStats | null>(null);
@@ -104,21 +119,26 @@ function AppContent() {
   }, []);
 
   const handlePrefetch = useCallback(async () => {
-    await cacheRef.current.prefetch(testImages.slice(0, 10).map(img => img.src));
+    const urls = images.slice(0, 10).map(img => `https://picsum.photos/id/${img.id}/800/600`);
+    await cacheRef.current.prefetch(urls);
     const s = await cacheRef.current.getStats();
     setStats(s);
-  }, []);
+  }, [images]);
 
   const handleClear = useCallback(async () => {
     await cacheRef.current.clear();
     setStats({ itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 });
   }, []);
 
+  if (loading) {
+    return <div style={styles.container}>Loading images...</div>;
+  }
+
   return (
     <div style={styles.container}>
       <header style={styles.header}>
         <h1>CLOUD Image Cache Demo</h1>
-        <p>Testing with {IMAGE_COUNT} images (picsum.photos)</p>
+        <p>Testing with {images.length} images (picsum.photos)</p>
       </header>
       
       <div style={styles.sidebar}>
@@ -128,7 +148,7 @@ function AppContent() {
       </div>
       
       <main style={styles.main}>
-        <ImageGrid />
+        <ImageGrid images={images} />
       </main>
     </div>
   );

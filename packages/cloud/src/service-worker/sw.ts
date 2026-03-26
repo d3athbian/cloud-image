@@ -178,12 +178,25 @@ async function handleFetch(url: string): Promise<Response> {
     if (response.ok) {
       const blob = await response.blob();
       const arrayBuffer = await blob.arrayBuffer();
+      
+      // Get mimeType from blob or infer from URL
+      let mimeType = blob.type;
+      if (!mimeType || mimeType === 'application/octet-stream') {
+        const urlObj = new URL(url);
+        const ext = urlObj.pathname.split('.').pop()?.toLowerCase();
+        const extToMime: Record<string, string> = {
+          'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
+          'webp': 'image/webp', 'gif': 'image/gif', 'svg': 'image/svg+xml',
+        };
+        mimeType = ext && extToMime[ext] ? extToMime[ext] : 'image/jpeg';
+      }
+      
       const entry: CacheEntry = {
         url,
         data: arrayBuffer,
         metadata: {
           size: arrayBuffer.byteLength,
-          mimeType: blob.type,
+          mimeType: mimeType,
           cachedAt: Date.now(),
           accessedAt: Date.now(),
           accessCount: 1,
@@ -257,12 +270,30 @@ self.addEventListener('message', async (event: MessageEvent) => {
           if (fetchResp.ok) {
             const blob = await fetchResp.blob();
             const arrayBuffer = await blob.arrayBuffer();
+            
+            // Get mimeType from blob or infer from URL
+            let mimeType = blob.type;
+            if (!mimeType || mimeType === 'application/octet-stream') {
+              // Try to infer from URL extension
+              const urlObj = new URL(url);
+              const ext = urlObj.pathname.split('.').pop()?.toLowerCase();
+              const extToMime: Record<string, string> = {
+                'jpg': 'image/jpeg',
+                'jpeg': 'image/jpeg',
+                'png': 'image/png',
+                'webp': 'image/webp',
+                'gif': 'image/gif',
+                'svg': 'image/svg+xml',
+              };
+              mimeType = ext && extToMime[ext] ? extToMime[ext] : 'image/jpeg';
+            }
+            
             const entry: CacheEntry = {
               url,
               data: arrayBuffer,
               metadata: {
                 size: arrayBuffer.byteLength,
-                mimeType: blob.type,
+                mimeType: mimeType,
                 cachedAt: Date.now(),
                 accessedAt: Date.now(),
                 accessCount: 1,
