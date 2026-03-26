@@ -139,19 +139,25 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         }
 
         if (!url) {
-          const response = await fetch(src);
-          const blob = await response.blob();
-          url = URL.createObjectURL(blob);
+          url = src;
           
           if (engine && !noCache) {
-            const arrayBuffer = await blob.arrayBuffer();
-            await engine.set(src, arrayBuffer, {
-              size: arrayBuffer.byteLength,
-              mimeType: blob.type,
-              cachedAt: Date.now(),
-              accessedAt: Date.now(),
-              accessCount: 0,
-            });
+            try {
+              const response = await fetch(src);
+              if (response.ok) {
+                const blob = await response.blob();
+                const arrayBuffer = await blob.arrayBuffer();
+                await engine.set(src, arrayBuffer, {
+                  size: arrayBuffer.byteLength,
+                  mimeType: blob.type || 'image/jpeg',
+                  cachedAt: Date.now(),
+                  accessedAt: Date.now(),
+                  accessCount: 0,
+                });
+              }
+            } catch {
+              // Network error - just use original URL, will show broken image
+            }
           }
         }
         
@@ -297,6 +303,21 @@ export const CloudImage: React.FC<CloudImageProps> = ({
 
       {status === 'error' && fallback ? (
         fallback
+      ) : status === 'error' ? (
+        <img
+          ref={imgRef}
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          loading={loadingPriority}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+          }}
+          {...props}
+        />
       ) : (
         <img
           ref={imgRef}
@@ -320,6 +341,9 @@ export const CloudImage: React.FC<CloudImageProps> = ({
             if (enableCrossfade && hasBlurPlaceholder) {
               setMainImageLoaded(true);
             }
+          }}
+          onError={() => {
+            setStatus('error');
           }}
           {...props}
         />
