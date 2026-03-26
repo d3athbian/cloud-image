@@ -212,7 +212,8 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
     const response = await fetch(url, { 
       signal: controller.signal, 
       cache: 'no-store',
-      redirect: 'follow' 
+      redirect: 'follow',
+      credentials: 'include'
     });
     clearTimeout(timeout);
     return response;
@@ -249,7 +250,10 @@ self.addEventListener('message', async (event: MessageEvent) => {
           response = { blobUrl, fromCache: true, size: cached.data.byteLength, mimeType: cached.metadata.mimeType };
         } else {
           console.log('[SW] Not in cache, fetching:', url);
-          const fetchResp = await fetch(url, { redirect: 'follow' });
+          const fetchResp = await fetch(url, { 
+            redirect: 'follow',
+            credentials: 'include'
+          });
           if (fetchResp.ok) {
             const blob = await fetchResp.blob();
             const arrayBuffer = await blob.arrayBuffer();

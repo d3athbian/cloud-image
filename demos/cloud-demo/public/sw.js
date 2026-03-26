@@ -151,7 +151,7 @@ async function handleImageRequest(url) {
   }
 
   try {
-    const response = await fetch(url, { cache: 'no-store', redirect: 'follow' });
+    const response = await fetch(url, { cache: 'no-store', redirect: 'follow', credentials: 'include' });
     
     if (response.ok) {
       const blob = await response.blob();
@@ -192,7 +192,7 @@ self.addEventListener('message', async (event) => {
           response = { blobUrl, fromCache: true, size: cached.data.byteLength, mimeType: cached.metadata.mimeType };
         } else {
           console.log('[SW] Not in cache, fetching:', url);
-          const fetchResp = await fetch(url, { redirect: 'follow' });
+          const fetchResp = await fetch(url, { redirect: 'follow', credentials: 'include' });
           if (fetchResp.ok) {
             const blob = await fetchResp.blob();
             const arrayBuffer = await blob.arrayBuffer();
