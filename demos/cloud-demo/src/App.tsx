@@ -1,8 +1,6 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { CloudProvider, useCloud, CloudImage } from '@cloudimage/cloud/react';
 import type { CacheStats, NetworkStatus } from '@cloudimage/cloud';
-
-const API_URL = 'https://picsum.photos/v2/list?page=1&limit=20';
 
 interface PicsumImage {
   id: string;
@@ -13,19 +11,22 @@ interface PicsumImage {
   download_url: string;
 }
 
-function usePicsumImages() {
-  const [images, setImages] = useState<PicsumImage[]>([]);
-  const [loading, setLoading] = useState(true);
+const STATIC_IMAGES: PicsumImage[] = [
+  { id: "0", author: "Alejandro Escamilla", width: 5000, height: 3333, url: "https://unsplash.com/photos/yC-Yzbqy7PY", download_url: "https://picsum.photos/id/0/5000/3333" },
+  { id: "1", author: "Alejandro Escamilla", width: 5000, height: 3333, url: "https://unsplash.com/photos/LNRyGwIJr5c", download_url: "https://picsum.photos/id/1/5000/3333" },
+  { id: "2", author: "Alejandro Escamilla", width: 5000, height: 3333, url: "https://unsplash.com/photos/N7XodRrbzS0", download_url: "https://picsum.photos/id/2/5000/3333" },
+  { id: "3", author: "Alejandro Escamilla", width: 5000, height: 3333, url: "https://unsplash.com/photos/Dl6jeyfihLk", download_url: "https://picsum.photos/id/3/5000/3333" },
+  { id: "4", author: "Alejandro Escamilla", width: 5000, height: 3333, url: "https://unsplash.com/photos/y83Je1OC6Wc", download_url: "https://picsum.photos/id/4/5000/3333" },
+  { id: "5", author: "Alejandro Escamilla", width: 5000, height: 3334, url: "https://unsplash.com/photos/LF8gK8-HGSg", download_url: "https://picsum.photos/id/5/5000/3334" },
+  { id: "6", author: "Alejandro Escamilla", width: 5000, height: 3333, url: "https://unsplash.com/photos/tAKXap853rY", download_url: "https://picsum.photos/id/6/5000/3333" },
+  { id: "7", author: "Alejandro Escamilla", width: 4728, height: 3168, url: "https://unsplash.com/photos/BbQLHCpVUqA", download_url: "https://picsum.photos/id/7/4728/3168" },
+  { id: "8", author: "Alejandro Escamilla", width: 5000, height: 3333, url: "https://unsplash.com/photos/xII7efH1G6o", download_url: "https://picsum.photos/id/8/5000/3333" },
+  { id: "9", author: "Alejandro Escamilla", width: 5000, height: 3269, url: "https://unsplash.com/photos/ABDTiLqDhJA", download_url: "https://picsum.photos/id/9/5000/3269" },
+];
 
-  useEffect(() => {
-    fetch(API_URL)
-      .then(res => res.json())
-      .then((data: PicsumImage[]) => {
-        setImages(data);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+function usePicsumImages() {
+  const [images, setImages] = useState<PicsumImage[]>(STATIC_IMAGES);
+  const [loading, setLoading] = useState(false);
 
   return { images, loading };
 }
@@ -89,9 +90,9 @@ function ImageGrid({ images }: { images: PicsumImage[] }) {
       {images.map((img) => (
         <div key={img.id} style={styles.imageWrapper}>
           <CloudImage
-            src={`https://picsum.photos/id/${img.id}/800/600`}
-            width={800}
-            height={600}
+            src={img.download_url}
+            width={img.width}
+            height={img.height}
             alt={`${img.author} - ${img.id}`}
           />
         </div>
@@ -119,7 +120,7 @@ function AppContent() {
   }, []);
 
   const handlePrefetch = useCallback(async () => {
-    const urls = images.slice(0, 10).map(img => `https://picsum.photos/id/${img.id}/800/600`);
+    const urls = images.slice(0, 10).map(img => img.download_url);
     await cacheRef.current.prefetch(urls);
     const s = await cacheRef.current.getStats();
     setStats(s);

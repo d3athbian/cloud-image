@@ -157,10 +157,19 @@ async function handleImageRequest(url) {
       const blob = await response.blob();
       const arrayBuffer = await blob.arrayBuffer();
       
+      // Get mimeType from blob or infer from URL
+      let mimeType = blob.type;
+      if (!mimeType || mimeType === 'application/octet-stream') {
+        const urlParts = url.split('.');
+        const ext = urlParts[urlParts.length - 1].toLowerCase();
+        const extToMime = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' };
+        mimeType = extToMime[ext] || 'image/jpeg';
+      }
+      
       // 3. Guardar en IndexedDB
       await saveToIDB(url, arrayBuffer, {
         size: arrayBuffer.byteLength,
-        mimeType: blob.type,
+        mimeType: mimeType,
       });
       
       console.log('[SW] Cached new image:', url);
@@ -196,13 +205,23 @@ self.addEventListener('message', async (event) => {
           if (fetchResp.ok) {
             const blob = await fetchResp.blob();
             const arrayBuffer = await blob.arrayBuffer();
+            
+            // Get mimeType from blob or infer from URL
+            let mimeType = blob.type;
+            if (!mimeType || mimeType === 'application/octet-stream') {
+              const urlParts = url.split('.');
+              const ext = urlParts[urlParts.length - 1].toLowerCase();
+              const extToMime = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif' };
+              mimeType = extToMime[ext] || 'image/jpeg';
+            }
+            
             await saveToIDB(url, arrayBuffer, {
               size: arrayBuffer.byteLength,
-              mimeType: blob.type,
+              mimeType: mimeType,
             });
             console.log('[SW] Cached new image:', url, 'size:', arrayBuffer.byteLength);
             const blobUrl = URL.createObjectURL(blob);
-            response = { blobUrl, fromCache: false, size: arrayBuffer.byteLength, mimeType: blob.type };
+            response = { blobUrl, fromCache: false, size: arrayBuffer.byteLength, mimeType: mimeType };
           } else {
             console.log('[SW] Fetch failed with status:', fetchResp.status);
             response = { error: 'Fetch failed', status: fetchResp.status };
