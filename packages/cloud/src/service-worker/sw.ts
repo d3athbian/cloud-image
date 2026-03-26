@@ -1,18 +1,8 @@
-const FETCH_TIMEOUT = 10000;
-const MAX_RETRIES = 3;
-const CIRCUIT_BREAKER_THRESHOLD = 3;
-const CIRCUIT_BREAKER_TIMEOUT = 30000;
-
 const DB_NAME = 'cloud-image-cache';
 const STORE_NAME = 'images';
 const DB_VERSION = 1;
 
 let db: IDBDatabase | null = null;
-let circuitBreakerFailures = 0;
-let circuitBreakerLastFailure = 0;
-let circuitBreakerOpen = false;
-
-const stats = { hits: 0, misses: 0 };
 
 interface CacheEntry {
   url: string;
@@ -137,66 +127,57 @@ self.addEventListener('activate', (event: ExtendableEvent) => {
   event.waitUntil(self.clients.claim());
 });
 
+// Fetch Handler - interceptor de todas las REQUESTs de imágenes
 self.addEventListener('fetch', (event: FetchEvent) => {
   const url = event.request.url;
 
-  if (!isImageURL(url)) return;
-  if (event.request.mode === 'navigate') return;
+  // Solo procesar solicitudes de imágenes
+  if (!isImageURL(url)) {
+    return;
+  }
 
-  event.respondWith(handleFetch(url));
+  // Skip navigation requests
+  if (event.request.mode === 'navigate') {
+    return;
+  }
+
+  event.respondWith(handleImageRequest(url));
 });
 
-async function handleFetch(url: string): Promise<Response> {
-  if (circuitBreakerOpen) {
-    if (Date.now() - circuitBreakerLastFailure > CIRCUIT_BREAKER_TIMEOUT) {
-      circuitBreakerOpen = false;
-      circuitBreakerFailures = 0;
-    } else {
-      const cached = await getFromIDB(url);
-      if (cached) {
-        stats.hits++;
-        return createCachedResponse(cached);
-      }
-      return new Response('Service unavailable', { status: 503 });
-    }
-  }
-
+async function handleImageRequest(url: string): Promise<Response> {
+  // 1. Intentar leer de IndexedDB
   const cached = await getFromIDB(url);
+  
   if (cached) {
-    stats.hits++;
-    return createCachedResponse(cached);
+    console.log('[SW] Serving from cache:', url);
+    const blob = new Blob([cached.data], { type: cached.metadata.mimeType });
+    return new Response(blob, {
+      headers: { 
+        'Content-Type': cached.metadata.mimeType,
+        'X-Cache-Status': 'HIT'
+      },
+    });
   }
 
-  stats.misses++;
-
+  // 2. Si no está en cache, fetch from network
   if (!navigator.onLine) {
-    return new Response('Offline', { status: 503 });
+    return new Response('Offline - no cached version', { status: 503 });
   }
 
   try {
-    const response = await fetchWithRetry(url);
+    const response = await fetch(url, { cache: 'no-store' });
+    
     if (response.ok) {
       const blob = await response.blob();
       const arrayBuffer = await blob.arrayBuffer();
       
-      // Get mimeType from blob or infer from URL
-      let mimeType = blob.type;
-      if (!mimeType || mimeType === 'application/octet-stream') {
-        const urlObj = new URL(url);
-        const ext = urlObj.pathname.split('.').pop()?.toLowerCase();
-        const extToMime: Record<string, string> = {
-          'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'png': 'image/png',
-          'webp': 'image/webp', 'gif': 'image/gif', 'svg': 'image/svg+xml',
-        };
-        mimeType = ext && extToMime[ext] ? extToMime[ext] : 'image/jpeg';
-      }
-      
+      // 3. Guardar en IndexedDB
       const entry: CacheEntry = {
         url,
         data: arrayBuffer,
         metadata: {
           size: arrayBuffer.byteLength,
-          mimeType: mimeType,
+          mimeType: blob.type || 'image/jpeg',
           cachedAt: Date.now(),
           accessedAt: Date.now(),
           accessCount: 1,
@@ -205,45 +186,15 @@ async function handleFetch(url: string): Promise<Response> {
         upgradeable: false,
       };
       await saveToIDB(entry);
+      
+      console.log('[SW] Cached new image:', url);
     }
-    circuitBreakerFailures = 0;
+    
     return response;
   } catch (error) {
-    circuitBreakerFailures++;
-    circuitBreakerLastFailure = Date.now();
-    if (circuitBreakerFailures >= CIRCUIT_BREAKER_THRESHOLD) {
-      circuitBreakerOpen = true;
-    }
-    return new Response('Fetch failed', { status: 500 });
+    console.error('[SW] Fetch failed:', url, error);
+    return new Response('Failed to load image', { status: 500 });
   }
-}
-
-async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-    const response = await fetch(url, { 
-      signal: controller.signal, 
-      cache: 'no-store',
-      redirect: 'follow',
-      credentials: 'include'
-    });
-    clearTimeout(timeout);
-    return response;
-  } catch (error) {
-    if (attempt < MAX_RETRIES) {
-      await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 100));
-      return fetchWithRetry(url, attempt + 1);
-    }
-    throw error;
-  }
-}
-
-function createCachedResponse(entry: CacheEntry): Response {
-  const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
-  return new Response(blob, {
-    headers: { 'Content-Type': entry.metadata.mimeType, 'X-Cache-Status': 'HIT' },
-  });
 }
 
 self.addEventListener('message', async (event: MessageEvent) => {
@@ -350,12 +301,16 @@ self.addEventListener('message', async (event: MessageEvent) => {
         throw new Error(`Unknown message type: ${type}`);
     }
     self.clients.matchAll().then(clients => {
-      clients.forEach(client => client.postMessage({ id, type: 'success', payload: response }));
+      clients.forEach(client => {
+        client.postMessage({ id, type: 'success', payload: response });
+      });
     });
   } catch (error) {
     console.log('[SW] Error handling message:', error);
     self.clients.matchAll().then(clients => {
-      clients.forEach(client => client.postMessage({ id, type: 'error', error: error instanceof Error ? error.message : 'Unknown error' }));
+      clients.forEach(client => {
+        client.postMessage({ id, type: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
+      });
     });
   }
 });
