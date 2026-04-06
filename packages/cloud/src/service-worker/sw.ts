@@ -401,8 +401,6 @@ function isImageURL(url: string): boolean {
 
 // ─── Service Worker lifecycle ─────────────────────────────────────────────────
 
-declare const self: ServiceWorkerGlobalScope;
-
 self.addEventListener('install', () => {
   console.log('[SW] Installing...');
   self.skipWaiting();

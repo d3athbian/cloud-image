@@ -1,4 +1,5 @@
-import type { PlatformType, PlatformAdapter, AdapterConfig } from './types';
+import type { PlatformType } from '../core/types';
+import type { PlatformAdapter, AdapterConfig } from './types';
 import { createMemoryAdapter } from './memory';
 import { createWebAdapter } from './web';
 import { createTizenAdapter } from './tizen';

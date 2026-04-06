@@ -4,6 +4,7 @@ import { getNetworkMonitor } from '../core/network';
 import { createOfflineStrategy } from '../core/offline';
 import { createAdapter } from '../adapters/factory';
 import type { CacheConfig, CacheStats, BandwidthClassification, NetworkStatus } from '../core/types';
+import { Size, Time } from '../config/constants';
 
 export interface CloudProviderConfig {
   cache?: Partial<CacheConfig>;
@@ -56,12 +57,12 @@ export function CloudProvider({
     const initEngine = async () => {
       try {
         const imageEngine = new ImageEngine({
-          maxSize: cache?.maxSize ?? 100 * 1024 * 1024,
-          defaultTTL: cache?.defaultTTL ?? 7 * 24 * 60 * 60 * 1000,
-          memoryTierSize: cache?.memoryTierSize ?? 20 * 1024 * 1024,
+          maxSize: cache?.maxSize ?? Size.DEFAULT_MAX_SIZE,
+          defaultTTL: cache?.defaultTTL ?? Time.DEFAULT_TTL,
+          memoryTierSize: cache?.memoryTierSize ?? Size.DEFAULT_MEMORY_TIER,
           debug: devtools,
           maxRetries: cache?.maxRetries ?? 3,
-          requestTimeout: cache?.requestTimeout ?? 10000,
+          requestTimeout: cache?.requestTimeout ?? Time.REQUEST_TIMEOUT,
         });
 
         await imageEngine.init();

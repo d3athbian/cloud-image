@@ -5,6 +5,32 @@ import {
   DEFAULT_CACHE_CONFIG,
 } from './types';
 import type { PlatformAdapter } from '../adapters/types';
+import { logger } from '../utils/logger';
+
+const log = logger.ImageCache;
+
+class SimpleMutex {
+  private queue: Array<() => void> = [];
+  private locked = false;
+
+  async acquire(): Promise<() => void> {
+    if (!this.locked) {
+      this.locked = true;
+      return () => { this.locked = false; this.releaseNext(); };
+    }
+    return new Promise((resolve) => {
+      this.queue.push(() => {
+        this.locked = true;
+        resolve(() => { this.locked = false; this.releaseNext(); });
+      });
+    });
+  }
+
+  private releaseNext(): void {
+    const next = this.queue.shift();
+    if (next) next();
+  }
+}
 
 export class ImageCache {
   private entries: Map<string, CacheEntry> = new Map();
@@ -19,6 +45,7 @@ export class ImageCache {
   private hits = 0;
   private misses = 0;
   private adapter: PlatformAdapter | null = null;
+  private lock = new SimpleMutex();
 
   constructor(config: Partial<CacheConfig> = {}, adapter?: PlatformAdapter) {
     this.config = { ...DEFAULT_CACHE_CONFIG, ...config } as Required<Omit<CacheConfig, 'platformOverride'>> & { platformOverride?: string };
@@ -33,6 +60,32 @@ export class ImageCache {
     if (this.adapter) {
       await this.adapter.init();
       await this.loadFromAdapter();
+      await this.verifyStateConsistency();
+    }
+  }
+
+  private async verifyStateConsistency(): Promise<void> {
+    if (!this.adapter) return;
+    
+    try {
+      const adapterKeys = await this.adapter.keys();
+      const memoryCount = this.entries.size;
+      
+        if (adapterKeys.length !== memoryCount) {
+        log.warn(
+          `State inconsistency detected: adapter has ${adapterKeys.length} keys, ` +
+          `memory has ${memoryCount}. Attempting sync...`
+        );
+        
+        // Force rebuild from adapter
+        this.entries.clear();
+        await this.loadFromAdapter();
+        
+        const newCount = this.entries.size;
+        log.info(`Sync complete: ${newCount} entries in memory`);
+      }
+    } catch (error) {
+      log.warn('State verification failed:', error);
     }
   }
 
@@ -43,25 +96,84 @@ export class ImageCache {
       const keys = await this.adapter.keys();
       for (const url of keys) {
         const entry = await this.adapter.get(url);
-        if (entry && !this.isExpired(entry)) {
-          this.entries.set(url, entry);
-          this.stats.totalSize += entry.metadata.size;
+        if (entry) {
+          const validated = this.validateCacheEntry(entry);
+          if (!validated.valid) {
+            log.warn(`[ImageCache] Skipping invalid entry ${url}:`, validated.errors);
+            continue;
+          }
+          if (!this.isExpired(validated.entry)) {
+            if (!validated.entry.metadata.accessCount) {
+              validated.entry.metadata.accessCount = 0;
+            }
+            if (!validated.entry.metadata.accessedAt) {
+              validated.entry.metadata.accessedAt = validated.entry.metadata.cachedAt || Date.now();
+            }
+            this.entries.set(url, validated.entry);
+            this.stats.totalSize += validated.entry.metadata.size;
+          }
         }
       }
       this.stats.itemCount = this.entries.size;
     } catch (error) {
-      console.warn('[ImageCache] Failed to load from adapter:', error);
+      log.warn('[ImageCache] Failed to load from adapter:', error);
     }
   }
 
+  private validateCacheEntry(entry: CacheEntry): { valid: boolean; entry: CacheEntry; errors: string[] } {
+    const errors: string[] = [];
+    
+    if (!entry.url || typeof entry.url !== 'string') {
+      errors.push('Missing or invalid url');
+    }
+    if (!entry.data || !(entry.data instanceof ArrayBuffer)) {
+      errors.push('Missing or invalid data (not ArrayBuffer)');
+    }
+    if (!entry.metadata) {
+      errors.push('Missing metadata');
+    } else {
+      if (typeof entry.metadata.size !== 'number' || entry.metadata.size <= 0) {
+        errors.push('Invalid metadata.size (must be positive number)');
+      }
+      if (typeof entry.metadata.cachedAt !== 'number') {
+        errors.push('Missing metadata.cachedAt');
+      }
+      if (typeof entry.metadata.accessedAt !== 'number') {
+        errors.push('Missing metadata.accessedAt');
+      }
+      if (typeof entry.metadata.accessCount !== 'number') {
+        errors.push('Missing metadata.accessCount');
+      }
+    }
+    if (!entry.state) {
+      errors.push('Missing state (defaulting to cached)');
+      entry.state = 'cached';
+    }
+    
+    return {
+      valid: errors.length === 0,
+      entry,
+      errors,
+    };
+  }
+
   async get(url: string): Promise<CacheEntry | null> {
+    const release = await this.lock.acquire();
+    try {
+      return await this.getInternal(url);
+    } finally {
+      release();
+    }
+  }
+
+  private async getInternal(url: string): Promise<CacheEntry | null> {
     const entry = this.entries.get(url);
     
     if (!entry) {
       if (this.adapter) {
         const adapterEntry = await this.adapter.get(url);
         if (adapterEntry && !this.isExpired(adapterEntry)) {
-          this.misses++;
+          this.hits++;
           this.updateRates();
           adapterEntry.metadata.accessedAt = Date.now();
           adapterEntry.metadata.accessCount++;
@@ -89,25 +201,37 @@ export class ImageCache {
     this.updateRates();
     
     if (this.adapter) {
-      await this.adapter.set(entry).catch(console.warn);
+      await this.adapter.set(entry).catch(log.warn);
     }
     
     return entry;
   }
 
   async set(entry: CacheEntry): Promise<void> {
+    const release = await this.lock.acquire();
+    try {
+      await this.setInternal(entry);
+    } finally {
+      release();
+    }
+  }
+
+  private async setInternal(entry: CacheEntry): Promise<void> {
     const existingEntry = this.entries.get(entry.url);
     
     if (existingEntry) {
       this.stats.totalSize -= existingEntry.metadata.size;
-    }
-
-    if (this.shouldEvict(entry.metadata.size)) {
-      await this.evict(entry.metadata.size);
+      this.stats.totalSize += entry.metadata.size;
+    } else {
+      while (this.shouldEvict(entry.metadata.size)) {
+        await this.evict(entry.metadata.size);
+      }
+      this.stats.totalSize += entry.metadata.size;
     }
 
     const newEntry: CacheEntry = {
       ...entry,
+      state: 'cached',
       metadata: {
         ...entry.metadata,
         cachedAt: Date.now(),
@@ -118,14 +242,30 @@ export class ImageCache {
 
     this.entries.set(entry.url, newEntry);
     this.stats.itemCount = this.entries.size;
-    this.stats.totalSize += entry.metadata.size;
 
     if (this.adapter) {
-      await this.adapter.set(newEntry).catch(console.warn);
+      try {
+        await this.adapter.set(newEntry);
+      } catch (adapterError) {
+        log.error('[ImageCache] Persistence failed for', entry.url, adapterError);
+        this.entries.delete(entry.url);
+        this.stats.itemCount = this.entries.size;
+        this.stats.totalSize -= newEntry.metadata.size;
+        throw new Error(`Cache write failed for ${entry.url}: ${adapterError}`);
+      }
     }
   }
 
   async delete(url: string): Promise<boolean> {
+    const release = await this.lock.acquire();
+    try {
+      return await this.deleteInternal(url);
+    } finally {
+      release();
+    }
+  }
+
+  private async deleteInternal(url: string): Promise<boolean> {
     const entry = this.entries.get(url);
     
     if (!entry) {
@@ -141,22 +281,27 @@ export class ImageCache {
     this.stats.totalSize -= entry.metadata.size;
     
     if (this.adapter) {
-      await this.adapter.delete(url).catch(console.warn);
+      await this.adapter.delete(url).catch(log.warn);
     }
     
     return true;
   }
 
   async clear(): Promise<void> {
-    this.entries.clear();
-    this.stats.itemCount = 0;
-    this.stats.totalSize = 0;
-    this.hits = 0;
-    this.misses = 0;
-    this.updateRates();
-    
-    if (this.adapter) {
-      await this.adapter.clear().catch(console.warn);
+    const release = await this.lock.acquire();
+    try {
+      this.entries.clear();
+      this.stats.itemCount = 0;
+      this.stats.totalSize = 0;
+      this.hits = 0;
+      this.misses = 0;
+      this.updateRates();
+      
+      if (this.adapter) {
+        await this.adapter.clear().catch(log.warn);
+      }
+    } finally {
+      release();
     }
   }
 
@@ -168,7 +313,7 @@ export class ImageCache {
         const keys = await this.adapter.keys();
         this.stats.itemCount = keys.length;
       } catch (error) {
-        console.warn('[ImageCache] Failed to get adapter stats:', error);
+        log.warn('[ImageCache] Failed to get adapter stats:', error);
       }
     }
     return { ...this.stats };
@@ -179,11 +324,11 @@ export class ImageCache {
   }
 
   private isExpired(entry: CacheEntry): boolean {
-    if (!entry.expiresAt) {
-      const ttlExpired = Date.now() - entry.metadata.cachedAt > this.config.defaultTTL;
-      if (ttlExpired) return true;
-    } else {
-      if (entry.expiresAt < Date.now()) return true;
+    const ttlExpired = Date.now() - entry.metadata.cachedAt > this.config.defaultTTL;
+    if (ttlExpired) return true;
+    
+    if (entry.expiresAt && entry.expiresAt < Date.now()) {
+      return true;
     }
     return false;
   }
@@ -212,10 +357,12 @@ export class ImageCache {
 
       const toEvict: CacheEntry[] = [];
       let evictedSize = 0;
-      const batchSize = this.config.maxSize * 0.2;
+      const targetCapacity = targetSize;
+      const currentSize = this.stats.totalSize;
+      const neededCapacity = currentSize + (_incomingSize ?? 0) - targetCapacity;
 
       for (const { entry } of nonExpired) {
-        if (evictedSize >= batchSize && this.stats.totalSize - evictedSize <= targetSize) {
+        if (evictedSize >= neededCapacity) {
           break;
         }
         toEvict.push(entry);
@@ -226,7 +373,7 @@ export class ImageCache {
         this.entries.delete(entry.url);
         this.stats.evictionCount++;
         if (this.adapter) {
-          await this.adapter.delete(entry.url).catch(console.warn);
+          await this.adapter.delete(entry.url).catch(log.warn);
         }
       }
     } else {
@@ -234,7 +381,7 @@ export class ImageCache {
         this.entries.delete(entry.url);
         this.stats.evictionCount++;
         if (this.adapter) {
-          await this.adapter.delete(entry.url).catch(console.warn);
+          await this.adapter.delete(entry.url).catch(log.warn);
         }
       }
     }
@@ -247,7 +394,8 @@ export class ImageCache {
   }
 
   private calculateScore(entry: CacheEntry): number {
-    const recencyFactor = 1 - (Date.now() - entry.metadata.accessedAt) / this.config.defaultTTL;
+    const ttl = this.config.defaultTTL || 1;
+    const recencyFactor = 1 - (Date.now() - entry.metadata.accessedAt) / ttl;
     const normalizedAccess = Math.min(entry.metadata.accessCount / 100, 1);
     
     return normalizedAccess * 0.6 + Math.max(0, recencyFactor) * 0.4;

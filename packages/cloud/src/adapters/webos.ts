@@ -1,12 +1,6 @@
 import type { CacheEntry } from '../core/types';
 import type { PlatformAdapter } from './types';
 
-declare const webOS: {
-  service: {
-    request: (uri: string, params: { method: string; parameters?: Record<string, unknown>; onSuccess?: (r: { payload?: unknown }) => void; onFailure?: (r: { errorText: string }) => void }) => void;
-  };
-};
-
 const CACHE_DIR = 'cloud_image_cache';
 
 export class WebOSAdapter implements PlatformAdapter {

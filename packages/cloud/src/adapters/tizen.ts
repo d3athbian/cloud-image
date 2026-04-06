@@ -1,17 +1,6 @@
 import type { CacheEntry } from '../core/types';
 import type { PlatformAdapter } from './types';
 
-declare const tizen: {
-  filesystem: {
-    resolve: (
-      path: string,
-      successCallback: (dir: { readFile: (path: string, callback: (data: ArrayBuffer) => void) => void; writeFile: (path: string, data: ArrayBuffer, callback: () => void) => void; createFile: (path: string) => { write: (data: ArrayBuffer, callback: () => void) => void } }) => void,
-      errorCallback?: (e: Error) => void,
-      type?: string
-    ) => void;
-  };
-};
-
 const BASE_PATH = 'images';
 
 export class TizenAdapter implements PlatformAdapter {

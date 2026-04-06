@@ -9,7 +9,11 @@ export interface CacheEntry {
   upgradeable: boolean;
   cachedBandwidth?: number;
   expiresAt?: number;
+  state: CacheEntryState;
+  syncedAt?: number;
 }
+
+export type CacheEntryState = 'pending' | 'caching' | 'cached' | 'validated' | 'failed';
 
 export interface CacheMetadata {
   size: number;
@@ -36,18 +40,10 @@ export interface CacheConfig {
   requestTimeout?: number;
 }
 
-export const DEFAULT_CACHE_CONFIG: Required<Omit<CacheConfig, 'platformOverride'>> = {
-  maxSize: 100 * 1024 * 1024, // 100MB
-  defaultTTL: 7 * 24 * 60 * 60 * 1000, // 7 days
-  memoryTierSize: 20 * 1024 * 1024, // 20MB
-  debug: false,
-  maxRetries: 3,
-  requestTimeout: 10000,
-};
+import { DEFAULT_CACHE_CONFIG } from '../config/constants';
 
-/**
- * CacheStats - Current cache state
- */
+export { DEFAULT_CACHE_CONFIG };
+
 export interface CacheStats {
   itemCount: number;
   totalSize: number;
@@ -67,8 +63,10 @@ export type PlatformType = 'web' | 'tizen' | 'webos' | 'memory';
 export type CircuitBreakerState = 'closed' | 'open' | 'half-open';
 
 export interface CircuitBreakerConfig {
-  failureThreshold: number;
-  resetTimeout: number;
+  failureThreshold?: number;
+  successThreshold?: number;
+  resetTimeout?: number;
+  halfOpenMaxCalls?: number;
 }
 
 /**

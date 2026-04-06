@@ -1,11 +1,5 @@
-import type { CircuitBreakerState } from './types';
-
-export interface CircuitBreakerConfig {
-  failureThreshold?: number;
-  successThreshold?: number;
-  resetTimeout?: number;
-  halfOpenMaxCalls?: number;
-}
+import type { CircuitBreakerState, CircuitBreakerConfig } from './types';
+import { Time, Threshold } from '../config/constants';
 
 export type CircuitBreakerEventType = 'opened' | 'closed' | 'halfOpen';
 
@@ -30,10 +24,10 @@ export class CircuitBreaker {
 
   constructor(config: CircuitBreakerConfig = {}) {
     this.config = {
-      failureThreshold: config.failureThreshold ?? 3,
-      successThreshold: config.successThreshold ?? 2,
-      resetTimeout: config.resetTimeout ?? 30000,
-      halfOpenMaxCalls: config.halfOpenMaxCalls ?? 3,
+      failureThreshold: config.failureThreshold ?? Threshold.CB_FAILURE_THRESHOLD,
+      successThreshold: config.successThreshold ?? Threshold.CB_SUCCESS_THRESHOLD,
+      resetTimeout: config.resetTimeout ?? Time.CIRCUIT_BREAKER_RESET,
+      halfOpenMaxCalls: config.halfOpenMaxCalls ?? Threshold.CB_HALF_OPEN_MAX_CALLS,
     };
   }
 

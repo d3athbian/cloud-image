@@ -1,6 +1,4 @@
-import type { CacheEntry } from '../core/types';
-
-export type PlatformType = 'web' | 'tizen' | 'webos' | 'memory';
+import type { CacheEntry, PlatformType } from '../core/types';
 
 export interface PlatformAdapter {
   readonly platform: PlatformType;

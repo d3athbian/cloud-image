@@ -1,29 +1,13 @@
-export type MessageType = 
-  | 'fetch'
-  | 'cache-get'
-  | 'cache-set'
-  | 'cache-delete'
-  | 'cache-clear'
-  | 'stats'
-  | 'ping'
-  | 'init'
-  | 'destroy';
+import type { MessageType, ServiceWorkerConfig, SWResponse } from './service-worker.type';
+import { Time } from '../config/constants';
+import { logger } from '../utils/logger';
 
-export interface ServiceWorkerConfig {
-  scope?: string;
-  debug?: boolean;
-}
-
-export interface SWResponse {
-  id: string;
-  type: 'success' | 'error';
-  payload?: unknown;
-  error?: string;
-}
+const log = logger.ServiceWorker;
 
 const DEFAULT_CONFIG: Required<ServiceWorkerConfig> = {
   scope: '/',
   debug: false,
+  timeout: Time.CIRCUIT_BREAKER_RESET,
 };
 
 function generateMessageId(): string {
@@ -113,22 +97,24 @@ class ServiceWorkerClient {
     const request = createSWRequest(type, payload);
 
     return new Promise((resolve, reject) => {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         this.pending.delete(request.id);
         reject(new Error(`Message ${type} timed out`));
-      }, 30000);
+      }, this.config.timeout);
+
+      const cleanup = () => clearTimeout(timeoutId);
 
       this.pending.set(request.id, {
-        resolve,
-        reject,
+        resolve: (response) => { cleanup(); resolve(response); },
+        reject: (error) => { cleanup(); reject(error); },
       });
 
       if (this.controller) {
         this.controller.postMessage(request);
       } else {
         this.fallbackMessage(type, payload)
-          .then(resolve)
-          .catch(reject);
+          .then((response) => { cleanup(); resolve(response); })
+          .catch((error) => { cleanup(); reject(error); });
       }
     });
   }
@@ -156,7 +142,7 @@ class ServiceWorkerClient {
           });
 
           this.stats.itemCount = this.memoryCache.size;
-          this.stats.hits++;
+          this.stats.misses++;
           this.stats.totalSize += arrayBuffer.byteLength;
 
           const blobUrl = URL.createObjectURL(blob);
@@ -184,7 +170,7 @@ class ServiceWorkerClient {
 
   private log(...args: unknown[]): void {
     if (this.debug) {
-      console.log(...args);
+      log.debug(...args);
     }
   }
 

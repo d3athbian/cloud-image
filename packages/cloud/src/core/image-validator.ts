@@ -1,3 +1,5 @@
+import { Size } from '../config/constants';
+
 export interface ImageValidationResult {
   valid: boolean;
   mimeType: string | null;
@@ -20,7 +22,7 @@ const IMAGE_SIGNATURES: Record<string, number[]> = {
   'image/bmp': [0x42, 0x4D],
 };
 
-const MAX_DEFAULT_SIZE = 50 * 1024 * 1024; // 50MB
+const MAX_DEFAULT_SIZE = Size.MAX_IMAGE_SIZE_DESKTOP;
 
 export class ImageValidator {
   private config: Required<ImageValidationConfig>;
@@ -161,10 +163,10 @@ export function getMaxSizeForPlatform(platform: string): number {
   switch (platform) {
     case 'tizen':
     case 'webos':
-      return 30 * 1024 * 1024; // 30MB for Smart TVs
+      return Size.MAX_IMAGE_SIZE_TV;
     case 'mobile':
-      return 40 * 1024 * 1024; // 40MB for mobile
+      return Size.MAX_IMAGE_SIZE_MOBILE;
     default:
-      return 50 * 1024 * 1024; // 50MB default
+      return Size.MAX_IMAGE_SIZE_DESKTOP;
   }
 }

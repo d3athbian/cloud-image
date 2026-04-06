@@ -2,6 +2,8 @@ import { getBandwidthMonitor, type BandwidthMonitor } from './bandwidth';
 import { createCDNAdapter, type CDNAdapter, type CDNVariant } from './cdn-adapter';
 import type { CacheEntry, BandwidthClassification } from './types';
 
+import { Time } from '../config/constants';
+
 export interface SilentUpgradeConfig {
   enabled?: boolean;
   minBandwidth?: BandwidthClassification;
@@ -27,7 +29,7 @@ export class SilentUpgradeManager {
     this.config = {
       enabled: config.enabled ?? true,
       minBandwidth: config.minBandwidth ?? 'medium',
-      checkInterval: config.checkInterval ?? 30000,
+      checkInterval: config.checkInterval ?? Time.SILENT_UPGRADE_INTERVAL,
     };
 
     this.setupBandwidthListener();

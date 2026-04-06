@@ -214,3 +214,29 @@ As a developer, I want clear error handling when storage operations fail, so tha
 
 1. **Given** IndexedDB is full, **When** saving image, **Then** evict old entries automatically
 2. **Given** IndexedDB throws error, **When** operation fails, **Then** log error and use fallback
+
+---
+
+### User Story 7 - Fix Critical Bugs (Priority: P1)
+
+As a developer, I want critical bugs found in code analysis to be fixed, so that the cache system works correctly without memory leaks or race conditions.
+
+**Why this priority**: Bugs affect correctness, can cause data corruption and memory leaks
+
+**Acceptance Scenarios**:
+
+1. **Given** cache.ts has inverted hit/miss logic, **When** getting from adapter succeeds, **Then** count as hit not miss
+2. **Given** cache.ts has double-counting issue, **When** setting entry with existing, **Then** subtract previous size
+3. **Given** service-worker/index.ts has inverted hit counter in fallback, **When** getting from network, **Then** count as miss not hit
+4. **Given** hooks.tsx mutates object directly in useMemo, **When** network status changes, **Then** trigger re-render properly
+5. **Given** service-worker/index.ts has memory leak in timeout, **When** request completes, **Then** clear timeout properly
+6. **Given** cache.ts doesn't re-verify after eviction, **When** cache is at 90% and new entry arrives, **Then** re-check after eviction
+7. **Given** cache.ts has race condition in dual scoring, **When** concurrent access occurs, **Then** use mutex/lock
+8. **Given** circuit-breaker.ts has race in state transition, **When** concurrent failures occur, **Then** synchronize transitions
+9. **Given** web.ts has non-atomic read-modify-write, **When** concurrent updates, **Then** use atomic operation
+10. **Given** network.ts has unlimited retry queue, **When** offline, **Then** respect maxRetries limit
+11. **Given** service-worker/index.ts fallback has no size limit, **When** many images cached, **Then** evict old entries
+12. **Given** engine.ts deduplication only works for fast sequential calls, **When** different components request same URL, **Then** deduplicate properly
+13. **Given** image.tsx has too many dependencies in useEffect, **When** component renders, **Then** optimize dependencies
+14. **Given** memory.ts runs sync expensive operations, **When** memory check runs, **Then** avoid blocking
+15. **Given** adapters may have state collision, **When** multiple adapters, **Then** ensure isolation

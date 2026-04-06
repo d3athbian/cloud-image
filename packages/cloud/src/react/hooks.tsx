@@ -1,6 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ImageEngine } from '../core/engine';
 import type { CacheConfig, CacheStats, NetworkStatus } from '../core/types';
+import { logger } from '../utils/logger';
+
+const log = logger.CloudImage;
 
 const SW_STATE_KEY = '__CLOUD_SW_STATE__';
 
@@ -15,10 +18,10 @@ const swScript = `
   window[KEY] = true;
   navigator.serviceWorker.register(PATH).then(function(reg) {
     window[STATE_KEY] = 'registered';
-    console.log('[CloudImage] Service Worker registered via inline:', reg.scope);
+    log.info('[CloudImage] Service Worker registered via inline:', reg.scope);
   }).catch(function(e) {
     window[STATE_KEY] = 'failed';
-    console.warn('[CloudImage] SW blocked by CSP. Use manual: <script src="register.js"></script>');
+    log.warn('[CloudImage] SW blocked by CSP. Use manual: <script src="register.js"></script>');
   });
 })();
 `;
@@ -69,10 +72,10 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
 
         const swState = (window as unknown as Record<string, unknown>)[SW_STATE_KEY];
         if (swState === 'registered' && devtools) {
-          console.log('[CloudImage] Service Worker ready (inline registration)');
+          log.info('[CloudImage] Service Worker ready (inline registration)');
         } else if (swState === 'failed' && devtools) {
-          console.warn('[CloudImage] Service Worker blocked by CSP');
-          console.warn('[CloudImage] To fix: add <script src="register.js"></script> in your HTML head');
+          log.warn('[CloudImage] Service Worker blocked by CSP');
+          log.warn('[CloudImage] To fix: add <script src="register.js"></script> in your HTML head');
         }
 
         if (devtools) {
@@ -128,19 +131,19 @@ export function useCloud(): {
 
   const { engine } = context;
 
-  const network: NetworkStatus = useMemo(() => ({
+  const [network, setNetwork] = useState<NetworkStatus>({
     online: typeof navigator !== 'undefined' ? navigator.onLine : true,
     bandwidth: 'unknown',
-  }), []);
+  });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const handleOnline = () => {
-      network.online = true;
+      setNetwork(prev => ({ ...prev, online: true }));
     };
     const handleOffline = () => {
-      network.online = false;
+      setNetwork(prev => ({ ...prev, online: false }));
     };
 
     window.addEventListener('online', handleOnline);

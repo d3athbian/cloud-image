@@ -13,6 +13,11 @@ export interface MemoryConfig {
   aggressiveEvictionRatio?: number;
 }
 
+import { Time, Threshold } from '../config/constants';
+import { logger } from '../utils/logger';
+
+const log = logger.MemoryMonitor;
+
 export type MemoryEventType = 'normal' | 'high' | 'critical' | 'eviction';
 
 export interface MemoryEvent {
@@ -30,14 +35,19 @@ export class MemoryMonitor {
   private listeners: Set<MemoryListener> = new Set();
   private lastStatus: MemoryEventType = 'normal';
   private checkInterval: ReturnType<typeof setInterval> | null = null;
+  private evictionCallback: ((ratio: number) => Promise<void>) | null = null;
 
   constructor(config: MemoryConfig = {}) {
     this.config = {
-      highThreshold: config.highThreshold ?? 0.8,
-      criticalThreshold: config.criticalThreshold ?? 0.95,
-      checkInterval: config.checkInterval ?? 5000,
-      aggressiveEvictionRatio: config.aggressiveEvictionRatio ?? 0.5,
+      highThreshold: config.highThreshold ?? Threshold.MEMORY_HIGH,
+      criticalThreshold: config.criticalThreshold ?? Threshold.MEMORY_CRITICAL,
+      checkInterval: config.checkInterval ?? Time.MEMORY_CHECK_INTERVAL,
+      aggressiveEvictionRatio: config.aggressiveEvictionRatio ?? 0.3,
     };
+  }
+
+  setEvictionCallback(callback: (ratio: number) => Promise<void>): void {
+    this.evictionCallback = callback;
   }
 
   getMetrics(): MemoryMetrics | null {
@@ -115,6 +125,14 @@ export class MemoryMonitor {
           type: newStatus,
           metrics,
           timestamp: Date.now(),
+        });
+      }
+
+      // Proactive eviction - coordinate with cache before reaching critical
+      const eviction = this.shouldEvict();
+      if (eviction.shouldEvict && this.evictionCallback) {
+        this.evictionCallback(eviction.ratio).catch(err => {
+          log.warn('[MemoryMonitor] Proactive eviction failed:', err);
         });
       }
 

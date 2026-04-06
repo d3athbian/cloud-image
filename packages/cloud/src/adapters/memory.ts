@@ -1,3 +1,4 @@
+import { Time, Size } from '../config/constants';
 import type { CacheEntry } from '../core/types';
 import type { PlatformAdapter } from './types';
 
@@ -7,7 +8,7 @@ export class MemoryAdapter implements PlatformAdapter {
   private size = 0;
   private maxSize: number;
 
-  constructor(maxSizeBytes = 20 * 1024 * 1024) {
+  constructor(maxSizeBytes = Size.MEMORY_ADAPTER_DEFAULT) {
     this.maxSize = maxSizeBytes;
   }
 
@@ -78,7 +79,7 @@ export class MemoryAdapter implements PlatformAdapter {
       .map(e => ({
         entry: e,
         score: e.metadata.accessCount * 0.6 +
-          (1 - (Date.now() - e.metadata.accessedAt) / (7 * 24 * 60 * 60 * 1000)) * 0.4
+          (1 - (Date.now() - e.metadata.accessedAt) / Time.DEFAULT_TTL) * 0.4
       }))
       .sort((a, b) => a.score - b.score);
 
