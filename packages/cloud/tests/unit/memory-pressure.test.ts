@@ -155,7 +155,7 @@ describe('Global Memory Monitor', () => {
 
   it('should return instance with default config', () => {
     const m = getMemoryMonitor();
-    expect(m.getConfig().highThreshold).toBe(0.8);
+    expect(m.getConfig().highThreshold).toBe(0.75);
     m.destroy();
   });
 });

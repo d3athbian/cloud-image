@@ -1,179 +1,104 @@
-# Implementation Plan: Unified Cache & Refactor Improvements
+# Implementation Plan: [FEATURE]
 
-**Branch**: `004-code-refactor-cleanup` | **Date**: 2026-03-23 | **Spec**: [spec.md](./spec.md)
-**Input**: "tenemos un analisis del problema y debemos corregir que solo sea cloud-image-cache y necesitamos crear un plan para refactorizar donde se encuentren oportunidades de mejoras"
+**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
+
+**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
 
 ## Summary
 
-**FIX APLICADO**: Unificado el nombre de IndexedDB a `cloud-image-cache` en toda la librería.
-
-### Problema Resuelto
-- Antes: `carbon-image-cache` (SW) vs `cloud-image-cache` (web adapter)
-- Ahora: Solo `cloud-image-cache` en ambos
-- Demo debería funcionar correctamente en primera carga
-
-### Oportunidades de Mejora Pendientes
-| Oportunidad | Prioridad | Estado |
-|-------------|-----------|--------|
-| 1. Unificar DB | CRITICAL | ✅ Hecho |
-| 2. Adapter Fallback unificado | HIGH | Por hacer |
-| 3. Reusar core/retry.ts en SW | MEDIUM | Por hacer |
-| 4. Memory adapter cuando DB no disponible | MEDIUM | Por hacer |
-| 5. Error handling cuando DB falla | MEDIUM | Por hacer |
+[Extract from feature spec: primary requirement + technical approach from research]
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.x  
-**Primary Dependencies**: React 18+, idb (IndexedDB wrapper), vitest  
-**Storage**: IndexedDB - DEBE unificarse a `cloud-image-cache`
-**Testing**: Vitest + Playwright for E2E  
-**Target Platform**: Web (browser), React Native, Smart TVs (Tizen, webOS)  
-**Project Type**: Library (npm package)  
-**Performance Goals**: Zero TypeScript warnings, unified cache
-**Constraints**: Mantener backward compatibility
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
 
----
-
-## Problema Identificado: Dos IndexedDB
-
-### Estado Actual (CON BUG)
-
-| Componente | DB Name | Archivo |
-|------------|---------|---------|
-| Service Worker | `carbon-image-cache` | service-worker/sw.ts |
-| Web Adapter | `cloud-image-cache` | adapters/web.ts |
-
-### Impacto
-- Imágenes guardadas por SW no son encontradas por web adapter
-- Imágenes guardadas por web adapter no son encontradas por SW
-- Cache NO funciona en primera carga
-- Solo funciona después de refresh (por coincidencia o sync parcial)
-
-### Solución Requerida
-- Unificar a `cloud-image-cache` en TODOS los lugares
-
----
-
-## Oportunidades de Mejora Identificadas
-
-### 1. IndexedDB Unification (CRITICAL)
-- Unificar DB_NAME a `cloud-image-cache` en sw.ts
-- Verificar que todas las imágenes se guarden/leer de la misma DB
-
-### 2. Adapter Pattern - Análisis
-- `adapters/web.ts` - usa idb library
-- `adapters/tizen.ts` - stub (no implementado)
-- `adapters/webos.ts` - stub (no implementado)
-- `adapters/memory.ts` - fallback in-memory
-
-### 3. Service Worker vs Main Thread Cache
-- SW maneja cache de red (intercepta requests)
-- Web adapter maneja cache local (get/set manual)
-- Deben compartir la misma IndexedDB
-
-### 4. Código Duplicado
-- generateMessageId/createSWRequest ya removido
-- Retry logic en sw.ts podría usar core/retry.ts
-
-### 5. Fallback Modes
-- SW no disponible → usar web adapter
-- Web adapter no disponible → usar memory adapter
-- Actualmente: hay lógica de fallback pero no está unificada
-
----
+**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]  
+**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]  
+**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]  
+**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]  
+**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]  
+**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]  
+**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]  
+**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
 
 ## Constitution Check
 
-| Gate | Status | Notes |
-|------|--------|-------|
-| No duplicate DBs | ✅ FIXED | Ahora solo cloud-image-cache |
-| Clean TypeScript | ⚠️ | 8 warnings remaining |
-| No circular deps | ✅ | Verificado |
-| Adapter pattern | ✅ | Preservar |
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
----
+[Gates determined based on constitution file]
 
 ## Project Structure
 
+### Documentation (this feature)
+
 ```text
-packages/cloud/
-├── src/
-│   ├── core/                    # Framework-agnostic (PRESERVE)
-│   │   ├── cache.ts
-│   │   ├── retry.ts
-│   │   ├── engine.ts
-│   │   └── ...
-│   ├── adapters/                # Platform adapters (PRESERVE modular)
-│   │   ├── web.ts               # indexedDB: cloud-image-cache
-│   │   ├── tizen.ts
-│   │   ├── webos.ts
-│   │   └── memory.ts
-│   ├── react/                   # React components
-│   │   ├── hooks.tsx            # Inline SW registration
-│   │   ├── provider.tsx
-│   │   └── image.tsx
-│   └── service-worker/
-│       ├── sw.ts                # indexedDB: cloud-image-cache (CAMBIAR)
-│       ├── index.ts             # Client
-│       └── register.js           # External registration
-├── dist/
-└── tests/
+specs/[###-feature]/
+├── plan.md              # This file (/speckit.plan command output)
+├── research.md          # Phase 0 output (/speckit.plan command)
+├── data-model.md        # Phase 1 output (/speckit.plan command)
+├── quickstart.md        # Phase 1 output (/speckit.plan command)
+├── contracts/           # Phase 1 output (/speckit.plan command)
+└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
----
+### Source Code (repository root)
+<!--
+  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
+  for this feature. Delete unused options and expand the chosen structure with
+  real paths (e.g., apps/admin, packages/something). The delivered plan must
+  not include Option labels.
+-->
 
-## Phase 0: Research
+```text
+# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
+src/
+├── models/
+├── services/
+├── cli/
+└── lib/
 
-### Análisis de DBs Actuales
+tests/
+├── contract/
+├── integration/
+└── unit/
 
-**Decision**: Unificar a `cloud-image-cache`
+# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
+backend/
+├── src/
+│   ├── models/
+│   ├── services/
+│   └── api/
+└── tests/
 
-**Rationale**: 
-- Web adapter usa `cloud-image-cache` - nombre más nuevo
-- Mantiene consistencia con nombre del paquete `@cloudimage/cloud`
-- Migration: renombrar DB en SW o migrar datos
+frontend/
+├── src/
+│   ├── components/
+│   ├── pages/
+│   └── services/
+└── tests/
 
-### Alternativas Consideradas
-1. Renombrar todo a `carbon-image-cache` - ❌ contradice nombre del paquete
-2. Mantener dos DBs y sincronizar - ❌ complejidad innecesaria
-3. Solo usar SW para cache - ❌ pierdes fallback del adapter
-4. Unificar a `cloud-image-cache` - ✅ Elegido
+# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
+api/
+└── [same as backend above]
 
----
+ios/ or android/
+└── [platform-specific structure: feature modules, UI flows, platform tests]
+```
 
-## Phase 1: Design
-
-### Acciones Inmediatas
-
-1. **Cambiar DB_NAME en service-worker/sw.ts**
-   - De: `carbon-image-cache`
-   - A: `cloud-image-cache`
-
-2. **Verificar build**
-
-3. **Testear demo**
-
-### Oportunidades de Mejora (Post-Fix Inmediato)
-
-| Oportunidad | Descripción | Prioridad |
-|-------------|-------------|-----------|
-| 1. Unified DB | Solo cloud-image-cache | CRITICAL |
-| 2. Adapter Fallback | Unificar lógica de fallback | HIGH |
-| 3. Retry Reuse | Usar core/retry.ts en SW | MEDIUM |
-| 4. Memory Adapter | Asegurar que funcione cuando DB no está disponible | MEDIUM |
-| 5. Error Handling | Revisar manejo cuando DB falla | MEDIUM |
-
----
+**Structure Decision**: [Document the selected structure and reference the real
+directories captured above]
 
 ## Complexity Tracking
 
-| Issue | Status | Resolution |
-|-------|--------|-------------|
-| Two IndexedDBs | CRITICAL | Unificar a cloud-image-cache |
-| Fallback logic | fragmentation | Unificar en engine.ts |
+> **Fill ONLY if Constitution Check has violations that must be justified**
 
----
-
-## Siguiente: Generar SPEC para Oportunidades de Mejora
-
-¿Querés que cree un nuevo spec para las oportunidades de mejora identificadas, o que proceda directamente con el fix de la DB?
+| Violation | Why Needed | Simpler Alternative Rejected Because |
+|-----------|------------|-------------------------------------|
+| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
+| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |

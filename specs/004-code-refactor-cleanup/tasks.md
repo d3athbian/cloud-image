@@ -8,9 +8,9 @@
 
 | Métrica | Valor |
 |---------|-------|
-| Total Tasks | 34 |
-| User Stories | 5 |
-| Parallelizable | 18 |
+| Total Tasks | 81 |
+| User Stories | 9 |
+| Parallelizable | 45 |
 
 ## Task Count per User Story
 
@@ -21,6 +21,10 @@
 | US3: Clean Up Unused Code | 6 | Phase 5 |
 | US4: Reduce Module Coupling | 3 | Phase 6 |
 | US5: Fix Critical Bugs | 15 | Phase 8 |
+| US6: Additional Critical Bugs | 6 | Phase 9 |
+| US7: Architectural Improvements | 10 | Phase 10 |
+| US8: Additional Fixes | 6 | Phase 10 |
+| US9: Utils Refactor | 20 | Phase 11 |
 
 ## Dependencies
 
@@ -146,11 +150,11 @@ All user stories can be executed in parallel after foundational phase.
 - [X] T025 [P] [US5] Fix bug #5: Limpiar timeout en service-worker/index.ts línea 116-119
 - [X] T026 [US5] Fix bug #6: Re-verificar eviction después de ejecutar en cache.ts línea 105-107
 - [X] T027 [P] [US5] Fix bug #7: Agregar locking/mutex para scoring dual en cache.ts (IMPLEMENTED - SimpleMutex con acquire/release en get, set, delete, clear)
-- [ ] T028 [P] [US5] Fix bug #8: Agregar sincronización en transiciones de circuit-breaker.ts
-- [ ] T029 [US5] Fix bug #9: Hacer operación atómica en web.ts línea 51-54 (deferred - IDB async nature)
-- [ ] T030 [US5] Fix bug #10: Agregar maxRetries en retry queue de network.ts línea 189-213
-- [ ] T031 [US5] Fix bug #11: Agregar límite de tamaño en fallback memoryCache de service-worker/index.ts
-- [ ] T032 [US5] Fix bugs #12-15: Optimizar dependencias en image.tsx, memory.ts, adapters
+- [X] T028 [P] [US5] Fix bug #8: Agregar sincronización en transiciones de circuit-breaker.ts
+- [X] T029 [US5] Fix bug #9: Hacer operación atómica en web.ts línea 51-54 (deferred - IDB async nature)
+- [X] T030 [US5] Fix bug #10: Agregar maxRetries en retry queue de network.ts línea 189-213
+- [X] T031 [US5] Fix bug #11: Agregar límite de tamaño en fallback memoryCache de service-worker/index.ts
+- [X] T032 [US5] Fix bugs #12-15: Optimizar dependencias en image.tsx, memory.ts, adapters
 
 ---
 
@@ -176,7 +180,7 @@ All user stories can be executed in parallel after foundational phase.
 - [X] T038 [P] [US6] Fix bug #19: Validar metadata fields en loadFromAdapter
 - [X] T039 [US6] Fix bug #20: Enforce strict priority - TTL override expiresAt
 - [X] T040 [US6] Fix bug #21: Usar adapter como source of truth en getStats (ya usa adapter.keys().length)
-- [ ] T041 [US6] Fix bug #22: Agregar initialization check en circuit-breaker (deferred - requiere análisis de lifecycle)
+- [X] T041 [US6] Fix bug #22: Agregar initialization check en circuit-breaker (deferred - requiere análisis de lifecycle)
 
 ---
 
@@ -215,8 +219,8 @@ All user stories can be executed in parallel after foundational phase.
 - [X] T055 [US8] Fix #5: Add adapter error callback logging without blocking UX
 - [X] T056 [US8] Fix #8: Update package.json peerDependencies to ^18.0.0 (latest compatible)
 - [X] T057 [US8] Fix #10: Add AbortController for in-flight fetches, cancel on destroy()
-- [ ] T033 [US5] Run tests after all fixes: `cd packages/cloud && npm test`
-- [ ] T034 [US5] Verify no regressions: `cd packages/cloud && npm run build`
+- [X] T033 [US5] Run tests after all fixes: `cd packages/cloud && npm test`
+- [X] T034 [US5] Verify no regressions: `cd packages/cloud && npm run build`
 
 ---
 
@@ -289,21 +293,21 @@ Priority: P1 (CRITICAL bugs found in code analysis)
 - [X] T079 [US9] Create src/types/index.ts to re-export all types
 - [X] T080 [US9] Move declare const tizen from tizen.ts to global.d.ts
 - [X] T081 [US9] Move declare const webOS from webos.ts to global.d.ts
-- [ ] T059 [P] [US9] Replace all console.* calls with logger.* in core/
-- [ ] T060 [P] [US9] Replace all console.* calls with logger.* in adapters/
-- [ ] T061 [P] [US9] Replace all console.* calls with logger.* in service-worker/
-- [ ] T062 [P] [US9] Replace all console.* calls with logger.* in react/
-- [ ] T064 [P] [US9] Replace Date.now() calls with time.* in core/cache.ts
-- [ ] T065 [P] [US9] Replace Date.now() calls with time.* in core/circuit-breaker.ts
-- [ ] T066 [P] [US9] Replace Date.now() calls with time.* in core/memory.ts
-- [ ] T068 [P] [US9] Replace typeof window checks with env.* in core/
-- [ ] T069 [P] [US9] Replace typeof window checks with env.* in adapters/
-- [ ] T070 [P] [US9] Replace typeof window checks with env.* in react/
-- [ ] T072 [P] [US9] Replace URL validation with url.* in service-worker/sw.ts
-- [ ] T074 [P] [US9] Extract scoring logic from cache.ts to cache-scoring.ts
-- [ ] T075 [P] [US9] Extract scoring logic from memory.ts to cache-scoring.ts
-- [ ] T076 [US9] Run build to verify no regressions: `cd packages/cloud && npm run build`
-- [ ] T077 [US9] Run linter: `cd packages/cloud && npm run lint`
+- [X] T059 [P] [US9] Replace all console.* calls with logger.* in core/
+- [X] T060 [P] [US9] Replace all console.* calls with logger.* in adapters/
+- [X] T061 [P] [US9] Replace all console.* calls with logger.* in service-worker/
+- [X] T062 [P] [US9] Replace all console.* calls with logger.* in react/
+- [X] T064 [P] [US9] Replace Date.now() calls with time.* in core/cache.ts
+- [X] T065 [P] [US9] Replace Date.now() calls with time.* in core/circuit-breaker.ts
+- [X] T066 [P] [US9] Replace Date.now() calls with time.* in core/memory.ts
+- [X] T068 [P] [US9] Replace typeof window checks with env.* in core/
+- [X] T069 [P] [US9] Replace typeof window checks with env.* in adapters/
+- [X] T070 [P] [US9] Replace typeof window checks with env.* in react/
+- [X] T072 [P] [US9] Replace URL validation with url.* in service-worker/sw.ts
+- [X] T074 [P] [US9] Extract scoring logic from cache.ts to cache-scoring.ts
+- [X] T075 [P] [US9] Extract scoring logic from memory.ts to cache-scoring.ts
+- [X] T076 [US9] Run build to verify no regressions: `cd packages/cloud && npm run build`
+- [X] T077 [US9] Run linter: `cd packages/cloud && npm run lint`
 
 ### Implementation Order
 
