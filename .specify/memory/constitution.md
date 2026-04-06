@@ -1,8 +1,8 @@
 # Carbon Image Constitution
 
-<!-- Sync Impact Report (2026-03-19) -->
-<!-- Version: 1.0.0 → 1.1.0 -->
-<!-- Changes: Principle II updated (CLI → DevTools MCP), Technology Standards resolved -->
+<!-- Sync Impact Report (2026-04-06) -->
+<!-- Version: 1.1.0 → 1.2.0 -->
+<!-- Changes: Added Demo & Testing Infrastructure principle, updated Observability to include demo app testing -->
 
 ## Core Principles
 
@@ -14,15 +14,15 @@ Every feature MUST be implemented as a standalone, self-contained library. Libra
 
 ### II. Observability & DevTools
 
-Every library SHOULD provide observability through structured logging and debug tools. VYNX provides debugging via Chrome DevTools MCP integration for runtime inspection. Library MUST expose a programmatic API for cache manipulation (get, set, clear, stats). DevTools MCP integration MUST support cache inspection, network throttling simulation, and performance metrics viewing.
+Every library SHOULD provide observability through structured logging and debug tools. Library MUST expose a programmatic API for cache manipulation (get, set, clear, stats). DevTools integration MUST support cache inspection, network throttling simulation, and performance metrics viewing.
 
 All operations MUST produce structured, machine-parseable logs. Logs MUST include context (request IDs, operation names, duration). Errors MUST be logged with full stack traces and correlation IDs.
 
-**Rationale**: Observability enables debugging in production and performance analysis. DevTools MCP provides superior debugging experience for browser-based libraries compared to traditional CLI.
+**Rationale**: Observability enables debugging in production and performance analysis.
 
 ### III. Test-First (NON-NEGOTIABLE)
 
-Tests MUST be written before implementation (TDD). The cycle is: write failing tests → implement minimal code to pass → refactor. All public APIs MUST have unit test coverage. Integration tests are required for library contracts and inter-component communication.
+Tests MUST be written before implementation (TDD). The cycle is: write failing tests → implement minimal code to pass → refactor. All public APIs MUST have unit test coverage. Integration tests are required for library contracts and inter-component communication. Demo applications MUST be used to manually verify critical user flows.
 
 **Rationale**: Test-first ensures correctness is verified, not assumed. Coverage is non-negotiable for reliability.
 
@@ -36,9 +36,9 @@ All libraries MUST use Semantic Versioning (MAJOR.MINOR.PATCH). Breaking changes
 
 ### Technology Standards
 
-- **Language**: TypeScript 5.x (strict mode) - Resolved by VYNX Engine feature
-- **Testing Framework**: Vitest (unit), Playwright (integration/e2e) - Resolved by VYNX Engine feature
-- **Build System**: Vite - Resolved by VYNX Engine feature
+- **Language**: TypeScript 5.x (strict mode)
+- **Testing Framework**: Vitest (unit), Playwright (integration/e2e)
+- **Build System**: Vite
 - **Code Formatting**: MUST use automated formatting (ESLint + Prettier) with checked-in config
 
 **Rationale**: Standardized tooling reduces friction and ensures consistent style across contributors.
@@ -64,6 +64,14 @@ All pull requests MUST pass:
 4. Implement with test-first approach
 5. Ensure all quality gates pass
 6. Submit pull request with documentation updates
+
+### Demo & Testing
+
+- Demo applications MUST exercise all library features to verify functionality
+- Demo tests MUST include: cache recovery, persistence across refresh, offline behavior, network resilience
+- Demo environment MUST support Chrome browser testing with DevTools integration
+
+**Rationale**: Demos serve as integration tests and user validation.
 
 ### Code Review
 
@@ -102,4 +110,4 @@ All pull requests MUST pass:
 
 This constitution SUPERSEDES all other development practices. In case of conflict, this document takes precedence.
 
-**Version**: 1.1.0 | **Ratified**: 2026-03-18 | **Last Amended**: 2026-03-19
+**Version**: 1.2.0 | **Ratified**: 2026-03-18 | **Last Amended**: 2026-04-06
