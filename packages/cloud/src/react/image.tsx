@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback, useContext } from 'rea
 import { getNetworkMonitor } from '../core/network';
 import { CloudContext } from './hooks';
 
-export interface CloudImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
+export interface CloudImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'onError' | 'onLoad'> {
   src: string;
   alt?: string;
   placeholder?: string;
@@ -54,7 +54,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isInViewport, setIsInViewport] = useState(!preload);
   const [isOnline, setIsOnline] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [, setIsTransitioning] = useState(false);
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -133,41 +133,55 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         let url: string | null = null;
         let fromCache = false;
 
+        // 1. Intentar obtener del engine (Service Worker / cache)
         if (engine && !noCache) {
           url = await engine.get(src);
           fromCache = !!url;
         }
 
+        // 2. Fallback: fetch directo si el engine no tiene la imagen
         if (!url) {
-          url = src;
-          
-          if (engine && !noCache) {
-            try {
-              const response = await fetch(src);
-              if (response.ok) {
-                const blob = await response.blob();
-                const arrayBuffer = await blob.arrayBuffer();
-                await engine.set(src, arrayBuffer, {
-                  size: arrayBuffer.byteLength,
-                  mimeType: blob.type || 'image/jpeg',
-                  cachedAt: Date.now(),
-                  accessedAt: Date.now(),
-                  accessCount: 0,
-                });
+          try {
+            const response = await fetch(src);
+
+            if (response.ok) {
+              // La respuesta fue exitosa (sea del SW o de la red directa)
+              const blob = await response.blob();
+              const createdUrl = URL.createObjectURL(blob);
+
+              // Intentar guardar en el engine para futuros accesos
+              if (engine && !noCache) {
+                blob.arrayBuffer().then(arrayBuffer => {
+                  engine.set(src, arrayBuffer, {
+                    size: arrayBuffer.byteLength,
+                    mimeType: blob.type,
+                    cachedAt: Date.now(),
+                    accessedAt: Date.now(),
+                    accessCount: 0,
+                  }).catch(() => { /* non-fatal */ });
+                }).catch(() => { /* non-fatal */ });
               }
-            } catch {
-              // Network error - just use original URL, will show broken image
+
+              url = createdUrl;
+            } else {
+              // El SW respondió con error (503/500) - pasar la URL original
+              // El <img> intentará el request nativo y el SW podrá recuperarse
+              console.warn(`[CloudImage] SW returned ${response.status} for ${src}, using direct URL`);
+              url = src;
             }
+          } catch {
+            // Fetch falló completamente - usar la URL original como último recurso
+            url = src;
           }
         }
-        
+
         if (!isInViewport) {
-          URL.revokeObjectURL(url);
+          if (url && url !== src) URL.revokeObjectURL(url);
           return;
         }
 
         setObjectUrl(url);
-        
+
         if (enableCrossfade && hasBlurPlaceholder) {
           setIsTransitioning(true);
           transitionTimeoutRef.current = setTimeout(() => {
@@ -177,7 +191,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         } else {
           setMainImageLoaded(true);
         }
-        
+
         setStatus(fromCache ? 'cached' : 'loaded');
         if (fromCache) {
           onCacheHit?.();
@@ -202,7 +216,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
     };
   }, [src, isInViewport, resolvedSrc, isOnline, enableCrossfade, hasBlurPlaceholder, transitionDuration, cancelTransition, engine, noCache, onCacheHit, onCacheMiss, onLoad, onError, isReady]);
 
-  const loadingPriority = isInViewport ? 'high' : 'lazy';
+  const loadingPriority: 'eager' | 'lazy' = isInViewport ? 'eager' : 'lazy';
 
   const getPlaceholderStyle = (): React.CSSProperties => ({
     position: 'absolute',
@@ -303,21 +317,6 @@ export const CloudImage: React.FC<CloudImageProps> = ({
 
       {status === 'error' && fallback ? (
         fallback
-      ) : status === 'error' ? (
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt}
-          width={width}
-          height={height}
-          loading={loadingPriority}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-          {...props}
-        />
       ) : (
         <img
           ref={imgRef}
@@ -326,7 +325,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
           width={width}
           height={height}
           loading={loadingPriority}
-          fetchpriority={loadingPriority === 'high' ? 'high' : 'auto'}
+          fetchPriority={loadingPriority === 'eager' ? 'high' : 'auto'}
           style={{
             width: '100%',
             height: '100%',
@@ -341,9 +340,6 @@ export const CloudImage: React.FC<CloudImageProps> = ({
             if (enableCrossfade && hasBlurPlaceholder) {
               setMainImageLoaded(true);
             }
-          }}
-          onError={() => {
-            setStatus('error');
           }}
           {...props}
         />
