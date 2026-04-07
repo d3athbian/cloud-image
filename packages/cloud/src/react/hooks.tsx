@@ -18,10 +18,10 @@ const swScript = `
   window[KEY] = true;
   navigator.serviceWorker.register(PATH).then(function(reg) {
     window[STATE_KEY] = 'registered';
-    log.info('[CloudImage] Service Worker registered via inline:', reg.scope);
+    console.log('[CloudImage] Service Worker registered via inline:', reg.scope);
   }).catch(function(e) {
     window[STATE_KEY] = 'failed';
-    log.warn('[CloudImage] SW blocked by CSP. Use manual: <script src="register.js"></script>');
+    console.warn('[CloudImage] SW blocked by CSP. Use manual: <script src="register.js"></script>');
   });
 })();
 `;

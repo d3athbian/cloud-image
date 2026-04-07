@@ -1,10 +1,12 @@
 # carbon-image Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-22
+Auto-generated from all feature plans. Last updated: 2026-04-06
 
 ## Active Technologies
 - TypeScript 5.x (strict mode) + Vitest (testing), Vite (build) (003-workers-to-serviceworkers)
 - Browser Cache API (IndexedDB-backed) (003-workers-to-serviceworkers)
+- TypeScript 5.x (strict mode) + React 18+, @cloudimage/cloud, Vite, Vitest, Playwrigh (005-demo-testing)
+- IndexedDB (via idb library), Service Worker cache (005-demo-testing)
 
 - TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression) (002-cloud-image-cache-engine)
 
@@ -63,10 +65,10 @@ TypeScript 5.x (strict mode): Follow standard conventions
 - Transferable objects for zero-copy
 
 ## Recent Changes
+- 005-demo-testing: Added TypeScript 5.x (strict mode) + React 18+, @cloudimage/cloud, Vite, Vitest, Playwrigh
 - 003-workers-to-serviceworkers: Added TypeScript 5.x (strict mode) + Vitest (testing), Vite (build)
 
 - 002-cloud-image-cache-engine: Added TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression)
-- 002-cloud-image-cache-engine: Added Network Resilience (Retry + Circuit Breaker)
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
