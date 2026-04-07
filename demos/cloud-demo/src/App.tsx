@@ -22,6 +22,16 @@ const STATIC_IMAGES: PicsumImage[] = [
   { id: "7", author: "Alejandro Escamilla", width: 4728, height: 3168, url: "https://unsplash.com/photos/BbQLHCpVUqA", download_url: "https://picsum.photos/id/7/4728/3168" },
   { id: "8", author: "Alejandro Escamilla", width: 5000, height: 3333, url: "https://unsplash.com/photos/xII7efH1G6o", download_url: "https://picsum.photos/id/8/5000/3333" },
   { id: "9", author: "Alejandro Escamilla", width: 5000, height: 3269, url: "https://unsplash.com/photos/ABDTiLqDhJA", download_url: "https://picsum.photos/id/9/5000/3269" },
+  { id: "10", author: "Jerry Adney", width: 5000, height: 3333, url: "https://unsplash.com/photos/KMxQ4T8Jqz0", download_url: "https://picsum.photos/id/10/5000/3333" },
+  { id: "11", author: "Michael Hull", width: 5000, height: 3333, url: "https://unsplash.com/photos/WjIB-J4mVfg", download_url: "https://picsum.photos/id/11/5000/3333" },
+  { id: "12", author: "Go Wild", width: 5000, height: 3333, url: "https://unsplash.com/photos/sFX5t6L7x4s", download_url: "https://picsum.photos/id/12/5000/3333" },
+  { id: "13", author: "Peter Adams", width: 5000, height: 3333, url: "https://unsplash.com/photos/E497z4d9w9g", download_url: "https://picsum.photos/id/13/5000/3333" },
+  { id: "14", author: "Nathan Anderson", width: 5000, height: 3333, url: "https://unsplash.com/photos/XMoo7j5-r9U", download_url: "https://picsum.photos/id/14/5000/3333" },
+  { id: "15", author: "Christopher Beckett", width: 5000, height: 3333, url: "https://unsplash.com/photos/O0R5gbE3Cws", download_url: "https://picsum.photos/id/15/5000/3333" },
+  { id: "16", author: "Jonatan Pie", width: 5000, height: 3333, url: "https://unsplash.com/photos/3TLl_97HNJo", download_url: "https://picsum.photos/id/16/5000/3333" },
+  { id: "17", author: "Robert Lukat", width: 5000, height: 3333, url: "https://unsplash.com/photos/lF0B_5F5j3Q", download_url: "https://picsum.photos/id/17/5000/3333" },
+  { id: "18", author: "Frank McKenna", width: 5000, height: 3333, url: "https://unsplash.com/photos/tj3sM3kLg3A", download_url: "https://picsum.photos/id/18/5000/3333" },
+  { id: "19", author: "David Marcu", width: 5000, height: 3333, url: "https://unsplash.com/photos/78A265wPiO4", download_url: "https://picsum.photos/id/19/5000/3333" },
 ];
 
 function usePicsumImages() {
@@ -37,6 +47,9 @@ function CacheStatsDisplay({ stats }: { stats: CacheStats | null }) {
       <h2>Cache Stats</h2>
       <p>Items cached: {stats?.itemCount ?? 0}</p>
       <p>Total size: {stats ? (stats.totalSize / 1024 / 1024).toFixed(2) : 0} MB</p>
+      <p>Hit rate: {stats ? (stats.hitRate * 100).toFixed(1) : 0}%</p>
+      <p>Miss rate: {stats ? (stats.missRate * 100).toFixed(1) : 0}%</p>
+      <p>Evictions: {stats?.evictionCount ?? 0}</p>
     </div>
   );
 }
@@ -91,8 +104,8 @@ function ImageGrid({ images }: { images: PicsumImage[] }) {
         <div key={img.id} style={styles.imageWrapper}>
           <CloudImage
             src={img.download_url}
-            width={img.width}
-            height={img.height}
+            width={400}
+            height={300}
             alt={`${img.author} - ${img.id}`}
           />
         </div>

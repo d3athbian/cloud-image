@@ -44,6 +44,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   height,
   style,
   className,
+  fetchPriority,
   ...props
 }) => {
   const context = useContext(CloudContext);
@@ -325,7 +326,6 @@ export const CloudImage: React.FC<CloudImageProps> = ({
           width={width}
           height={height}
           loading={loadingPriority}
-          fetchPriority={loadingPriority === 'eager' ? 'high' : 'auto'}
           style={{
             width: '100%',
             height: '100%',
