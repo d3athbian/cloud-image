@@ -210,7 +210,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   button: {
     padding: '0.5rem 1rem',
-    background: '#e94560',
+    background: '#c53030',
     color: 'white',
     border: 'none',
     borderRadius: '4px',
