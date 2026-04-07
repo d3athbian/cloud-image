@@ -1,6 +1,7 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, memo, useMemo } from 'react';
 import { CloudProvider, useCloud, CloudImage } from '@cloudimage/cloud/react';
 import type { CacheStats, NetworkStatus } from '@cloudimage/cloud';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 interface PicsumImage {
   id: string;
@@ -41,9 +42,9 @@ function usePicsumImages() {
   return { images, loading };
 }
 
-function CacheStatsDisplay({ stats }: { stats: CacheStats | null }) {
+const CacheStatsDisplay = memo(function CacheStatsDisplay({ stats }: { stats: CacheStats | null }) {
   return (
-    <div style={styles.stats}>
+    <div style={styles.stats} role="region" aria-label="Cache statistics">
       <h2>Cache Stats</h2>
       <p>Items cached: {stats?.itemCount ?? 0}</p>
       <p>Total size: {stats ? (stats.totalSize / 1024 / 1024).toFixed(2) : 0} MB</p>
@@ -52,18 +53,18 @@ function CacheStatsDisplay({ stats }: { stats: CacheStats | null }) {
       <p>Evictions: {stats?.evictionCount ?? 0}</p>
     </div>
   );
-}
+});
 
-function NetworkStatusDisplay({ network }: { network: NetworkStatus }) {
-  const bandwidthColors: Record<string, string> = {
+const NetworkStatusDisplay = memo(function NetworkStatusDisplay({ network }: { network: NetworkStatus }) {
+  const bandwidthColors = useMemo(() => ({
     low: '#f87171',
     medium: '#fbbf24',
     high: '#4ade80',
     unknown: '#9ca3af',
-  };
+  }), []);
 
   return (
-    <div style={styles.stats}>
+    <div style={styles.stats} role="region" aria-label="Network status">
       <h2>Network Status</h2>
       <p>
         Status:{' '}
@@ -79,29 +80,29 @@ function NetworkStatusDisplay({ network }: { network: NetworkStatus }) {
       </p>
     </div>
   );
-}
+});
 
-function Controls({ onPrefetch, onClear }: { onPrefetch: () => void; onClear: () => void }) {
+const Controls = memo(function Controls({ onPrefetch, onClear }: { onPrefetch: () => void; onClear: () => void }) {
   return (
-    <div style={styles.stats}>
+    <div style={styles.stats} role="region" aria-label="Cache controls">
       <h2>Controls</h2>
       <div style={styles.buttonGroup}>
-        <button onClick={onPrefetch} style={styles.button}>
+        <button onClick={onPrefetch} style={styles.button} aria-label="Prefetch 10 images">
           Prefetch 10
         </button>
-        <button onClick={onClear} style={styles.button}>
+        <button onClick={onClear} style={styles.button} aria-label="Clear cache">
           Clear Cache
         </button>
       </div>
     </div>
   );
-}
+});
 
-function ImageGrid({ images }: { images: PicsumImage[] }) {
+const ImageGrid = memo(function ImageGrid({ images }: { images: PicsumImage[] }) {
   return (
-    <div style={styles.grid}>
+    <div style={styles.grid} role="list" aria-label="Image gallery">
       {images.map((img, index) => (
-        <div key={img.id} style={styles.imageWrapper}>
+        <div key={img.id} style={styles.imageWrapper} role="listitem">
           <CloudImage
             src={img.download_url}
             width={400}
@@ -114,7 +115,7 @@ function ImageGrid({ images }: { images: PicsumImage[] }) {
       ))}
     </div>
   );
-}
+});
 
 function AppContent() {
   const { images, loading } = usePicsumImages();
@@ -172,9 +173,11 @@ function AppContent() {
 
 function App() {
   return (
-    <CloudProvider devtools={true}>
-      <AppContent />
-    </CloudProvider>
+    <ErrorBoundary>
+      <CloudProvider devtools={true}>
+        <AppContent />
+      </CloudProvider>
+    </ErrorBoundary>
   );
 }
 
