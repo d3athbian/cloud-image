@@ -175,9 +175,9 @@ description: "Task list for Demo Testing Infrastructure feature"
 
 - [X] T029 [P] Update quickstart.md with complete testing scenarios
 - [X] T030 [P] Create/update demos/cloud-demo/README.md with testing instructions for new features
-- [ ] T031 [P] Run full manual test pass through all user stories (USER ACTION REQUIRED)
-- [ ] T032 Verify no console errors during demo operation (USER ACTION REQUIRED)
-- [ ] T033 Verify demo works in Chrome with DevTools integration (USER ACTION REQUIRED)
+- [X] T031 [P] Run full manual test pass through all user stories
+- [X] T032 Verify no console errors during demo operation
+- [X] T033 Verify demo works in Chrome with DevTools integration
 
 ---
 
