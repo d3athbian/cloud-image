@@ -100,13 +100,15 @@ function Controls({ onPrefetch, onClear }: { onPrefetch: () => void; onClear: ()
 function ImageGrid({ images }: { images: PicsumImage[] }) {
   return (
     <div style={styles.grid}>
-      {images.map((img) => (
+      {images.map((img, index) => (
         <div key={img.id} style={styles.imageWrapper}>
           <CloudImage
             src={img.download_url}
             width={400}
             height={300}
             alt={`${img.author} - ${img.id}`}
+            priority={index === 0 ? 'high' : undefined}
+            loading={index < 6 ? 'eager' : 'lazy'}
           />
         </div>
       ))}

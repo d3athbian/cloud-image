@@ -19,6 +19,7 @@ export interface CloudImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageE
   blurPlaceholder?: string;
   transitionDuration?: number;
   enableCrossfade?: boolean;
+  priority?: 'high' | 'low' | 'auto';
 }
 
 export type ImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline' | 'cached';
@@ -44,6 +45,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   height,
   style,
   className,
+  priority = 'auto',
   fetchPriority,
   ...props
 }) => {
@@ -217,7 +219,9 @@ export const CloudImage: React.FC<CloudImageProps> = ({
     };
   }, [src, isInViewport, resolvedSrc, isOnline, enableCrossfade, hasBlurPlaceholder, transitionDuration, cancelTransition, engine, noCache, onCacheHit, onCacheMiss, onLoad, onError, isReady]);
 
-  const loadingPriority: 'eager' | 'lazy' = isInViewport ? 'eager' : 'lazy';
+  const loadingPriority: 'eager' | 'lazy' = priority === 'high' || isInViewport ? 'eager' : 'lazy';
+
+  const fetchPriorityValue = priority === 'high' ? 'high' : priority === 'low' ? 'low' : 'auto';
 
   const getPlaceholderStyle = (): React.CSSProperties => ({
     position: 'absolute',
@@ -326,6 +330,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
           width={width}
           height={height}
           loading={loadingPriority}
+          fetchpriority={fetchPriorityValue}
           style={{
             width: '100%',
             height: '100%',
