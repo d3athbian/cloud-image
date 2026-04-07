@@ -3,7 +3,7 @@ const MAX_RETRIES = 3;
 const CIRCUIT_BREAKER_THRESHOLD = 3;
 const CIRCUIT_BREAKER_TIMEOUT = 30000;
 
-const DB_NAME = 'carbon-image-cache';
+const DB_NAME = 'cloud-image-cache';
 const STORE_NAME = 'images';
 const DB_VERSION = 2; // Bumped: added 'cachedAt' index for efficient LRU eviction
 
