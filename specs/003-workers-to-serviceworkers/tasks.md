@@ -1,3 +1,15 @@
+# ⚠️ DEPRECATED STATUS
+
+**Esta spec fue reemplazada por la implementación real del Service Worker en:**
+
+- `packages/cloud/src/service-worker/sw.ts`
+- **Spec 010**: Network-Aware Caching (cubre RTT measurement)
+- **Spec 011**: Silent Upgrade
+
+**Razón**: La implementación ya está completa en el SW actual. Estas tareas son往事 (del pasado) y ya no aplican.
+
+---
+
 # Tasks: Refactor Web Workers to Service Workers
 
 **Input**: Design documents from `/specs/003-workers-to-serviceworkers/`

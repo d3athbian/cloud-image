@@ -4,6 +4,20 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 
 ---
 
+# ⚠️ DEPRECATED STATUS
+
+**Esta spec fue reemplazada por specs más específicas:**
+
+- **Spec 010**: Network-Aware Caching (reemplaza T104-T105)
+- **Spec 011**: Silent Upgrade (reemplaza T105)
+- **Spec 012**: Prefetch Queue  
+- **Spec 013**: CDN Adapter (reemplaza T043-T044)
+- **Spec 014**: Image Validator
+
+**Razón**: La implementación cambió - usamos Service Worker directo en lugar de Web Worker thread. Muchas tareas ya no aplican al código actual.
+
+---
+
 # Tasks: CLOUD Engine - Visual Asset Orchestration System
 
 **Input**: Design documents from `specs/002-cloud-image-cache-engine/`  
