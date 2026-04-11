@@ -417,7 +417,7 @@ description: "Task list for CLOUD Engine - Visual Asset Orchestration System"
 - [x] T137 [P] Create packages/cloud/README.md with API documentation
 - [x] T138 Generate CHANGELOG.md with version tracking
 - [x] T139 Run full test suite and verify 100% pass rate (318 tests)
-- [ ] T140 Verify coverage above 80% for new code (core 69.86%, branches 82.49%)
+- [ ] T140 [NOTE] Requires server to run E2E tests
 
 **Note**: React components and worker require e2e testing. Core library coverage is 69.86% lines, 82.49% branches.
 
