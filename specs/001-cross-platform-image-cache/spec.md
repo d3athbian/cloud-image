@@ -1,9 +1,23 @@
-# Feature Specification: Cross-Platform Image Cache Library
+# ⚠️ DEPRECATED: Cross-Platform Image Cache Library
 
 **Feature Branch**: `001-cross-platform-image-cache`  
 **Created**: 2026-03-19  
-**Status**: Draft  
+**Status**: ⚠️ **DEPRECATED**  
 **Input**: User description: "quiero crear una libreria que maneje un cache avanzado de imagenes en diversas plataformas web como webviews, tizen, webos, etc"
+
+## Razón deprecado
+
+Esta spec fue reemplazada por:
+
+- **Spec 002**: Cloud Image Cache Engine (implementación core)
+- **Spec 003**: Workers to ServiceWorkers (cambio de arquitectura)
+- **Spec 010-014**: Features específicas implementadas
+
+El proyecto evolucionó y esta spec inicial fue reemplazada por specs más específicas y detalladas.
+
+---
+
+# Feature Specification: Cross-Platform Image Cache Library
 
 ## User Scenarios & Testing *(mandatory)*
 
