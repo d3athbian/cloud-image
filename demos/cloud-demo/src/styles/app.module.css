@@ -1,0 +1,135 @@
+:root {
+  --color-background: #1a1a2e;
+  --color-header: #16213e;
+  --color-card: #0f3460;
+  --color-accent: #e94560;
+  --color-accent-safe: #c53030;
+  --color-text: #eee;
+  --color-text-muted: #9ca3af;
+  --color-success: #4ade80;
+  --color-warning: #fbbf24;
+  --color-error: #f87171;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-background);
+  color: var(--color-text);
+}
+
+.header {
+  padding: 1rem 2rem;
+  background: var(--color-header);
+  border-bottom: 1px solid var(--color-card);
+}
+
+.sidebar {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: var(--color-header);
+  border-bottom: 1px solid var(--color-card);
+  flex-wrap: wrap;
+}
+
+.stats {
+  background: var(--color-card);
+  padding: 1rem;
+  border-radius: 8px;
+  min-width: 200px;
+}
+
+.stats h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.stats p {
+  margin: 0.25rem 0;
+  color: var(--color-text);
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  background: var(--color-accent-safe);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.2s;
+}
+
+.button:hover {
+  opacity: 0.9;
+}
+
+.button:focus {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.main {
+  flex: 1;
+  padding: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.imageWrapper {
+  background: var(--color-card);
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+}
+
+.imageWrapper img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  color: var(--color-text-muted);
+}
+
+/* Accessibility */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus visible for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
