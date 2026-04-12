@@ -14,7 +14,12 @@
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "@cloudimage/cloud": ["../../packages/cloud/src/index.ts"],
+      "@cloudimage/cloud/*": ["../../packages/cloud/src/*"]
+    }
   },
   "include": ["src"]
 }
