@@ -77,6 +77,7 @@ export interface NetworkStatus {
   bandwidth: BandwidthClassification;
   mbps?: number;
   rtt?: number;
+  bandwidthTested?: boolean;
 }
 
 export type BandwidthClassification = 'low' | 'medium' | 'high' | 'unknown';

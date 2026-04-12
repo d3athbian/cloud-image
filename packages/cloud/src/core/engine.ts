@@ -6,16 +6,14 @@ import { CircuitBreaker } from './circuit-breaker';
 import { ImageValidator } from './image-validator';
 import { Time } from '../config/constants';
 import { logger } from '../utils/logger';
+import { getNetworkMonitor, type NetworkStatus } from './network';
 
 const log = logger.ImageEngine;
 
 export class ImageEngine {
   private cache: ImageCache;
   private swClient: ServiceWorkerClient;
-  private networkStatus = {
-    online: typeof navigator !== 'undefined' ? navigator.onLine : true,
-    bandwidth: 'unknown' as const,
-  };
+  private networkMonitor = getNetworkMonitor();
   private adapter: PlatformAdapter | null = null;
   private platform: string = 'memory';
   private pendingRequests: Map<string, Promise<string | null>> = new Map();
@@ -39,18 +37,23 @@ export class ImageEngine {
       failureThreshold: 3,
       resetTimeout: Time.CIRCUIT_BREAKER_RESET,
     });
-    this.setupNetworkListeners();
   }
 
   async init(): Promise<void> {
+    this.log('[ImageEngine] Starting init...');
     this.cache.init();
     
-    const swEnabled = await this.swClient.init();
-    
-    if (!swEnabled) {
-      this.log('[ImageEngine] Service Worker unavailable, using fallback mode');
-    } else {
-      this.log('[ImageEngine] Service Worker active');
+    this.log('[ImageEngine] SW init starting...');
+    try {
+      const swEnabled = await this.swClient.init();
+      
+      if (!swEnabled) {
+        this.log('[ImageEngine] Service Worker unavailable, using fallback mode');
+      } else {
+        this.log('[ImageEngine] Service Worker active');
+      }
+    } catch (err) {
+      this.log('[ImageEngine] SW init failed:', err);
     }
     
     this.log(`[ImageEngine] Initialized with ${this.platform} adapter`);
@@ -81,7 +84,8 @@ export class ImageEngine {
   }
 
   private shouldUseOfflineFallback(): boolean {
-    return !this.networkStatus.online || this.networkStatus.bandwidth === 'unknown';
+    const status = this.networkMonitor.getStatus();
+    return !status.online || status.bandwidth === 'unknown';
   }
 
   async get(url: string): Promise<string | null> {
@@ -245,7 +249,11 @@ export class ImageEngine {
   }
 
   getNetworkStatus() {
-    return { ...this.networkStatus };
+    return this.networkMonitor.getStatus();
+  }
+
+  getNetworkMonitor() {
+    return this.networkMonitor;
   }
 
   getPlatform(): string {
@@ -288,17 +296,5 @@ export class ImageEngine {
     if (this.debug) {
       log.debug(...args);
     }
-  }
-
-  private setupNetworkListeners(): void {
-    if (typeof window === 'undefined') return;
-
-    window.addEventListener('online', () => {
-      this.networkStatus.online = true;
-    });
-
-    window.addEventListener('offline', () => {
-      this.networkStatus.online = false;
-    });
   }
 }

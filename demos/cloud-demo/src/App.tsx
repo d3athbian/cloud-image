@@ -63,6 +63,16 @@ const NetworkStatusDisplay = memo(function NetworkStatusDisplay({ network }: { n
     unknown: '#9ca3af',
   }), []);
 
+  const getBandwidthDisplay = () => {
+    if (network.bandwidthTested && network.mbps !== undefined) {
+      return `${network.bandwidth.toUpperCase()} (${network.mbps} Mbps)`;
+    }
+    if (network.bandwidthTested) {
+      return `${network.bandwidth.toUpperCase()} (testing...)`;
+    }
+    return `${network.bandwidth.toUpperCase()} (not tested)`;
+  };
+
   return (
     <div style={styles.stats} role="region" aria-label="Network status">
       <h2>Network Status</h2>
@@ -75,7 +85,7 @@ const NetworkStatusDisplay = memo(function NetworkStatusDisplay({ network }: { n
       <p>
         Bandwidth:{' '}
         <span style={{ color: bandwidthColors[network.bandwidth] }}>
-          {network.bandwidth.toUpperCase()}
+          {getBandwidthDisplay()}
         </span>
       </p>
     </div>

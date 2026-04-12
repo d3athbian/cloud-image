@@ -1,37 +1,42 @@
-# Implementation Plan: Library Performance Optimization
+# Implementation Plan: Library Performance Optimization - Edge Cases & Bug Fixes
 
-**Branch**: `008-lib-perf-optimization` | **Date**: 2026-04-07 | **Spec**: `/specs/008-lib-perf-optimization/spec.md`
+**Branch**: `008-lib-perf-optimization` | **Date**: 2026-04-12 | **Spec**: [link](./spec.md)
+**Input**: Feature specification from `/specs/008-lib-perf-optimization/spec.md` + user request: "quiero crear unas mejoras al feature que son acerca de casos borderdes o cosas minimas que no funcionaron"
 
 ## Summary
 
-Optimize @cloudimage/cloud library for better tree-shaking, smaller bundle size, and improved runtime performance. The goal is to achieve Lighthouse score ≥90, bundle size <100KB gzipped, and cache operations <5ms.
+Improve library robustness by fixing edge cases and minor bugs discovered during demo testing:
+- IndexedDB version mismatch between Service Worker (v2) and Web Adapter (v1)
+- Service Worker IndexedDB connection handling ("database connection is closing")
+- Large image dimension handling (5000x3333 caused failures)
+- Cache entry validation failures ("Skipping invalid entry")
+- React 19 `fetchpriority` warning
+- Blocking cache initialization causing UI hang
 
 ## Technical Context
 
 **Language/Version**: TypeScript 5.x (strict mode)  
-**Primary Dependencies**: React 18+, Vite, idb, Vitest  
-**Storage**: IndexedDB via idb library  
-**Testing**: Vitest (unit), Chrome DevTools (performance), Lighthouse  
-**Target Platform**: Web (modern browsers: Chrome 90+, Firefox 90+, Safari 15+, Edge 90+)  
-**Project Type**: TypeScript library (npm package)  
-**Performance Goals**: 
-- Bundle < 100KB gzipped (full), < 10KB (minimal)
-- LCP < 2.5s, INP < 200ms
-- Cache operations < 5ms
-- Memory < 50MB  
-**Constraints**: Must maintain backward compatibility, must work in SSR environments  
-**Scale/Scope**: Library used by web applications, no user limit
+**Primary Dependencies**: React 19.2.5, idb (IndexedDB wrapper), Vite 5.4  
+**Storage**: IndexedDB (via idb), Service Worker Cache API  
+**Testing**: Vitest (unit), Playwright (e2e)  
+**Target Platform**: Modern browsers (Chrome 90+, Firefox 90+, Safari 15+, Edge 90+)  
+**Project Type**: JavaScript library for React applications  
+**Performance Goals**: Lighthouse 90+, LCP <2.5s, cache reads <5ms  
+**Constraints**: Memory <50MB, no main thread blocking >50ms  
+**Scale/Scope**: 100 cached images typical usage
 
 ## Constitution Check
 
+*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+
 | Gate | Status | Notes |
 |------|--------|-------|
-| Library-First (I) | ✅ PASS | This IS the library being optimized |
-| Observability (II) | ✅ PASS | Performance metrics via Lighthouse |
-| Test-First (III) | ⚠️ PARTIAL | Performance tests via Lighthouse, not TDD |
-| Versioning (IV) | ✅ PASS | Semantic versioning maintained |
+| Library-First | ✅ PASS | Core library with React integration |
+| Observability | ✅ PASS | Structured logging via logger module |
+| Test-First | ⚠️ PARTIAL | Tests exist but some edge cases not covered |
+| Code Quality | ✅ PASS | ESLint + Prettier configured |
 
-**Justification for Test-First partial**: Performance optimization uses Lighthouse for measurement rather than unit tests - this is industry standard for bundle size and runtime performance validation.
+**Constitution Violations**: None detected
 
 ## Project Structure
 
@@ -40,66 +45,34 @@ Optimize @cloudimage/cloud library for better tree-shaking, smaller bundle size,
 ```text
 specs/008-lib-perf-optimization/
 ├── plan.md              # This file
-├── spec.md              # Feature specification
-├── research.md          # Research findings
-├── data-model.md        # Library module structure
-├── quickstart.md        # Performance testing guide
-└── tasks.md            # Implementation tasks
+├── research.md          # Phase 0 output (research on edge cases)
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output
+└── contracts/           # Phase 1 output
 ```
 
 ### Source Code (repository root)
 
 ```text
-packages/cloud/             # Library being optimized
+packages/cloud/           # Main library
 ├── src/
-│   ├── core/              # Cache, engine, performance modules
-│   ├── adapters/          # Web, memory adapters
-│   ├── react/             # CloudProvider, CloudImage, hooks
-│   ├── service-worker/    # SW implementation
-│   └── utils/             # Logger, helpers
-├── dist/                   # Build output
-└── package.json           # Package configuration
+│   ├── core/            # Cache engine, network, circuit breaker
+│   ├── adapters/        # Platform storage (web, memory, tizen, webos)
+│   ├── react/           # React components (CloudProvider, CloudImage)
+│   ├── service-worker/  # SW for caching
+│   └── config/          # Constants
+└── tests/               # Unit tests
 
-demos/cloud-demo/           # Demo for testing
+demos/cloud-demo/        # Demo application
 └── src/
-    └── App.tsx            # Test app for Lighthouse
+
+tests/                   # Integration/e2e tests
 ```
 
-**Structure Decision**: Library is already structured in packages/cloud. Optimization focuses on:
-1. Vite build configuration for better tree-shaking
-2. Code splitting into smaller modules
-3. Removing dead code
-4. Web Worker for image decoding
-
-## Implementation Phases
-
-### Phase 1: Bundle Analysis & Tree-shaking
-
-- Analyze current bundle size and structure
-- Configure Vite for optimal tree-shaking
-- Split exports by module (core, react, adapters)
-- Verify tree-shaking with different import patterns
-
-### Phase 2: Runtime Performance
-
-- Optimize cache operations
-- Ensure Web Worker decoding
-- Reduce main thread blocking
-
-### Phase 3: Lighthouse Integration
-
-- Set up Lighthouse testing
-- Run baseline performance audit
-- Optimize based on results
-- Verify ≥90 score
+**Structure Decision**: Library package + demo app structure confirmed
 
 ## Complexity Tracking
 
-| Area | Current State | Target | Why Needed |
-|------|---------------|--------|------------|
-| Bundle size (full) | ~80KB gzipped | < 100KB | Users demand smaller bundles |
-| Bundle size (minimal) | N/A | < 10KB | Enable selective imports |
-| Tree-shaking | Partial | Full | Remove unused code |
-| Lighthouse score | 83 | ≥90 | SEO and UX |
+> **Fill ONLY if Constitution Check has violations that must be justified**
 
-**No complexity violations** - this is a library optimization task.
+No complexity violations identified. All edge case fixes are contained within existing modules.

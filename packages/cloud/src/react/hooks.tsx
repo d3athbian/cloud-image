@@ -86,6 +86,7 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
           };
         }
       } catch (err) {
+        console.error('[CloudProvider] Init failed:', err);
         setError(err as Error);
         setIsReady(false);
       }
@@ -131,29 +132,28 @@ export function useCloud(): {
 
   const { engine } = context;
 
-  const [network, setNetwork] = useState<NetworkStatus>({
-    online: typeof navigator !== 'undefined' ? navigator.onLine : true,
-    bandwidth: 'unknown',
+  const [network, setNetwork] = useState<NetworkStatus>(() => {
+    if (engine) {
+      return engine.getNetworkStatus();
+    }
+    return {
+      online: typeof navigator !== 'undefined' ? navigator.onLine : true,
+      bandwidth: 'unknown',
+      bandwidthTested: false,
+    };
   });
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (!engine) return;
 
-    const handleOnline = () => {
-      setNetwork(prev => ({ ...prev, online: true }));
-    };
-    const handleOffline = () => {
-      setNetwork(prev => ({ ...prev, online: false }));
-    };
-
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    const unsubscribe = engine.getNetworkMonitor().subscribe((status) => {
+      setNetwork(status);
+    });
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      unsubscribe();
     };
-  }, []);
+  }, [engine]);
 
   return {
     cache: {

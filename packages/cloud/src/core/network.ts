@@ -8,6 +8,8 @@ export interface NetworkMonitorConfig {
   };
   onStatusChange?: (status: NetworkStatus) => void;
   onBandwidthChange?: (classification: BandwidthClassification) => void;
+  bandwidthTestUrl?: string;
+  bandwidthTestSize?: number;
 }
 
 interface BandwidthSample {
@@ -15,12 +17,14 @@ interface BandwidthSample {
   mbps: number;
   bytesPerSecond: number;
   isConnectionApi: boolean;
+  isProactiveTest?: boolean;
 }
 
 export class NetworkMonitor {
   private status: NetworkStatus = {
     online: true,
     bandwidth: 'unknown',
+    bandwidthTested: false,
   };
   private samples: BandwidthSample[] = [];
   private config: Required<NetworkMonitorConfig>;
@@ -28,6 +32,12 @@ export class NetworkMonitor {
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private retryQueue: Array<() => Promise<void>> = [];
   private isRetrying = false;
+  private isMeasuring = false;
+  private measurementInterval: ReturnType<typeof setInterval> | null = null;
+  private lastProactiveMeasure = 0;
+  private readonly MEASUREMENT_COOLDOWN = 30000;
+  private readonly MIN_BYTES_FOR_ACCURATE_TEST = 1000;
+  private readonly DEFAULT_TEST_URL = 'https://picsum.photos/100/100';
 
   constructor(config: NetworkMonitorConfig = {}) {
     this.config = {
@@ -35,9 +45,15 @@ export class NetworkMonitor {
       bandwidthThreshold: config.bandwidthThreshold ?? { low: 1.5, medium: 6 },
       onStatusChange: config.onStatusChange ?? (() => {}),
       onBandwidthChange: config.onBandwidthChange ?? (() => {}),
+      bandwidthTestUrl: config.bandwidthTestUrl ?? this.DEFAULT_TEST_URL,
+      bandwidthTestSize: config.bandwidthTestSize ?? 10000,
     };
     this.status.online = this.checkOnlineStatus();
     this.setupListeners();
+    
+    setTimeout(() => {
+      this.measureBandwidthProactive().catch(() => {});
+    }, 2000);
   }
 
   private checkOnlineStatus(): boolean {
@@ -231,9 +247,103 @@ export class NetworkMonitor {
     });
   }
 
+  private startProactiveMeasurement(): void {
+    this.measurementInterval = setInterval(() => {
+      if (this.status.online && !this.isMeasuring) {
+        const now = Date.now();
+        if (now - this.lastProactiveMeasure > this.MEASUREMENT_COOLDOWN) {
+          this.measureBandwidthProactive();
+        }
+      }
+    }, this.config.sampleInterval);
+  }
+
+  async measureBandwidthProactive(): Promise<BandwidthClassification | null> {
+    if (this.isMeasuring || !this.status.online) {
+      return null;
+    }
+
+    this.isMeasuring = true;
+    this.lastProactiveMeasure = Date.now();
+
+    try {
+      const testUrl = this.config.bandwidthTestUrl;
+      const startTime = performance.now();
+      const response = await fetch(testUrl, { 
+        method: 'GET', 
+        cache: 'no-store' 
+      });
+      
+      const endTime = performance.now();
+      const durationMs = endTime - startTime;
+      const bytes = response.headers.get('content-length') 
+        ? parseInt(response.headers.get('content-length')!, 10)
+        : this.config.bandwidthTestSize;
+      
+      const bytesPerSecond = (bytes / durationMs) * 1000;
+      const mbps = (bytesPerSecond * 8) / 1000000;
+
+      const sample: BandwidthSample = {
+        timestamp: Date.now(),
+        mbps,
+        bytesPerSecond,
+        isConnectionApi: false,
+        isProactiveTest: true,
+      };
+
+      this.addSample(sample);
+
+      const previous = this.status.bandwidth;
+      this.status.bandwidthTested = true;
+      this.status.mbps = Math.round(mbps * 100) / 100;
+      this.updateClassification();
+
+      this.config.onBandwidthChange(this.status.bandwidth);
+      this.notifyListeners();
+
+      return this.status.bandwidth;
+    } catch {
+      return null;
+    } finally {
+      this.isMeasuring = false;
+    }
+  }
+
+  async measureBandwidth(url?: string): Promise<number> {
+    if (!this.status.online) {
+      return -1;
+    }
+
+    const testUrl = url || this.config.bandwidthTestUrl;
+    
+    try {
+      const startTime = performance.now();
+      const response = await fetch(testUrl, { 
+        method: 'GET', 
+        cache: 'no-store' 
+      });
+      
+      const endTime = performance.now();
+      const durationMs = endTime - startTime;
+      const bytes = response.headers.get('content-length') 
+        ? parseInt(response.headers.get('content-length')!, 10)
+        : this.config.bandwidthTestSize;
+      
+      const bytesPerSecond = (bytes / durationMs) * 1000;
+      const mbps = (bytesPerSecond * 8) / 1000000;
+
+      return Math.round(mbps * 100) / 100;
+    } catch {
+      return -1;
+    }
+  }
+
   destroy(): void {
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
+    }
+    if (this.measurementInterval) {
+      clearInterval(this.measurementInterval);
     }
     this.listeners.clear();
     this.retryQueue = [];
