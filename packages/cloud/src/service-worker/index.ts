@@ -29,6 +29,7 @@ class ServiceWorkerClient {
   private debug: boolean;
   private fallbackMode = false;
   private memoryCache = new Map<string, { data: ArrayBuffer; metadata: Record<string, unknown> }>();
+  private config: Required<ServiceWorkerConfig> = DEFAULT_CONFIG;
   private stats = {
     hits: 0,
     misses: 0,
@@ -42,6 +43,14 @@ class ServiceWorkerClient {
   }
 
   async init(config?: ServiceWorkerConfig): Promise<boolean> {
+    if (config) {
+      this.config = {
+        scope: config.scope ?? DEFAULT_CONFIG.scope,
+        debug: config.debug ?? DEFAULT_CONFIG.debug,
+        timeout: config.timeout ?? DEFAULT_CONFIG.timeout,
+      };
+    }
+
     if (!('serviceWorker' in navigator)) {
       this.fallbackMode = true;
       this.log('[SW Client] Service Workers not supported, using fallback mode');
@@ -51,7 +60,7 @@ class ServiceWorkerClient {
     try {
       this.registration = await navigator.serviceWorker.register(
         '/sw.js',
-        config?.scope ? { scope: config.scope } : undefined
+        this.config.scope !== DEFAULT_CONFIG.scope ? { scope: this.config.scope } : undefined
       );
 
       this.log('[SW Client] Service Worker registered');
