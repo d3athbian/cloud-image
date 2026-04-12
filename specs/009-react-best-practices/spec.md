@@ -67,6 +67,27 @@ The demo app currently has performance issues due to:
 1. **Given** buttons, **When** rendered, **Then** aria-label provides context
 2. **Given** stats updates, **When** occur, **Then** aria-live announces changes
 
+### US7 - Fix useImagePrefetch Bug (Priority: P1)
+
+**Goal**: Fix broken cache ref in useImagePrefetch hook
+
+**Acceptance Scenarios**:
+1. **Given** cache changes, **When** component updates, **Then** useRef.current reflects the new value
+
+### US8 - CloudImage Memoization (Priority: P2)
+
+**Goal**: Wrap CloudImage library component with React.memo
+
+**Acceptance Scenarios**:
+1. **Given** parent re-renders, **When** CloudImage props unchanged, **Then** CloudImage should not re-render
+
+### US9 - Extract useIntersectionObserver Hook (Priority: P3)
+
+**Goal**: Extract IntersectionObserver logic to reusable hook
+
+**Acceptance Scenarios**:
+1. **Given** preload prop changes, **When** CloudImage renders, **Then** hook handles viewport detection
+
 ## Requirements
 
 - **FR-001**: All display components MUST be wrapped with React.memo
@@ -75,6 +96,8 @@ The demo app currently has performance issues due to:
 - **FR-004**: StatsPanel component MUST display all cache and network stats
 - **FR-005**: ErrorBoundary MUST catch errors and show fallback UI
 - **FR-006**: Buttons MUST have aria-label for screen readers
+- **FR-007**: useImagePrefetch hook MUST use useRef for cache reference
+- **FR-008**: CloudImage library component MUST be memoized
 
 ## Success Criteria
 

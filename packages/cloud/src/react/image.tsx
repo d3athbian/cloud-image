@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext, memo } from 'react';
 import { getNetworkMonitor } from '../core/network';
 import { CloudContext } from './hooks';
 
@@ -24,7 +24,23 @@ export interface CloudImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageE
 
 export type ImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline' | 'cached';
 
-export const CloudImage: React.FC<CloudImageProps> = ({
+const getPlaceholderStyle = (
+  blurPlaceholder?: string,
+  placeholder?: string
+): React.CSSProperties => ({
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  width: '100%',
+  height: '100%',
+  backgroundImage: blurPlaceholder ? `url(${blurPlaceholder})` : placeholder ? `url(${placeholder})` : undefined,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  filter: blurPlaceholder ? 'blur(20px)' : undefined,
+  transform: blurPlaceholder ? 'scale(1.1)' : undefined,
+});
+
+const CloudImageComponent: React.FC<CloudImageProps> = ({
   src,
   alt = '',
   placeholder,
@@ -139,23 +155,19 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         let url: string | null = null;
         let fromCache = false;
 
-        // 1. Intentar obtener del engine (Service Worker / cache)
         if (engine && !noCache) {
           url = await engine.get(src);
           fromCache = !!url;
         }
 
-        // 2. Fallback: fetch directo si el engine no tiene la imagen
         if (!url) {
           try {
             const response = await fetch(src);
 
             if (response.ok) {
-              // La respuesta fue exitosa (sea del SW o de la red directa)
               const blob = await response.blob();
               const createdUrl = URL.createObjectURL(blob);
 
-              // Intentar guardar en el engine para futuros accesos
               if (engine && !noCache) {
                 blob.arrayBuffer().then(arrayBuffer => {
                   engine.set(src, arrayBuffer, {
@@ -170,13 +182,10 @@ export const CloudImage: React.FC<CloudImageProps> = ({
 
               url = createdUrl;
             } else {
-              // El SW respondió con error (503/500) - pasar la URL original
-              // El <img> intentará el request nativo y el SW podrá recuperarse
               console.warn(`[CloudImage] SW returned ${response.status} for ${src}, using direct URL`);
               url = src;
             }
           } catch {
-            // Fetch falló completamente - usar la URL original como último recurso
             url = src;
           }
         }
@@ -224,19 +233,6 @@ export const CloudImage: React.FC<CloudImageProps> = ({
 
   const loadingPriority: 'eager' | 'lazy' = priority === 'high' || isInViewport ? 'eager' : 'lazy';
 
-  const getPlaceholderStyle = (): React.CSSProperties => ({
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
-    backgroundImage: blurPlaceholder ? `url(${blurPlaceholder})` : placeholder ? `url(${placeholder})` : undefined,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    filter: blurPlaceholder ? 'blur(20px)' : undefined,
-    transform: blurPlaceholder ? 'scale(1.1)' : undefined,
-  });
-
   if (status === 'pending' && hasBlurPlaceholder) {
     return (
       <div
@@ -252,7 +248,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         role="img"
         aria-label={alt}
       >
-        <div style={getPlaceholderStyle()} />
+        <div style={getPlaceholderStyle(blurPlaceholder, placeholder)} />
       </div>
     );
   }
@@ -300,7 +296,7 @@ export const CloudImage: React.FC<CloudImageProps> = ({
       }}
     >
       {hasBlurPlaceholder && !mainImageLoaded && (
-        <div style={getPlaceholderStyle()} />
+        <div style={getPlaceholderStyle(blurPlaceholder, placeholder)} />
       )}
 
       {showLoading && status === 'loading' && !mainImageLoaded && (
@@ -358,3 +354,5 @@ export const CloudImage: React.FC<CloudImageProps> = ({
     </div>
   );
 };
+
+export const CloudImage = memo(CloudImageComponent);
