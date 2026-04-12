@@ -136,6 +136,12 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
   }, [isInViewport, cancelTransition]);
 
   useEffect(() => {
+    if (engine && src && isInViewport) {
+      engine.updateViewportStatus(src, true).catch(() => {});
+    }
+  }, [isInViewport, engine, src]);
+
+  useEffect(() => {
     if (!isInViewport || !isReady) return;
 
     const loadImage = async () => {

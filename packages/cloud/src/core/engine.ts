@@ -248,6 +248,10 @@ export class ImageEngine {
     return cacheStats;
   }
 
+  async updateViewportStatus(url: string, isInViewport: boolean): Promise<void> {
+    await this.cache.updateViewportStatus(url, isInViewport);
+  }
+
   getNetworkStatus() {
     return this.networkMonitor.getStatus();
   }

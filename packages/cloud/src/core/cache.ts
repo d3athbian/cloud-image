@@ -398,10 +398,26 @@ export class ImageCache {
 
   private calculateScore(entry: CacheEntry): number {
     const ttl = this.config.defaultTTL || 1;
-    const recencyFactor = 1 - (Date.now() - entry.metadata.accessedAt) / ttl;
+    const recencyFactor = Math.max(0, 1 - (Date.now() - entry.metadata.accessedAt) / ttl);
     const normalizedAccess = Math.min(entry.metadata.accessCount / 100, 1);
     
-    return normalizedAccess * 0.6 + Math.max(0, recencyFactor) * 0.4;
+    const viewportBonus = entry.metadata.isInViewport ? 0.3 : 
+      (entry.metadata.lastViewportSeen && Date.now() - entry.metadata.lastViewportSeen < 300000 ? 0.15 : 0);
+    
+    return normalizedAccess * 0.4 + recencyFactor * 0.3 + viewportBonus;
+  }
+
+  async updateViewportStatus(url: string, isInViewport: boolean): Promise<void> {
+    const entry = this.entries.get(url);
+    if (entry) {
+      entry.metadata.isInViewport = isInViewport;
+      if (isInViewport) {
+        entry.metadata.lastViewportSeen = Date.now();
+      }
+      if (this.adapter) {
+        await this.adapter.set(entry).catch(err => log.warn('Viewport update failed:', err));
+      }
+    }
   }
 
   private updateRates(): void {

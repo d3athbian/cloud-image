@@ -24,7 +24,9 @@ export interface CacheMetadata {
   accessedAt: number;
   accessCount: number;
   etag?: string;
-  lastModified?: string;
+  lastModified?: number;
+  isInViewport?: boolean;
+  lastViewportSeen?: number;
 }
 
 /**
