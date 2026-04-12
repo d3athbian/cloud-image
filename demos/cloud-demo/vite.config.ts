@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
 import { copyFileSync, existsSync, mkdirSync } from 'fs';
 
@@ -24,7 +25,7 @@ if (existsSync(libRegister) && !existsSync(destRegister)) {
 }
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@cloudimage/cloud': path.resolve(__dirname, '../../packages/cloud/src'),

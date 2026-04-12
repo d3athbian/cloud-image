@@ -1,5 +1,4 @@
 import { memo } from 'react';
-import styles from '../styles/app.module.css';
 
 interface ControlsProps {
   onPrefetch: () => void;
@@ -13,12 +12,12 @@ export const Controls = memo(function Controls({
   isLoading 
 }: ControlsProps) {
   return (
-    <div className={styles.stats} role="region" aria-label="Cache controls">
+    <div className="stats" role="region" aria-label="Cache controls">
       <h2>Controls</h2>
-      <div className={styles.buttonGroup}>
+      <div className="buttonGroup">
         <button 
           onClick={onPrefetch} 
-          className={`${styles.button} ${styles.primary}`}
+          className="button primary"
           disabled={isLoading}
           aria-label="Prefetch 10 images"
         >
@@ -26,7 +25,7 @@ export const Controls = memo(function Controls({
         </button>
         <button 
           onClick={onClear} 
-          className={styles.button}
+          className="button"
           disabled={isLoading}
           aria-label="Clear cache"
         >

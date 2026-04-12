@@ -1,6 +1,5 @@
 import { memo } from 'react';
 import type { CacheStats } from '@cloudimage/cloud';
-import styles from '../styles/app.module.css';
 
 interface CacheStatsDisplayProps {
   stats: CacheStats | null;
@@ -16,19 +15,19 @@ export const CacheStatsDisplay = memo(function CacheStatsDisplay({ stats }: Cach
   const missRate = stats ? Math.round(stats.missRate * 100) : 0;
   
   const getHitRateClass = () => {
-    if (hitRate >= 80) return styles.success;
-    if (hitRate >= 50) return styles.warning;
-    return styles.error;
+    if (hitRate >= 80) return 'text-green-500';
+    if (hitRate >= 50) return 'text-yellow-500';
+    return 'text-red-500';
   };
 
   return (
-    <div className={styles.stats} role="region" aria-label="Cache statistics">
+    <div className="stats" role="region" aria-label="Cache statistics">
       <h2>Cache Stats</h2>
-      <p>Items cached <span className={styles.statsValue}>{stats?.itemCount ?? 0}</span></p>
-      <p>Total size <span className={styles.statsValue}>{formatSize(stats?.totalSize ?? 0)}</span></p>
-      <p>Hit rate <span className={`${styles.statsValue} ${getHitRateClass()}`}>{hitRate}%</span></p>
-      <p>Miss rate <span className={styles.statsValue}>{missRate}%</span></p>
-      <p>Evictions <span className={styles.statsValue}>{stats?.evictionCount ?? 0}</span></p>
+      <p>Items cached <span className="statsValue">{stats?.itemCount ?? 0}</span></p>
+      <p>Total size <span className="statsValue">{formatSize(stats?.totalSize ?? 0)}</span></p>
+      <p>Hit rate <span className={`statsValue ${getHitRateClass()}`}>{hitRate}%</span></p>
+      <p>Miss rate <span className="statsValue">{missRate}%</span></p>
+      <p>Evictions <span className="statsValue">{stats?.evictionCount ?? 0}</span></p>
     </div>
   );
 });

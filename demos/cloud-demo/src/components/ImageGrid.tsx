@@ -1,7 +1,6 @@
 import { memo, useCallback, KeyboardEvent } from 'react';
 import { CloudImage } from '@cloudimage/cloud';
 import type { PicsumImage } from '../types/images';
-import styles from '../styles/app.module.css';
 
 interface ImageGridProps {
   images: PicsumImage[];
@@ -18,14 +17,14 @@ export const ImageGrid = memo(function ImageGrid({ images }: ImageGridProps) {
 
   return (
     <div 
-      className={styles.grid} 
+      className="grid" 
       role="list" 
       aria-label="Image gallery"
     >
       {images.map((img, index) => (
         <div
           key={img.id}
-          className={styles.imageWrapper}
+          className="imageWrapper"
           role="listitem"
           tabIndex={0}
           onKeyDown={handleKeyDown}

@@ -1,15 +1,14 @@
 import { memo } from 'react';
 import type { NetworkStatus } from '@cloudimage/cloud';
-import styles from '../styles/app.module.css';
 
 interface NetworkStatusDisplayProps {
   network: NetworkStatus;
 }
 
 const BANDWIDTH_CONFIG: Record<string, { label: string; className: string }> = {
-  low: { label: 'Low', className: styles.error },
-  medium: { label: 'Medium', className: styles.warning },
-  high: { label: 'High', className: styles.success },
+  low: { label: 'Low', className: 'text-red-500' },
+  medium: { label: 'Medium', className: 'text-yellow-500' },
+  high: { label: 'High', className: 'text-green-500' },
   unknown: { label: 'Unknown', className: '' },
 };
 
@@ -27,17 +26,17 @@ export const NetworkStatusDisplay = memo(function NetworkStatusDisplay({ network
   };
 
   return (
-    <div className={styles.stats} role="region" aria-label="Network status">
+    <div className="stats" role="region" aria-label="Network status">
       <h2>Network</h2>
       <p>
         Status 
-        <span className={`${styles.statsValue} ${network.online ? styles.success : styles.error}`}>
+        <span className={`statsValue ${network.online ? 'text-green-500' : 'text-red-500'}`}>
           {network.online ? 'Online' : 'Offline'}
         </span>
       </p>
       <p>
         Bandwidth 
-        <span className={`${styles.statsValue} ${bandwidth.className}`}>
+        <span className={`statsValue ${bandwidth.className}`}>
           {bandwidth.label} · {getBandwidthDisplay()}
         </span>
       </p>

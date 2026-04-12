@@ -5,7 +5,7 @@ import { NetworkStatusDisplay } from './components/NetworkStatusDisplay';
 import { Controls } from './components/Controls';
 import { ImageGrid } from './components/ImageGrid';
 import { STATIC_IMAGES, type PicsumImage } from './types/images';
-import styles from './styles/app.module.css';
+import './styles/app.css';
 
 function usePicsumImages() {
   const [images] = useState<PicsumImage[]>(STATIC_IMAGES);
