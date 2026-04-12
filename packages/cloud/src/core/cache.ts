@@ -58,9 +58,8 @@ export class ImageCache {
 
   async init(): Promise<void> {
     if (this.adapter) {
-      await this.adapter.init();
-      await this.loadFromAdapter();
-      await this.verifyStateConsistency();
+      this.adapter.init().catch(err => log.warn('Adapter init failed:', err));
+      this.loadFromAdapter().catch(err => log.warn('Load failed:', err));
     }
   }
 
@@ -164,6 +163,10 @@ export class ImageCache {
     } finally {
       release();
     }
+  }
+
+  has(url: string): boolean {
+    return this.entries.has(url);
   }
 
   private async getInternal(url: string): Promise<CacheEntry | null> {

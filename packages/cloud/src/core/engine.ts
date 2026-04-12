@@ -43,7 +43,7 @@ export class ImageEngine {
   }
 
   async init(): Promise<void> {
-    await this.cache.init();
+    this.cache.init();
     
     const swEnabled = await this.swClient.init();
     
@@ -258,6 +258,10 @@ export class ImageEngine {
 
   isFallbackMode(): boolean {
     return this.swClient.isFallbackMode();
+  }
+
+  has(url: string): boolean {
+    return this.cache.has(url);
   }
 
   destroy(): void {

@@ -4,7 +4,7 @@ import type { PlatformAdapter } from './types';
 
 const DB_NAME = 'cloud-image-cache';
 const STORE_NAME = 'images';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 interface CacheDB {
   images: {
@@ -29,9 +29,20 @@ export class WebAdapter implements PlatformAdapter {
 
   private async _init(): Promise<void> {
     this.db = await openDB<CacheDB>(DB_NAME, DB_VERSION, {
-      upgrade(db) {
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: 'url' });
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            const store = db.createObjectStore(STORE_NAME, { keyPath: 'url' });
+            store.createIndex('cachedAt', 'cachedAt', { unique: false });
+          }
+        } else if (oldVersion < 2) {
+          if (db.objectStoreNames.contains(STORE_NAME)) {
+            const tx = db.transaction(STORE_NAME, 'versionchange');
+            const store = tx.objectStore(STORE_NAME);
+            if (!store.indexNames.contains('cachedAt')) {
+              store.createIndex('cachedAt', 'cachedAt', { unique: false });
+            }
+          }
         }
       },
     });

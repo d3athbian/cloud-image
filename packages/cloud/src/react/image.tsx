@@ -46,7 +46,6 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   style,
   className,
   priority = 'auto',
-  fetchPriority,
   ...props
 }) => {
   const context = useContext(CloudContext);
@@ -129,7 +128,11 @@ export const CloudImage: React.FC<CloudImageProps> = ({
         return;
       }
 
-      setStatus('loading');
+      const cacheHasUrl = engine?.has(src);
+      
+      if (!cacheHasUrl) {
+        setStatus('loading');
+      }
       setMainImageLoaded(false);
 
       try {
@@ -220,8 +223,6 @@ export const CloudImage: React.FC<CloudImageProps> = ({
   }, [src, isInViewport, resolvedSrc, isOnline, enableCrossfade, hasBlurPlaceholder, transitionDuration, cancelTransition, engine, noCache, onCacheHit, onCacheMiss, onLoad, onError, isReady]);
 
   const loadingPriority: 'eager' | 'lazy' = priority === 'high' || isInViewport ? 'eager' : 'lazy';
-
-  const fetchPriorityValue = priority === 'high' ? 'high' : priority === 'low' ? 'low' : 'auto';
 
   const getPlaceholderStyle = (): React.CSSProperties => ({
     position: 'absolute',
@@ -330,7 +331,6 @@ export const CloudImage: React.FC<CloudImageProps> = ({
           width={width}
           height={height}
           loading={loadingPriority}
-          fetchpriority={fetchPriorityValue}
           style={{
             width: '100%',
             height: '100%',

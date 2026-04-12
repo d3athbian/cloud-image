@@ -3,7 +3,7 @@ const MAX_RETRIES = 3;
 const CIRCUIT_BREAKER_THRESHOLD = 3;
 const CIRCUIT_BREAKER_TIMEOUT = 30000;
 
-const DB_NAME = 'carbon-image-cache';
+const DB_NAME = 'cloud-image-cache';
 const STORE_NAME = 'images';
 const DB_VERSION = 2; // Bumped: added 'cachedAt' index for efficient LRU eviction
 
@@ -105,41 +105,65 @@ async function openDB(): Promise<IDBDatabase> {
 }
 
 async function withDB<T>(operation: (database: IDBDatabase) => Promise<T>): Promise<T> {
-  try {
-    const database = await openDB();
-    return await operation(database);
-  } catch (error) {
-    const isStaleHandleError =
-      error instanceof DOMException &&
-      (error.name === 'InvalidStateError' ||
-        error.name === 'TransactionInactiveError' ||
-        error.message.includes('closing'));
+  let database: IDBDatabase | null = null;
+  
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      database = await openDB();
+      
+      if (!database || database.closed) {
+        if (db) {
+          try { db.close(); } catch (_) { /* ignore */ }
+        }
+        db = null;
+        dbOpenPromise = null;
+        continue;
+      }
+      
+      return await operation(database);
+    } catch (error) {
+      const isStaleHandleError =
+        error instanceof DOMException &&
+        (error.name === 'InvalidStateError' ||
+          error.name === 'TransactionInactiveError' ||
+          error.name === 'AbortError' ||
+          error.message?.includes('closing') ||
+          error.message?.includes('database connection is closing'));
 
-    if (isStaleHandleError && db !== null) {
-      console.warn('[SW] Stale DB handle, reinitializing:', (error as Error).message);
-      try { db.close(); } catch (_) { /* ignorar */ }
-      db = null;
-      dbOpenPromise = null;
-      const freshDb = await openDB();
-      return await operation(freshDb);
+      if (isStaleHandleError && attempt === 0) {
+        console.warn('[SW] Stale DB handle, retrying:', (error as Error).message);
+        if (db) {
+          try { db.close(); } catch (_) { /* ignore */ }
+        }
+        db = null;
+        dbOpenPromise = null;
+        continue;
+      }
+
+      throw error;
     }
-
-    throw error;
   }
+  
+  throw new Error('[SW] Failed to get DB connection after retries');
 }
 
 // ─── IndexedDB: Operaciones CRUD ─────────────────────────────────────────────
 
 async function getFromIDB(url: string): Promise<CacheEntry | null> {
-  return withDB((database) =>
-    new Promise<CacheEntry | null>((resolve, reject) => {
-      const transaction = database.transaction(STORE_NAME, 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.get(url);
-      request.onsuccess = () => resolve((request.result as CacheEntry) || null);
-      request.onerror = () => reject(request.error);
-    })
-  );
+  try {
+    return await withDB((database) =>
+      new Promise<CacheEntry | null>((resolve, reject) => {
+        const transaction = database.transaction(STORE_NAME, 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get(url);
+        request.onsuccess = () => resolve((request.result as CacheEntry) || null);
+        request.onerror = () => reject(request.error);
+      })
+    );
+  } catch (error) {
+    console.warn('[SW] getFromIDB failed, returning null:', error);
+    return null;
+  }
 }
 
 /**
@@ -453,11 +477,10 @@ async function handleFetch(url: string): Promise<Response> {
     const response = await fetchWithRetry(url);
 
     if (response.ok) {
-      // Guardar en background con gestión de quota
       const responseToCache = response.clone();
       responseToCache.blob().then(blob => {
         blob.arrayBuffer().then(arrayBuffer => {
-          const entry: CacheEntry = {
+          const entry = {
             url,
             data: arrayBuffer,
             metadata: {
@@ -481,17 +504,13 @@ async function handleFetch(url: string): Promise<Response> {
     circuitBreakerFailures = 0;
     return response;
   } catch (error) {
-    console.error('[SW] handleFetch error, falling back:', error);
+    console.error('[SW] handleFetch error:', error);
     circuitBreakerFailures++;
     circuitBreakerLastFailure = Date.now();
     if (circuitBreakerFailures >= CIRCUIT_BREAKER_THRESHOLD) {
       circuitBreakerOpen = true;
     }
-    try {
-      return await fetch(url);
-    } catch {
-      return new Response('Image unavailable', { status: 503 });
-    }
+    return fetch(url);
   }
 }
 

@@ -30,10 +30,15 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: resolve(__dirname, 'src/index.ts'),
+      entry: {
+        index: resolve(__dirname, 'src/index.ts'),
+        core: resolve(__dirname, 'src/core/index.ts'),
+        adapters: resolve(__dirname, 'src/adapters/index.ts'),
+        react: resolve(__dirname, 'src/react/index.ts'),
+      },
       name: 'CloudImage',
       formats: ['es'],
-      fileName: 'index',
+      fileName: (format, name) => `${name}.js`,
     },
     rollupOptions: {
       external: [
@@ -41,6 +46,21 @@ export default defineConfig({
         'react-dom',
         'react/jsx-runtime',
       ],
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('/core/')) {
+            return 'cloud-core';
+          }
+          if (id.includes('/adapters/')) {
+            return 'cloud-adapters';
+          }
+          if (id.includes('/react/')) {
+            return 'cloud-react';
+          }
+        },
+        chunkFileNames: '[name].js',
+        entryFileNames: '[name].js',
+      },
     },
     outDir: 'dist',
     emptyOutDir: true,

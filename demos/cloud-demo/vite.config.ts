@@ -27,7 +27,10 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@cloudimage/cloud': path.resolve(__dirname, '../../packages/cloud/src')
+      '@cloudimage/cloud': path.resolve(__dirname, '../../packages/cloud/src'),
+      '@cloudimage/cloud/react': path.resolve(__dirname, '../../packages/cloud/src/react'),
+      '@cloudimage/cloud/core': path.resolve(__dirname, '../../packages/cloud/src/core'),
+      '@cloudimage/cloud/adapters': path.resolve(__dirname, '../../packages/cloud/src/adapters'),
     }
   },
   server: {
