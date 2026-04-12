@@ -45,13 +45,13 @@ function AppContent() {
   };
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
+    <div className="container">
+      <header className="header">
         <h1>CLOUD Image Cache Demo</h1>
         <p>Testing with {images.length} images (picsum.photos)</p>
       </header>
       
-      <aside className={styles.sidebar}>
+      <aside className="sidebar">
         <CacheStatsDisplay stats={optimisticStats} />
         <NetworkStatusDisplay network={network} />
         <Controls 
@@ -61,7 +61,7 @@ function AppContent() {
         />
       </aside>
       
-      <main className={styles.main}>
+      <main className="main">
         <ImageGrid images={images} />
       </main>
     </div>
