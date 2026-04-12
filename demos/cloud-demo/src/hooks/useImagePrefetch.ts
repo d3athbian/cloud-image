@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { PicsumImage } from '../App';
+import type { PicsumImage } from '../types/images';
 
 export function useImagePrefetch(cache: ReturnType<typeof import('@cloudimage/cloud')['CloudProvider']>['cache']) {
   const cacheRef = { current: cache };
