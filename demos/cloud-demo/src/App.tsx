@@ -1,11 +1,9 @@
 import { useState, useOptimistic } from 'react';
-import { CloudProvider, useCloud } from '@cloudimage/cloud/react';
-import { ErrorBoundary } from './components/ErrorBoundary';
+import { CloudProvider, useCloud, ErrorBoundary, useCacheStats } from '@cloudimage/cloud';
 import { CacheStatsDisplay } from './components/CacheStatsDisplay';
 import { NetworkStatusDisplay } from './components/NetworkStatusDisplay';
 import { Controls } from './components/Controls';
 import { ImageGrid } from './components/ImageGrid';
-import { useCacheStats } from './hooks/useCacheStats';
 import { STATIC_IMAGES, type PicsumImage } from './types/images';
 import styles from './styles/app.module.css';
 

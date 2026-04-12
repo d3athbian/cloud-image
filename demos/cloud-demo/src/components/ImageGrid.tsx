@@ -1,5 +1,5 @@
 import { memo, useCallback, KeyboardEvent } from 'react';
-import { CloudImage } from '@cloudimage/cloud/react';
+import { CloudImage } from '@cloudimage/cloud';
 import type { PicsumImage } from '../types/images';
 import styles from '../styles/app.module.css';
 
