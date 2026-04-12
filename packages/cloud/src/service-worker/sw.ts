@@ -590,6 +590,8 @@ self.addEventListener('message', async (event: ExtendableMessageEvent) => {
       }
       case 'cache-clear': {
         await clearIDB();
+        stats.hits = 0;
+        stats.misses = 0;
         response = { cleared: true };
         break;
       }
