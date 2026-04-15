@@ -1,32 +1,39 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
-import { copyFileSync, existsSync } from 'fs';
+import { copyFileSync, mkdirSync } from 'fs';
+import { buildSync } from 'esbuild';
 
 export default defineConfig({
   plugins: [
     react(),
     {
-      name: 'copy-service-worker',
+      name: 'build-service-worker',
+      // Runs after Vite has finished writing dist/ so outDir already exists.
       closeBundle() {
-        const srcSw = resolve(__dirname, 'src/service-worker/sw.js');
         const destDir = resolve(__dirname, 'dist');
-        const destSw = resolve(destDir, 'sw.js');
-        
-        if (existsSync(srcSw)) {
-          copyFileSync(srcSw, destSw);
-          console.log('[Build] Service Worker copied to dist/sw.js');
-        }
+        mkdirSync(destDir, { recursive: true });
 
-        const srcRegister = resolve(__dirname, 'src/service-worker/register.js');
-        const destRegister = resolve(destDir, 'register.js');
-        
-        if (existsSync(srcRegister)) {
-          copyFileSync(srcRegister, destRegister);
-          console.log('[Build] Register script copied to dist/register.js');
-        }
-      }
-    }
+        // Compile sw.ts → dist/sw.js (IIFE, self-contained, no external deps)
+        buildSync({
+          entryPoints: [resolve(__dirname, 'src/service-worker/sw.ts')],
+          outfile: resolve(destDir, 'sw.js'),
+          bundle: true,
+          format: 'iife',
+          platform: 'browser',
+          target: 'es2020',
+          minify: true,
+        });
+        console.log('[Build] Service Worker compiled → dist/sw.js');
+
+        // register.ts is plain JS — copy as-is (no TS-specific syntax)
+        copyFileSync(
+          resolve(__dirname, 'src/service-worker/register.ts'),
+          resolve(destDir, 'register.js'),
+        );
+        console.log('[Build] Register script copied → dist/register.js');
+      },
+    },
   ],
   build: {
     lib: {

@@ -47,3 +47,7 @@ demos/*/.output/
 .playwright-cli
 .playwright
 demos/cloud-demo/public/register.js
+
+# Generated SW artifacts (compiled from .ts by Vite build — never commit these)
+packages/cloud/src/service-worker/sw.js
+packages/cloud/src/service-worker/register.js
