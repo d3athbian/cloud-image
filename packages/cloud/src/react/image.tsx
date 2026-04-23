@@ -82,6 +82,7 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const networkMonitorRef = useRef<ReturnType<typeof getNetworkMonitor> | null>(null);
   const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
