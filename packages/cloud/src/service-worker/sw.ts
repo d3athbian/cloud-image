@@ -487,7 +487,10 @@ async function handleFetch(url: string): Promise<Response> {
           stats.hits++;
           return createCachedResponse(cached);
         }
-        return new Response("Service unavailable (circuit open)", { status: 503 });
+        return new Response("Service unavailable (circuit open)", {
+          status: 503,
+          headers: { "Cache-Control": "no-store" },
+        });
       }
     }
 
@@ -560,7 +563,11 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
 function createCachedResponse(entry: CacheEntry): Response {
   const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
   return new Response(blob, {
-    headers: { "Content-Type": entry.metadata.mimeType, "X-Cache-Status": "HIT" },
+    headers: {
+      "Content-Type": entry.metadata.mimeType,
+      "X-Cache-Status": "HIT",
+      "Cache-Control": "public, max-age=31536000, immutable",
+    },
   });
 }
 
