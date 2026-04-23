@@ -1,3 +1,4 @@
+import { Provider } from "jotai";
 import React, {
   createContext,
   type ReactNode,
@@ -8,6 +9,7 @@ import React, {
 } from "react";
 import { Size, Time } from "../config/constants";
 import { ImageEngine } from "../core/engine";
+import { getMemoryMonitor } from "../core/memory";
 import { getNetworkMonitor } from "../core/network";
 import { createOfflineStrategy } from "../core/offline";
 import type {
@@ -62,6 +64,7 @@ export function CloudProvider({
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [networkMonitor] = useState(() => getNetworkMonitor());
+  const [memoryMonitor] = useState(() => getMemoryMonitor());
   const [_offlineStrategy] = useState(() => createOfflineStrategy(strategyType));
 
   useEffect(() => {
@@ -92,8 +95,11 @@ export function CloudProvider({
 
     const unsubscribe = networkMonitor.subscribe(setNetworkStatus);
 
+    memoryMonitor.startMonitoring();
+
     return () => {
       unsubscribe();
+      memoryMonitor.stopMonitoring();
       engine?.destroy();
     };
   }, [
@@ -161,7 +167,11 @@ export function CloudProvider({
     return <LoadingComponent />;
   }
 
-  return <CloudContext.Provider value={value}>{children}</CloudContext.Provider>;
+  return (
+    <Provider>
+      <CloudContext.Provider value={value}>{children}</CloudContext.Provider>
+    </Provider>
+  );
 }
 
 export function useCloud(): useCloudReturn {
