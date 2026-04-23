@@ -1,4 +1,4 @@
-import { Size } from '../config/constants';
+import { Size } from "../config/constants";
 
 export interface ImageValidationResult {
   valid: boolean;
@@ -15,11 +15,11 @@ export interface ImageValidationConfig {
 }
 
 const IMAGE_SIGNATURES: Record<string, number[]> = {
-  'image/jpeg': [0xFF, 0xD8, 0xFF],
-  'image/png': [0x89, 0x50, 0x4E, 0x47],
-  'image/gif': [0x47, 0x49, 0x46],
-  'image/webp': [0x52, 0x49, 0x46, 0x46], // RIFF ... WEBP
-  'image/bmp': [0x42, 0x4D],
+  "image/jpeg": [0xff, 0xd8, 0xff],
+  "image/png": [0x89, 0x50, 0x4e, 0x47],
+  "image/gif": [0x47, 0x49, 0x46],
+  "image/webp": [0x52, 0x49, 0x46, 0x46], // RIFF ... WEBP
+  "image/bmp": [0x42, 0x4d],
 };
 
 const MAX_DEFAULT_SIZE = Size.MAX_IMAGE_SIZE_DESKTOP;
@@ -37,7 +37,7 @@ export class ImageValidator {
 
   async validate(arrayBuffer: ArrayBuffer): Promise<ImageValidationResult> {
     if (arrayBuffer.byteLength === 0) {
-      return { valid: false, mimeType: null, error: 'Empty image data' };
+      return { valid: false, mimeType: null, error: "Empty image data" };
     }
 
     if (arrayBuffer.byteLength > this.config.maxSize) {
@@ -49,9 +49,9 @@ export class ImageValidator {
     }
 
     const mimeType = this.detectMimeType(arrayBuffer);
-    
+
     if (!mimeType) {
-      return { valid: false, mimeType: null, error: 'Unknown image format' };
+      return { valid: false, mimeType: null, error: "Unknown image format" };
     }
 
     if (!this.config.allowedTypes.includes(mimeType)) {
@@ -61,7 +61,7 @@ export class ImageValidator {
     if (this.config.validateHeaders) {
       const headerValid = this.validateHeaders(arrayBuffer, mimeType);
       if (!headerValid) {
-        return { valid: false, mimeType, error: 'Invalid image header' };
+        return { valid: false, mimeType, error: "Invalid image header" };
       }
     }
 
@@ -72,30 +72,30 @@ export class ImageValidator {
     const bytes = new Uint8Array(arrayBuffer.slice(0, 12));
 
     // JPEG
-    if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
-      return 'image/jpeg';
+    if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) {
+      return "image/jpeg";
     }
 
     // PNG
-    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
-      return 'image/png';
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) {
+      return "image/png";
     }
 
     // GIF
     if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
-      return 'image/gif';
+      return "image/gif";
     }
 
     // WebP (RIFF....WEBP)
     if (bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46) {
       if (bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) {
-        return 'image/webp';
+        return "image/webp";
       }
     }
 
     // BMP
-    if (bytes[0] === 0x42 && bytes[1] === 0x4D) {
-      return 'image/bmp';
+    if (bytes[0] === 0x42 && bytes[1] === 0x4d) {
+      return "image/bmp";
     }
 
     return null;
@@ -105,18 +105,18 @@ export class ImageValidator {
     const bytes = new Uint8Array(arrayBuffer.slice(0, 12));
 
     switch (expectedMimeType) {
-      case 'image/jpeg':
-        if (bytes[0] !== 0xFF || bytes[1] !== 0xD8 || bytes[2] !== 0xFF) return false;
+      case "image/jpeg":
+        if (bytes[0] !== 0xff || bytes[1] !== 0xd8 || bytes[2] !== 0xff) return false;
         if (bytes[3] === 0x00) return false;
         return true;
 
-      case 'image/png':
-        return bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47;
+      case "image/png":
+        return bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
 
-      case 'image/gif':
+      case "image/gif":
         return bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46;
 
-      case 'image/webp':
+      case "image/webp":
         return (
           bytes[0] === 0x52 &&
           bytes[1] === 0x49 &&
@@ -128,8 +128,8 @@ export class ImageValidator {
           bytes[11] === 0x50
         );
 
-      case 'image/bmp':
-        return bytes[0] === 0x42 && bytes[1] === 0x4D;
+      case "image/bmp":
+        return bytes[0] === 0x42 && bytes[1] === 0x4d;
 
       default:
         return true;
@@ -137,7 +137,7 @@ export class ImageValidator {
   }
 
   isAnimatedImage(mimeType: string): boolean {
-    return mimeType === 'image/gif' || mimeType === 'image/webp';
+    return mimeType === "image/gif" || mimeType === "image/webp";
   }
 
   getConfig(): ImageValidationConfig {
@@ -154,17 +154,23 @@ export function isAnimatedGif(arrayBuffer: ArrayBuffer): boolean {
   if (bytes[0] !== 0x47 || bytes[1] !== 0x49 || bytes[2] !== 0x46) {
     return false;
   }
-  
-  const gif = bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x38 && bytes[4] === 0x39 && bytes[5] === 0x61;
+
+  const gif =
+    bytes[0] === 0x47 &&
+    bytes[1] === 0x49 &&
+    bytes[2] === 0x46 &&
+    bytes[3] === 0x38 &&
+    bytes[4] === 0x39 &&
+    bytes[5] === 0x61;
   return gif;
 }
 
 export function getMaxSizeForPlatform(platform: string): number {
   switch (platform) {
-    case 'tizen':
-    case 'webos':
+    case "tizen":
+    case "webos":
       return Size.MAX_IMAGE_SIZE_TV;
-    case 'mobile':
+    case "mobile":
       return Size.MAX_IMAGE_SIZE_MOBILE;
     default:
       return Size.MAX_IMAGE_SIZE_DESKTOP;

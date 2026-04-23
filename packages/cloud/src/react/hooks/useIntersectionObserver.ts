@@ -1,14 +1,12 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 interface UseIntersectionObserverOptions {
   rootMargin?: string;
   triggerWhen?: boolean;
 }
 
-export function useIntersectionObserver(
-  options: UseIntersectionObserverOptions = {}
-) {
-  const { rootMargin = '100px', triggerWhen = true } = options;
+export function useIntersectionObserver(options: UseIntersectionObserverOptions = {}) {
+  const { rootMargin = "100px", triggerWhen = true } = options;
   const ref = useRef<HTMLElement | null>(null);
   const [isInViewport, setIsInViewport] = useState(!triggerWhen);
 
@@ -27,7 +25,7 @@ export function useIntersectionObserver(
           observer.disconnect();
         }
       },
-      { rootMargin }
+      { rootMargin },
     );
 
     observer.observe(element);

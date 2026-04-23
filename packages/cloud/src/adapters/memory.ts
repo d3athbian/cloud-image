@@ -1,9 +1,9 @@
-import { Time, Size } from '../config/constants';
-import type { CacheEntry } from '../core/types';
-import type { PlatformAdapter } from './types';
+import { Size, Time } from "../config/constants";
+import type { CacheEntry } from "../core/types";
+import type { PlatformAdapter } from "./types";
 
 export class MemoryAdapter implements PlatformAdapter {
-  readonly platform = 'memory' as const;
+  readonly platform = "memory" as const;
   private cache = new Map<string, CacheEntry>();
   private size = 0;
   private maxSize: number;
@@ -76,10 +76,11 @@ export class MemoryAdapter implements PlatformAdapter {
     let freed = 0;
 
     const entries = Array.from(this.cache.values())
-      .map(e => ({
+      .map((e) => ({
         entry: e,
-        score: e.metadata.accessCount * 0.6 +
-          (1 - (Date.now() - e.metadata.accessedAt) / Time.DEFAULT_TTL) * 0.4
+        score:
+          e.metadata.accessCount * 0.6 +
+          (1 - (Date.now() - e.metadata.accessedAt) / Time.DEFAULT_TTL) * 0.4,
       }))
       .sort((a, b) => a.score - b.score);
 
@@ -100,3 +101,5 @@ export class MemoryAdapter implements PlatformAdapter {
 export function createMemoryAdapter(maxSizeBytes?: number): PlatformAdapter {
   return new MemoryAdapter(maxSizeBytes);
 }
+
+export default createMemoryAdapter;

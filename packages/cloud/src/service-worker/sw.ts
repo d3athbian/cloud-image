@@ -3,13 +3,13 @@ const MAX_RETRIES = 3;
 const CIRCUIT_BREAKER_THRESHOLD = 3;
 const CIRCUIT_BREAKER_TIMEOUT = 30000;
 
-const DB_NAME = 'cloud-image-cache';
-const STORE_NAME = 'images';
+const DB_NAME = "cloud-image-cache";
+const STORE_NAME = "images";
 const DB_VERSION = 2; // Bumped: added 'cachedAt' index for efficient LRU eviction
 
 // Umbrales de gestión proactiva de quota
-const QUOTA_WARN_THRESHOLD = 0.80;
-const QUOTA_EVICT_TO = 0.60;
+const QUOTA_WARN_THRESHOLD = 0.8;
+const QUOTA_EVICT_TO = 0.6;
 const EVICT_BATCH_PERCENT = 0.25;
 
 let db: IDBDatabase | null = null;
@@ -31,7 +31,7 @@ interface CacheEntry {
     accessCount: number;
   };
   cachedAt: number; // redundant but needed for the IDB index
-  qualityTier: 'low' | 'medium' | 'high';
+  qualityTier: "low" | "medium" | "high";
   upgradeable: boolean;
 }
 
@@ -48,8 +48,12 @@ async function openDB(): Promise<IDBDatabase> {
     if (db.objectStoreNames.contains(STORE_NAME)) {
       return db;
     }
-    console.warn('[SW] DB handle stale, resetting...');
-    try { db.close(); } catch (_) { /* ignorar */ }
+    console.warn("[SW] DB handle stale, resetting...");
+    try {
+      db.close();
+    } catch (_) {
+      /* ignorar */
+    }
     db = null;
   }
 
@@ -70,14 +74,14 @@ async function openDB(): Promise<IDBDatabase> {
 
       // Disparado cuando el browser borra la DB (storage pressure, DevTools, browser clear)
       db.onversionchange = () => {
-        console.warn('[SW] DB version changed or deleted externally. Closing to allow deletion.');
-        db!.close();
+        console.warn("[SW] DB version changed or deleted externally. Closing to allow deletion.");
+        db?.close();
         db = null;
       };
 
       // Disparado si el browser cierra la conexión por presión de RAM
       db.onclose = () => {
-        console.warn('[SW] DB connection closed (memory pressure?). Will reopen on next access.');
+        console.warn("[SW] DB connection closed (memory pressure?). Will reopen on next access.");
         db = null;
       };
 
@@ -88,14 +92,15 @@ async function openDB(): Promise<IDBDatabase> {
       const database = (event.target as IDBOpenDBRequest).result;
 
       if (!database.objectStoreNames.contains(STORE_NAME)) {
-        const store = database.createObjectStore(STORE_NAME, { keyPath: 'url' });
-        store.createIndex('cachedAt', 'cachedAt', { unique: false });
+        const store = database.createObjectStore(STORE_NAME, { keyPath: "url" });
+        store.createIndex("cachedAt", "cachedAt", { unique: false });
       } else {
         // Migración desde v1: agregar índice cachedAt si no existe
-        const transaction = (event.target as IDBOpenDBRequest).transaction!;
+        const transaction = (event.target as IDBOpenDBRequest).transaction;
+        if (!transaction) return;
         const store = transaction.objectStore(STORE_NAME);
-        if (!store.indexNames.contains('cachedAt')) {
-          store.createIndex('cachedAt', 'cachedAt', { unique: false });
+        if (!store.indexNames.contains("cachedAt")) {
+          store.createIndex("cachedAt", "cachedAt", { unique: false });
         }
       }
     };
@@ -106,34 +111,42 @@ async function openDB(): Promise<IDBDatabase> {
 
 async function withDB<T>(operation: (database: IDBDatabase) => Promise<T>): Promise<T> {
   let database: IDBDatabase | null = null;
-  
+
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
       database = await openDB();
-      
+
       if (!database || database.closed) {
         if (db) {
-          try { db.close(); } catch (_) { /* ignore */ }
+          try {
+            db.close();
+          } catch (_) {
+            /* ignore */
+          }
         }
         db = null;
         dbOpenPromise = null;
         continue;
       }
-      
+
       return await operation(database);
     } catch (error) {
       const isStaleHandleError =
         error instanceof DOMException &&
-        (error.name === 'InvalidStateError' ||
-          error.name === 'TransactionInactiveError' ||
-          error.name === 'AbortError' ||
-          error.message?.includes('closing') ||
-          error.message?.includes('database connection is closing'));
+        (error.name === "InvalidStateError" ||
+          error.name === "TransactionInactiveError" ||
+          error.name === "AbortError" ||
+          error.message?.includes("closing") ||
+          error.message?.includes("database connection is closing"));
 
       if (isStaleHandleError && attempt === 0) {
-        console.warn('[SW] Stale DB handle, retrying:', (error as Error).message);
+        console.warn("[SW] Stale DB handle, retrying:", (error as Error).message);
         if (db) {
-          try { db.close(); } catch (_) { /* ignore */ }
+          try {
+            db.close();
+          } catch (_) {
+            /* ignore */
+          }
         }
         db = null;
         dbOpenPromise = null;
@@ -143,25 +156,26 @@ async function withDB<T>(operation: (database: IDBDatabase) => Promise<T>): Prom
       throw error;
     }
   }
-  
-  throw new Error('[SW] Failed to get DB connection after retries');
+
+  throw new Error("[SW] Failed to get DB connection after retries");
 }
 
 // ─── IndexedDB: Operaciones CRUD ─────────────────────────────────────────────
 
 async function getFromIDB(url: string): Promise<CacheEntry | null> {
   try {
-    return await withDB((database) =>
-      new Promise<CacheEntry | null>((resolve, reject) => {
-        const transaction = database.transaction(STORE_NAME, 'readonly');
-        const store = transaction.objectStore(STORE_NAME);
-        const request = store.get(url);
-        request.onsuccess = () => resolve((request.result as CacheEntry) || null);
-        request.onerror = () => reject(request.error);
-      })
+    return await withDB(
+      (database) =>
+        new Promise<CacheEntry | null>((resolve, reject) => {
+          const transaction = database.transaction(STORE_NAME, "readonly");
+          const store = transaction.objectStore(STORE_NAME);
+          const request = store.get(url);
+          request.onsuccess = () => resolve((request.result as CacheEntry) || null);
+          request.onerror = () => reject(request.error);
+        }),
     );
   } catch (error) {
-    console.warn('[SW] getFromIDB failed, returning null:', error);
+    console.warn("[SW] getFromIDB failed, returning null:", error);
     return null;
   }
 }
@@ -180,14 +194,14 @@ async function saveToIDB(entry: CacheEntry): Promise<void> {
     await _writeToIDB(entry);
   } catch (error) {
     if (isQuotaError(error)) {
-      console.warn('[SW] QuotaExceededError on save. Running emergency eviction...');
+      console.warn("[SW] QuotaExceededError on save. Running emergency eviction...");
       await evictOldestEntries(EVICT_BATCH_PERCENT);
       try {
         await _writeToIDB(entry);
-        console.log('[SW] Save succeeded after emergency eviction.');
+        console.log("[SW] Save succeeded after emergency eviction.");
       } catch (retryError) {
         if (isQuotaError(retryError)) {
-          console.warn('[SW] Quota still exceeded after eviction. Skipping cache for:', entry.url);
+          console.warn("[SW] Quota still exceeded after eviction. Skipping cache for:", entry.url);
         } else {
           throw retryError;
         }
@@ -199,48 +213,51 @@ async function saveToIDB(entry: CacheEntry): Promise<void> {
 }
 
 async function _writeToIDB(entry: CacheEntry): Promise<void> {
-  return withDB((database) =>
-    new Promise<void>((resolve, reject) => {
-      const transaction = database.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.put(entry);
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    })
+  return withDB(
+    (database) =>
+      new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.put(entry);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      }),
   );
 }
 
 function isQuotaError(error: unknown): boolean {
   return (
     error instanceof DOMException &&
-    (error.name === 'QuotaExceededError' ||
-      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
+    (error.name === "QuotaExceededError" ||
+      error.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
       error.code === 22 ||
-      error.message.toLowerCase().includes('quota'))
+      error.message.toLowerCase().includes("quota"))
   );
 }
 
 async function deleteFromIDB(url: string): Promise<boolean> {
-  return withDB((database) =>
-    new Promise<boolean>((resolve) => {
-      const transaction = database.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.delete(url);
-      request.onsuccess = () => resolve(true);
-      request.onerror = () => resolve(false);
-    })
+  return withDB(
+    (database) =>
+      new Promise<boolean>((resolve) => {
+        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.delete(url);
+        request.onsuccess = () => resolve(true);
+        request.onerror = () => resolve(false);
+      }),
   );
 }
 
 async function clearIDB(): Promise<void> {
-  return withDB((database) =>
-    new Promise<void>((resolve, reject) => {
-      const transaction = database.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.clear();
-      request.onsuccess = () => resolve();
-      request.onerror = () => reject(request.error);
-    })
+  return withDB(
+    (database) =>
+      new Promise<void>((resolve, reject) => {
+        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.clear();
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      }),
   );
 }
 
@@ -248,18 +265,18 @@ async function clearIDB(): Promise<void> {
 
 /**
  * Consulta la Storage Quota API antes de cada escritura.
- * 
+ *
  * ¿Por qué esta API y no otra?
  * - navigator.storage.estimate() da el uso REAL del origen (IDB + Cache API + etc.)
  * - Es la única forma estándar de saber cuánto espacio queda ANTES de que falle la escritura
  * - Funciona en Chrome, Edge, Firefox (no disponible en Safari privado ni en algunos móviles)
- * 
+ *
  * ¿Qué pasa si no está disponible?
  * - Continuamos sin chequeo proactivo
  * - El QuotaExceededError handler en saveToIDB actúa como segunda línea de defensa
  */
 async function checkAndEvictIfNeeded(incomingBytes = 0): Promise<void> {
-  if (!('storage' in navigator) || !('estimate' in navigator.storage)) {
+  if (!("storage" in navigator) || !("estimate" in navigator.storage)) {
     return; // API no disponible → depender del error handler
   }
 
@@ -274,15 +291,15 @@ async function checkAndEvictIfNeeded(incomingBytes = 0): Promise<void> {
     const usageRatio = projectedUsage / quota;
 
     if (usageRatio >= QUOTA_WARN_THRESHOLD) {
-      const toFreeMB = ((usage - (quota * QUOTA_EVICT_TO) + incomingBytes) / 1024 / 1024).toFixed(1);
+      const toFreeMB = ((usage - quota * QUOTA_EVICT_TO + incomingBytes) / 1024 / 1024).toFixed(1);
       console.warn(
-        `[SW] Storage at ${(usageRatio * 100).toFixed(1)}%. Proactive eviction to free ~${toFreeMB}MB.`
+        `[SW] Storage at ${(usageRatio * 100).toFixed(1)}%. Proactive eviction to free ~${toFreeMB}MB.`,
       );
-      const bytesToFree = usage - (quota * QUOTA_EVICT_TO) + incomingBytes;
+      const bytesToFree = usage - quota * QUOTA_EVICT_TO + incomingBytes;
       await evictBySize(bytesToFree);
     }
   } catch (error) {
-    console.warn('[SW] Storage estimate failed (non-fatal):', error);
+    console.warn("[SW] Storage estimate failed (non-fatal):", error);
   }
 }
 
@@ -293,37 +310,40 @@ async function checkAndEvictIfNeeded(incomingBytes = 0): Promise<void> {
 async function evictBySize(bytesToFree: number): Promise<void> {
   if (bytesToFree <= 0) return;
 
-  return withDB((database) =>
-    new Promise<void>((resolve) => {
-      const transaction = database.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
-      const index = store.index('cachedAt');
-      const cursorRequest = index.openCursor(); // ASC = más viejos primero
+  return withDB(
+    (database) =>
+      new Promise<void>((resolve) => {
+        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
+        const index = store.index("cachedAt");
+        const cursorRequest = index.openCursor(); // ASC = más viejos primero
 
-      let freedBytes = 0;
-      let deletedCount = 0;
+        let freedBytes = 0;
+        let deletedCount = 0;
 
-      cursorRequest.onsuccess = (event: Event) => {
-        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+        cursorRequest.onsuccess = (event: Event) => {
+          const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
 
-        if (!cursor || freedBytes >= bytesToFree) {
-          console.log(`[SW] Evicted ${deletedCount} entries (~${(freedBytes / 1024 / 1024).toFixed(2)}MB).`);
-          resolve();
-          return;
-        }
+          if (!cursor || freedBytes >= bytesToFree) {
+            console.log(
+              `[SW] Evicted ${deletedCount} entries (~${(freedBytes / 1024 / 1024).toFixed(2)}MB).`,
+            );
+            resolve();
+            return;
+          }
 
-        const entry = cursor.value as CacheEntry;
-        const entrySize = entry.metadata?.size || (entry.data as ArrayBuffer)?.byteLength || 0;
+          const entry = cursor.value as CacheEntry;
+          const entrySize = entry.metadata?.size || (entry.data as ArrayBuffer)?.byteLength || 0;
 
-        (cursor as IDBCursor).delete();
-        freedBytes += entrySize;
-        deletedCount++;
-        cursor.continue();
-      };
+          (cursor as IDBCursor).delete();
+          freedBytes += entrySize;
+          deletedCount++;
+          cursor.continue();
+        };
 
-      cursorRequest.onerror = () => resolve();
-      transaction.onerror = () => resolve();
-    })
+        cursorRequest.onerror = () => resolve();
+        transaction.onerror = () => resolve();
+      }),
   );
 }
 
@@ -332,62 +352,71 @@ async function evictBySize(bytesToFree: number): Promise<void> {
  * Usada en el handler de QuotaExceededError (evicción de emergencia).
  */
 async function evictOldestEntries(fraction: number): Promise<void> {
-  return withDB((database) =>
-    new Promise<void>((resolve) => {
-      const transaction = database.transaction(STORE_NAME, 'readwrite');
-      const store = transaction.objectStore(STORE_NAME);
+  return withDB(
+    (database) =>
+      new Promise<void>((resolve) => {
+        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const store = transaction.objectStore(STORE_NAME);
 
-      const countRequest = store.count();
-      countRequest.onsuccess = () => {
-        const total = countRequest.result;
-        const toDelete = Math.max(1, Math.ceil(total * fraction));
+        const countRequest = store.count();
+        countRequest.onsuccess = () => {
+          const total = countRequest.result;
+          const toDelete = Math.max(1, Math.ceil(total * fraction));
 
-        const index = store.index('cachedAt');
-        const cursorRequest = index.openCursor();
-        let deleted = 0;
+          const index = store.index("cachedAt");
+          const cursorRequest = index.openCursor();
+          let deleted = 0;
 
-        cursorRequest.onsuccess = (event: Event) => {
-          const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+          cursorRequest.onsuccess = (event: Event) => {
+            const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
 
-          if (!cursor || deleted >= toDelete) {
-            console.log(`[SW] Emergency eviction: deleted ${deleted}/${total} entries.`);
-            resolve();
-            return;
-          }
+            if (!cursor || deleted >= toDelete) {
+              console.log(`[SW] Emergency eviction: deleted ${deleted}/${total} entries.`);
+              resolve();
+              return;
+            }
 
-          (cursor as IDBCursor).delete();
-          deleted++;
-          cursor.continue();
+            (cursor as IDBCursor).delete();
+            deleted++;
+            cursor.continue();
+          };
+
+          cursorRequest.onerror = () => resolve();
         };
-
-        cursorRequest.onerror = () => resolve();
-      };
-      countRequest.onerror = () => resolve();
-      transaction.onerror = () => resolve();
-    })
+        countRequest.onerror = () => resolve();
+        transaction.onerror = () => resolve();
+      }),
   );
 }
 
 async function getStatsFromIDB(): Promise<Record<string, unknown>> {
-  const idbStats = await withDB((database) =>
-    new Promise<{ itemCount: number; totalSize: number; hitRate: number; missRate: number; evictionCount: number }>((resolve) => {
-      const transaction = database.transaction(STORE_NAME, 'readonly');
-      const store = transaction.objectStore(STORE_NAME);
-      const request = store.getAll();
-      request.onsuccess = () => {
-        const entries = (request.result ?? []) as CacheEntry[];
-        const totalSize = entries.reduce((sum, e) => sum + (e.metadata?.size || 0), 0);
-        const total = stats.hits + stats.misses;
-        resolve({
-          itemCount: entries.length,
-          totalSize,
-          hitRate: total > 0 ? stats.hits / total : 0,
-          missRate: total > 0 ? stats.misses / total : 0,
-          evictionCount: 0,
-        });
-      };
-      request.onerror = () => resolve({ itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 });
-    })
+  const idbStats = await withDB(
+    (database) =>
+      new Promise<{
+        itemCount: number;
+        totalSize: number;
+        hitRate: number;
+        missRate: number;
+        evictionCount: number;
+      }>((resolve) => {
+        const transaction = database.transaction(STORE_NAME, "readonly");
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = () => {
+          const entries = (request.result ?? []) as CacheEntry[];
+          const totalSize = entries.reduce((sum, e) => sum + (e.metadata?.size || 0), 0);
+          const total = stats.hits + stats.misses;
+          resolve({
+            itemCount: entries.length,
+            totalSize,
+            hitRate: total > 0 ? stats.hits / total : 0,
+            missRate: total > 0 ? stats.misses / total : 0,
+            evictionCount: 0,
+          });
+        };
+        request.onerror = () =>
+          resolve({ itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 });
+      }),
   );
 
   const storageInfo = await getStorageInfo();
@@ -395,7 +424,7 @@ async function getStatsFromIDB(): Promise<Record<string, unknown>> {
 }
 
 async function getStorageInfo(): Promise<StorageInfo | null> {
-  if (!('storage' in navigator) || !('estimate' in navigator.storage)) return null;
+  if (!("storage" in navigator) || !("estimate" in navigator.storage)) return null;
   try {
     const estimate = await navigator.storage.estimate();
     return {
@@ -414,9 +443,9 @@ function isImageURL(url: string): boolean {
   try {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname.toLowerCase();
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico'];
-    const hasImageExtension = imageExtensions.some(ext => pathname.endsWith(ext));
-    const isPicsum = urlObj.hostname.includes('picsum');
+    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico"];
+    const hasImageExtension = imageExtensions.some((ext) => pathname.endsWith(ext));
+    const isPicsum = urlObj.hostname.includes("picsum");
     return hasImageExtension || isPicsum;
   } catch {
     return false;
@@ -425,23 +454,23 @@ function isImageURL(url: string): boolean {
 
 // ─── Service Worker lifecycle ─────────────────────────────────────────────────
 
-self.addEventListener('install', () => {
-  console.log('[SW] Installing...');
+self.addEventListener("install", () => {
+  console.log("[SW] Installing...");
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event: ExtendableEvent) => {
-  console.log('[SW] Activating...');
+self.addEventListener("activate", (event: ExtendableEvent) => {
+  console.log("[SW] Activating...");
   event.waitUntil(self.clients.claim());
 });
 
 // ─── Fetch interceptor ────────────────────────────────────────────────────────
 
-self.addEventListener('fetch', (event: FetchEvent) => {
+self.addEventListener("fetch", (event: FetchEvent) => {
   const url = event.request.url;
 
   if (!isImageURL(url)) return;
-  if (event.request.mode === 'navigate') return;
+  if (event.request.mode === "navigate") return;
 
   event.respondWith(handleFetch(url));
 });
@@ -458,7 +487,7 @@ async function handleFetch(url: string): Promise<Response> {
           stats.hits++;
           return createCachedResponse(cached);
         }
-        return new Response('Service unavailable (circuit open)', { status: 503 });
+        return new Response("Service unavailable (circuit open)", { status: 503 });
       }
     }
 
@@ -471,15 +500,15 @@ async function handleFetch(url: string): Promise<Response> {
     stats.misses++;
 
     if (!navigator.onLine) {
-      return new Response('Offline', { status: 503 });
+      return new Response("Offline", { status: 503 });
     }
 
     const response = await fetchWithRetry(url);
 
     if (response.ok) {
       const responseToCache = response.clone();
-      responseToCache.blob().then(blob => {
-        blob.arrayBuffer().then(arrayBuffer => {
+      responseToCache.blob().then((blob) => {
+        blob.arrayBuffer().then((arrayBuffer) => {
           const entry = {
             url,
             data: arrayBuffer,
@@ -491,12 +520,10 @@ async function handleFetch(url: string): Promise<Response> {
               accessCount: 1,
             },
             cachedAt: Date.now(),
-            qualityTier: 'high',
+            qualityTier: "high",
             upgradeable: false,
           };
-          saveToIDB(entry).catch(err =>
-            console.error('[SW] Unexpected save error:', err)
-          );
+          saveToIDB(entry).catch((err) => console.error("[SW] Unexpected save error:", err));
         });
       });
     }
@@ -504,7 +531,7 @@ async function handleFetch(url: string): Promise<Response> {
     circuitBreakerFailures = 0;
     return response;
   } catch (error) {
-    console.error('[SW] handleFetch error:', error);
+    console.error("[SW] handleFetch error:", error);
     circuitBreakerFailures++;
     circuitBreakerLastFailure = Date.now();
     if (circuitBreakerFailures >= CIRCUIT_BREAKER_THRESHOLD) {
@@ -518,12 +545,12 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-    const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+    const response = await fetch(url, { signal: controller.signal, cache: "no-store" });
     clearTimeout(timeout);
     return response;
   } catch (error) {
     if (attempt < MAX_RETRIES) {
-      await new Promise(r => setTimeout(r, Math.pow(2, attempt) * 100));
+      await new Promise((r) => setTimeout(r, 2 ** attempt * 100));
       return fetchWithRetry(url, attempt + 1);
     }
     throw error;
@@ -533,79 +560,93 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
 function createCachedResponse(entry: CacheEntry): Response {
   const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
   return new Response(blob, {
-    headers: { 'Content-Type': entry.metadata.mimeType, 'X-Cache-Status': 'HIT' },
+    headers: { "Content-Type": entry.metadata.mimeType, "X-Cache-Status": "HIT" },
   });
 }
 
 // ─── Message handler ──────────────────────────────────────────────────────────
 
-self.addEventListener('message', async (event: ExtendableMessageEvent) => {
-  const { id, type, payload } = event.data as { id: string; type: string; payload: Record<string, unknown> };
+self.addEventListener("message", async (event: ExtendableMessageEvent) => {
+  const { id, type, payload } = event.data as {
+    id: string;
+    type: string;
+    payload: Record<string, unknown>;
+  };
 
   const reply = (responsePayload: unknown) => {
     if (event.source) {
-      (event.source as unknown as Client).postMessage({ id, type: 'success', payload: responsePayload });
+      (event.source as unknown as Client).postMessage({
+        id,
+        type: "success",
+        payload: responsePayload,
+      });
     } else {
-      self.clients.matchAll().then(clients =>
-        clients.forEach(client => client.postMessage({ id, type: 'success', payload: responsePayload }))
-      );
+      self.clients.matchAll().then((clients) => {
+        for (const client of clients) {
+          client.postMessage({ id, type: "success", payload: responsePayload });
+        }
+      });
     }
   };
 
   const replyError = (error: unknown) => {
-    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+    const errorMsg = error instanceof Error ? error.message : "Unknown error";
     if (event.source) {
-      (event.source as unknown as Client).postMessage({ id, type: 'error', error: errorMsg });
+      (event.source as unknown as Client).postMessage({ id, type: "error", error: errorMsg });
     } else {
-      self.clients.matchAll().then(clients =>
-        clients.forEach(client => client.postMessage({ id, type: 'error', error: errorMsg }))
-      );
+      self.clients.matchAll().then((clients) => {
+        for (const client of clients) {
+          client.postMessage({ id, type: "error", error: errorMsg });
+        }
+      });
     }
   };
 
   try {
     let response: unknown;
     switch (type) {
-      case 'cache-get': {
-        const entry = await getFromIDB(payload['url'] as string);
-        response = entry ? { found: true, data: entry.data, metadata: entry.metadata } : { found: false };
+      case "cache-get": {
+        const entry = await getFromIDB(payload.url as string);
+        response = entry
+          ? { found: true, data: entry.data, metadata: entry.metadata }
+          : { found: false };
         break;
       }
-      case 'cache-set': {
+      case "cache-set": {
         const entry: CacheEntry = {
-          url: payload['url'] as string,
-          data: payload['data'] as ArrayBuffer,
-          metadata: payload['metadata'] as CacheEntry['metadata'],
+          url: payload.url as string,
+          data: payload.data as ArrayBuffer,
+          metadata: payload.metadata as CacheEntry["metadata"],
           cachedAt: Date.now(),
-          qualityTier: 'high',
+          qualityTier: "high",
           upgradeable: false,
         };
         await saveToIDB(entry);
         response = { stored: true };
         break;
       }
-      case 'cache-delete': {
-        response = { deleted: await deleteFromIDB(payload['url'] as string) };
+      case "cache-delete": {
+        response = { deleted: await deleteFromIDB(payload.url as string) };
         break;
       }
-      case 'cache-clear': {
+      case "cache-clear": {
         await clearIDB();
         stats.hits = 0;
         stats.misses = 0;
         response = { cleared: true };
         break;
       }
-      case 'stats': {
+      case "stats": {
         response = await getStatsFromIDB();
         break;
       }
-      case 'evict': {
-        const fraction = (payload['fraction'] as number | undefined) ?? EVICT_BATCH_PERCENT;
+      case "evict": {
+        const fraction = (payload.fraction as number | undefined) ?? EVICT_BATCH_PERCENT;
         await evictOldestEntries(fraction);
         response = { evicted: true };
         break;
       }
-      case 'ping': {
+      case "ping": {
         response = { alive: true };
         break;
       }
@@ -627,7 +668,7 @@ export interface SWRequest<T = unknown> {
 
 export interface SWResponse<T = unknown> {
   id: string;
-  type: 'success' | 'error';
+  type: "success" | "error";
   payload?: T;
   error?: string;
   timestamp: number;

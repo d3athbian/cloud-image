@@ -36,7 +36,7 @@ export class RetryHandler {
       retries?: number;
       predicate?: RetryPredicate;
       onRetry?: (attempt: number, error: Error, delay: number) => void;
-    }
+    },
   ): Promise<RetryResult<T>> {
     const maxRetries = options?.retries ?? this.config.maxRetries;
     const predicate = options?.predicate ?? this.defaultPredicate;
@@ -80,8 +80,8 @@ export class RetryHandler {
   }
 
   private calculateDelay(attempt: number): number {
-    let delay = this.config.baseDelay * Math.pow(this.config.backoffMultiplier, attempt);
-    
+    let delay = this.config.baseDelay * this.config.backoffMultiplier ** attempt;
+
     delay = Math.min(delay, this.config.maxDelay);
 
     if (this.config.jitter) {
@@ -93,7 +93,7 @@ export class RetryHandler {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   getDelays(retries: number): number[] {
@@ -102,28 +102,28 @@ export class RetryHandler {
 
   static isNetworkError(error: Error): boolean {
     return (
-      error.name === 'NetworkError' ||
-      error.name === 'TypeError' ||
-      error.message.includes('fetch') ||
-      error.message.includes('network') ||
-      error.message.includes('Failed to fetch') ||
-      error.message.includes('Network request failed')
+      error.name === "NetworkError" ||
+      error.name === "TypeError" ||
+      error.message.includes("fetch") ||
+      error.message.includes("network") ||
+      error.message.includes("Failed to fetch") ||
+      error.message.includes("Network request failed")
     );
   }
 
   static isTimeoutError(error: Error): boolean {
     return (
-      error.name === 'AbortError' ||
-      error.name === 'TimeoutError' ||
-      error.message.includes('timeout') ||
-      error.message.includes('timed out')
+      error.name === "AbortError" ||
+      error.name === "TimeoutError" ||
+      error.message.includes("timeout") ||
+      error.message.includes("timed out")
     );
   }
 }
 
 export function retry<T>(
   operation: () => Promise<T>,
-  config?: RetryConfig
+  config?: RetryConfig,
 ): Promise<RetryResult<T>> {
   const handler = new RetryHandler(config);
   return handler.execute(operation);
@@ -135,17 +135,19 @@ export function withRetry<T>(
     retries?: number;
     baseDelay?: number;
     onRetry?: (attempt: number, error: Error, delay: number) => void;
-  }
+  },
 ): Promise<T> {
   const handler = new RetryHandler({ baseDelay: options?.baseDelay ?? 100 });
-  return handler.execute(operation, {
-    retries: options?.retries,
-    predicate: RetryHandler.isNetworkError,
-    onRetry: options?.onRetry,
-  }).then(result => {
-    if (result.success && result.result !== undefined) {
-      return result.result;
-    }
-    throw result.error;
-  });
+  return handler
+    .execute(operation, {
+      retries: options?.retries,
+      predicate: RetryHandler.isNetworkError,
+      onRetry: options?.onRetry,
+    })
+    .then((result) => {
+      if (result.success && result.result !== undefined) {
+        return result.result;
+      }
+      throw result.error;
+    });
 }

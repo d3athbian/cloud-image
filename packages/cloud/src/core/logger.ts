@@ -1,6 +1,6 @@
 export interface LogEntry {
   timestamp: number;
-  level: 'debug' | 'info' | 'warn' | 'error';
+  level: "debug" | "info" | "warn" | "error";
   correlationId: string;
   operation: string;
   message: string;
@@ -21,7 +21,13 @@ export class Logger {
     return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
   }
 
-  private log(level: LogEntry['level'], operation: string, message: string, metadata?: Record<string, unknown>, duration?: number): void {
+  private log(
+    level: LogEntry["level"],
+    operation: string,
+    message: string,
+    metadata?: Record<string, unknown>,
+    duration?: number,
+  ): void {
     if (!this.enabled) return;
 
     const entry: LogEntry = {
@@ -40,28 +46,33 @@ export class Logger {
     }
 
     const prefix = `[${level.toUpperCase()}]`;
-    const suffix = duration !== undefined ? ` (${duration.toFixed(2)}ms)` : '';
-    console.log(`${prefix} ${operation}: ${message}${suffix}`, metadata || '');
+    const suffix = duration !== undefined ? ` (${duration.toFixed(2)}ms)` : "";
+    console.log(`${prefix} ${operation}: ${message}${suffix}`, metadata || "");
   }
 
   debug(operation: string, message: string, metadata?: Record<string, unknown>): void {
-    this.log('debug', operation, message, metadata);
+    this.log("debug", operation, message, metadata);
   }
 
   info(operation: string, message: string, metadata?: Record<string, unknown>): void {
-    this.log('info', operation, message, metadata);
+    this.log("info", operation, message, metadata);
   }
 
   warn(operation: string, message: string, metadata?: Record<string, unknown>): void {
-    this.log('warn', operation, message, metadata);
+    this.log("warn", operation, message, metadata);
   }
 
   error(operation: string, message: string, metadata?: Record<string, unknown>): void {
-    this.log('error', operation, message, metadata);
+    this.log("error", operation, message, metadata);
   }
 
-  logDuration(_correlationId: string, operation: string, duration: number, metadata?: Record<string, unknown>): void {
-    this.log('info', operation, `Completed in ${duration.toFixed(2)}ms`, metadata, duration);
+  logDuration(
+    _correlationId: string,
+    operation: string,
+    duration: number,
+    metadata?: Record<string, unknown>,
+  ): void {
+    this.log("info", operation, `Completed in ${duration.toFixed(2)}ms`, metadata, duration);
   }
 
   getLogs(): LogEntry[] {

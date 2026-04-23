@@ -5,7 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.1] - 2026-03-21
+## [Unreleased]
+
+### Added
+
+#### Bundle Size Optimization (016-bundle-tree-shaking)
+
+- **Tree-shaking enabled**: All entry points now use named exports instead of `export *`
+- **Lazy loading NOT implemented**: Due to TypeScript constructor limitation (see spec.md)
+- **Result**: Named exports enable tree-shaking; Vite handles chunk splitting
+
+**Breaking Changes**:
+- Internal functions no longer exported (e.g., `createCache` → use `new ImageCache()`)
+- Import paths unchanged, but consumers using default exports should migrate to named imports
+
+**Technical Limitation**:
+```
+ImageEngine requires adapter immediately in constructor.
+TypeScript constructors cannot be async.
+Therefore, dynamic import() cannot be used.
+```
+
+#### BiomeJS Linting (017-add-biomejs)
+
+- **Replaced ESLint + Prettier with BiomeJS**
+- **New scripts**:
+  - `npm run lint` → `biome check src --write`
+  - `npm run format` → `biome format --write src`
+- **Config**: biome.json with TypeScript 5.x strict settings
+- **Zero lint errors**: All 47 files pass with 0 errors, 0 warnings
 
 ### Added
 

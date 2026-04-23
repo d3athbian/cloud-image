@@ -1,7 +1,7 @@
-import type { CircuitBreakerState, CircuitBreakerConfig } from './types';
-import { Time, Threshold } from '../config/constants';
+import { Threshold, Time } from "../config/constants";
+import type { CircuitBreakerConfig, CircuitBreakerState } from "./types";
 
-export type CircuitBreakerEventType = 'opened' | 'closed' | 'halfOpen';
+export type CircuitBreakerEventType = "opened" | "closed" | "halfOpen";
 
 export interface CircuitBreakerEvent {
   type: CircuitBreakerEventType;
@@ -14,7 +14,7 @@ export interface CircuitBreakerEvent {
 type CircuitBreakerListener = (event: CircuitBreakerEvent) => void;
 
 export class CircuitBreaker {
-  private state: CircuitBreakerState = 'closed';
+  private state: CircuitBreakerState = "closed";
   private failures = 0;
   private successes = 0;
   private lastFailureTime = 0;
@@ -32,56 +32,56 @@ export class CircuitBreaker {
   }
 
   getState(): CircuitBreakerState {
-    if (this.state === 'open') {
+    if (this.state === "open") {
       if (Date.now() - this.lastFailureTime >= this.config.resetTimeout) {
-        this.transitionTo('half-open');
+        this.transitionTo("half-open");
       }
     }
     return this.state;
   }
 
   isClosed(): boolean {
-    return this.getState() === 'closed';
+    return this.getState() === "closed";
   }
 
   isOpen(): boolean {
-    return this.getState() === 'open';
+    return this.getState() === "open";
   }
 
   isHalfOpen(): boolean {
-    return this.getState() === 'half-open';
+    return this.getState() === "half-open";
   }
 
   canExecute(): boolean {
     const state = this.getState();
-    
-    if (state === 'closed') {
+
+    if (state === "closed") {
       return true;
     }
-    
-    if (state === 'half-open') {
+
+    if (state === "half-open") {
       return this.halfOpenCalls < this.config.halfOpenMaxCalls;
     }
-    
+
     return false;
   }
 
   recordSuccess(): void {
     switch (this.state) {
-      case 'closed':
+      case "closed":
         this.failures = 0;
         break;
-        
-      case 'half-open':
+
+      case "half-open":
         this.successes++;
         this.halfOpenCalls++;
-        
+
         if (this.successes >= this.config.successThreshold) {
-          this.transitionTo('closed');
+          this.transitionTo("closed");
         }
         break;
-        
-      case 'open':
+
+      case "open":
         break;
     }
   }
@@ -91,17 +91,17 @@ export class CircuitBreaker {
     this.lastFailureTime = Date.now();
 
     switch (this.state) {
-      case 'closed':
+      case "closed":
         if (this.failures >= this.config.failureThreshold) {
-          this.transitionTo('open');
+          this.transitionTo("open");
         }
         break;
-        
-      case 'half-open':
-        this.transitionTo('open');
+
+      case "half-open":
+        this.transitionTo("open");
         break;
-        
-      case 'open':
+
+      case "open":
         break;
     }
   }
@@ -110,22 +110,22 @@ export class CircuitBreaker {
     this.state = newState;
 
     switch (newState) {
-      case 'closed':
+      case "closed":
         this.failures = 0;
         this.successes = 0;
         break;
-        
-      case 'open':
+
+      case "open":
         break;
-        
-      case 'half-open':
+
+      case "half-open":
         this.halfOpenCalls = 0;
         this.successes = 0;
         break;
     }
 
     this.notifyListeners({
-      type: newState === 'closed' ? 'closed' : newState === 'open' ? 'opened' : 'halfOpen',
+      type: newState === "closed" ? "closed" : newState === "open" ? "opened" : "halfOpen",
       state: newState,
       failures: this.failures,
       successes: this.successes,
@@ -138,7 +138,7 @@ export class CircuitBreaker {
       throw new Error(`Circuit breaker is ${this.getState()}`);
     }
 
-    if (this.state === 'half-open') {
+    if (this.state === "half-open") {
       this.halfOpenCalls++;
     }
 
@@ -180,7 +180,7 @@ export class CircuitBreaker {
   }
 
   reset(): void {
-    this.transitionTo('closed');
+    this.transitionTo("closed");
   }
 
   getConfig(): CircuitBreakerConfig {

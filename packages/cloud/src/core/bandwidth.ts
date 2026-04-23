@@ -1,4 +1,4 @@
-import type { BandwidthClassification } from './types';
+import type { BandwidthClassification } from "./types";
 
 export interface BandwidthSample {
   timestamp: number;
@@ -14,11 +14,11 @@ export interface BandwidthConfig {
   sampleWindow?: number;
 }
 
-export type BandwidthEventType = 
-  | 'classificationChange'
-  | 'sampleAdded'
-  | 'upgradeTriggered'
-  | 'degradedTriggered';
+export type BandwidthEventType =
+  | "classificationChange"
+  | "sampleAdded"
+  | "upgradeTriggered"
+  | "degradedTriggered";
 
 export interface BandwidthEvent {
   type: BandwidthEventType;
@@ -34,7 +34,7 @@ export class BandwidthMonitor {
   private samples: BandwidthSample[] = [];
   private config: Required<BandwidthConfig>;
   private listeners: Set<BandwidthListener> = new Set();
-  private classification: BandwidthClassification = 'unknown';
+  private classification: BandwidthClassification = "unknown";
   private previousClassification?: BandwidthClassification;
 
   constructor(config: BandwidthConfig = {}) {
@@ -48,7 +48,7 @@ export class BandwidthMonitor {
 
   addSample(bytes: number, durationMs: number): void {
     const mbps = (bytes * 8) / (durationMs / 1000) / 1000000;
-    
+
     const sample: BandwidthSample = {
       timestamp: Date.now(),
       bytes,
@@ -63,12 +63,12 @@ export class BandwidthMonitor {
 
     const newClassification = this.classifySamples();
     const previous = this.classification;
-    
+
     if (newClassification !== previous) {
       this.previousClassification = previous;
       this.classification = newClassification;
       this.notifyListeners({
-        type: 'classificationChange',
+        type: "classificationChange",
         previous,
         current: newClassification,
         timestamp: Date.now(),
@@ -76,7 +76,7 @@ export class BandwidthMonitor {
       });
     } else {
       this.notifyListeners({
-        type: 'sampleAdded',
+        type: "sampleAdded",
         current: newClassification,
         timestamp: Date.now(),
         sample,
@@ -86,30 +86,28 @@ export class BandwidthMonitor {
 
   private classifySamples(): BandwidthClassification {
     const recentSamples = this.samples.filter(
-      s => Date.now() - s.timestamp < this.config.sampleWindow
+      (s) => Date.now() - s.timestamp < this.config.sampleWindow,
     );
 
     if (recentSamples.length === 0) {
-      return 'unknown';
+      return "unknown";
     }
 
-    const medianMbps = this.calculateMedian(recentSamples.map(s => s.mbps));
+    const medianMbps = this.calculateMedian(recentSamples.map((s) => s.mbps));
 
     if (medianMbps < this.config.lowThreshold) {
-      return 'low';
+      return "low";
     } else if (medianMbps < this.config.mediumThreshold) {
-      return 'medium';
+      return "medium";
     } else {
-      return 'high';
+      return "high";
     }
   }
 
   private calculateMedian(values: number[]): number {
     const sorted = [...values].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 !== 0
-      ? sorted[mid]
-      : (sorted[mid - 1] + sorted[mid]) / 2;
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
   getClassification(): BandwidthClassification {
@@ -131,21 +129,21 @@ export class BandwidthMonitor {
   }
 
   getMedianMbps(): number {
-    return this.calculateMedian(this.samples.map(s => s.mbps));
+    return this.calculateMedian(this.samples.map((s) => s.mbps));
   }
 
   shouldUpgrade(): boolean {
     return (
-      this.classification === 'high' &&
-      this.previousClassification !== 'high' &&
+      this.classification === "high" &&
+      this.previousClassification !== "high" &&
       this.previousClassification !== undefined
     );
   }
 
   shouldDegrade(): boolean {
     return (
-      this.classification === 'low' &&
-      this.previousClassification !== 'low' &&
+      this.classification === "low" &&
+      this.previousClassification !== "low" &&
       this.previousClassification !== undefined
     );
   }
@@ -167,7 +165,7 @@ export class BandwidthMonitor {
 
   reset(): void {
     this.samples = [];
-    this.classification = 'unknown';
+    this.classification = "unknown";
     this.previousClassification = undefined;
   }
 

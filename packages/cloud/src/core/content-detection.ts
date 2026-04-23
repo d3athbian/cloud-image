@@ -7,29 +7,30 @@ export interface ContentValidation {
 
 export interface ContentChangeResult {
   hasChanged: boolean;
-  reason: 'etag_mismatch' | 'last_modified_changed' | 'size_changed' | 'network_error';
+  reason: "etag_mismatch" | "last_modified_changed" | "size_changed" | "network_error";
   serverValue?: ContentValidation;
 }
 
 export class ContentChangeDetector {
   async checkForChanges(
     url: string,
-    cachedValidation: ContentValidation
+    cachedValidation: ContentValidation,
   ): Promise<ContentChangeResult> {
     try {
       const response = await fetch(url, {
-        method: 'HEAD',
-        cache: 'no-store',
+        method: "HEAD",
+        cache: "no-store",
       });
 
-      const serverEtag = response.headers.get('etag')?.replace(/"/g, '') || undefined;
-      const serverLastModified = response.headers.get('last-modified') || undefined;
-      const serverContentLength = parseInt(response.headers.get('content-length') || '0', 10) || undefined;
+      const serverEtag = response.headers.get("etag")?.replace(/"/g, "") || undefined;
+      const serverLastModified = response.headers.get("last-modified") || undefined;
+      const serverContentLength =
+        parseInt(response.headers.get("content-length") || "0", 10) || undefined;
 
       if (serverEtag && cachedValidation.etag && serverEtag !== cachedValidation.etag) {
         return {
           hasChanged: true,
-          reason: 'etag_mismatch',
+          reason: "etag_mismatch",
           serverValue: {
             etag: serverEtag,
             lastModified: serverLastModified,
@@ -38,10 +39,14 @@ export class ContentChangeDetector {
         };
       }
 
-      if (serverLastModified && cachedValidation.lastModified && serverLastModified !== cachedValidation.lastModified) {
+      if (
+        serverLastModified &&
+        cachedValidation.lastModified &&
+        serverLastModified !== cachedValidation.lastModified
+      ) {
         return {
           hasChanged: true,
-          reason: 'last_modified_changed',
+          reason: "last_modified_changed",
           serverValue: {
             etag: serverEtag,
             lastModified: serverLastModified,
@@ -50,10 +55,14 @@ export class ContentChangeDetector {
         };
       }
 
-      if (serverContentLength && cachedValidation.contentLength && serverContentLength !== cachedValidation.contentLength) {
+      if (
+        serverContentLength &&
+        cachedValidation.contentLength &&
+        serverContentLength !== cachedValidation.contentLength
+      ) {
         return {
           hasChanged: true,
-          reason: 'size_changed',
+          reason: "size_changed",
           serverValue: {
             etag: serverEtag,
             lastModified: serverLastModified,
@@ -64,7 +73,7 @@ export class ContentChangeDetector {
 
       return {
         hasChanged: false,
-        reason: 'etag_mismatch',
+        reason: "etag_mismatch",
         serverValue: {
           etag: serverEtag,
           lastModified: serverLastModified,
@@ -74,17 +83,17 @@ export class ContentChangeDetector {
     } catch {
       return {
         hasChanged: false,
-        reason: 'network_error',
+        reason: "network_error",
       };
     }
   }
 
   extractValidationFromResponse(response: Response): ContentValidation {
     return {
-      etag: response.headers.get('etag')?.replace(/"/g, ''),
-      lastModified: response.headers.get('last-modified') || undefined,
-      contentLength: parseInt(response.headers.get('content-length') || '0', 10) || undefined,
-      cacheControl: response.headers.get('cache-control') || undefined,
+      etag: response.headers.get("etag")?.replace(/"/g, ""),
+      lastModified: response.headers.get("last-modified") || undefined,
+      contentLength: parseInt(response.headers.get("content-length") || "0", 10) || undefined,
+      cacheControl: response.headers.get("cache-control") || undefined,
     };
   }
 
@@ -93,9 +102,9 @@ export class ContentChangeDetector {
       return true;
     }
 
-    const noCache = validation.cacheControl.includes('no-cache');
-    const mustRevalidate = validation.cacheControl.includes('must-revalidate');
-    const noStore = validation.cacheControl.includes('no-store');
+    const noCache = validation.cacheControl.includes("no-cache");
+    const mustRevalidate = validation.cacheControl.includes("must-revalidate");
+    const noStore = validation.cacheControl.includes("no-store");
 
     return noCache || mustRevalidate || noStore;
   }

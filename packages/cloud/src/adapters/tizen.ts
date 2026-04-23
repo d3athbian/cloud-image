@@ -1,41 +1,47 @@
-import type { CacheEntry } from '../core/types';
-import type { PlatformAdapter } from './types';
+import type { CacheEntry } from "../core/types";
+import type { PlatformAdapter } from "./types";
 
-const BASE_PATH = 'images';
+const BASE_PATH = "images";
 
 export class TizenAdapter implements PlatformAdapter {
-  readonly platform = 'tizen' as const;
-  private baseDir: { readFile: (path: string, cb: (d: ArrayBuffer) => void) => void; writeFile: (path: string, data: ArrayBuffer, cb: () => void) => void } | null = null;
+  readonly platform = "tizen" as const;
+  private baseDir: {
+    readFile: (path: string, cb: (d: ArrayBuffer) => void) => void;
+    writeFile: (path: string, data: ArrayBuffer, cb: () => void) => void;
+  } | null = null;
 
   async init(): Promise<void> {
-    if (typeof tizen === 'undefined') {
-      throw new Error('Tizen API not available');
+    if (typeof tizen === "undefined") {
+      throw new Error("Tizen API not available");
     }
 
     return new Promise((resolve, reject) => {
       tizen.filesystem.resolve(
         BASE_PATH,
         (dir) => {
-          this.baseDir = dir as { readFile: (path: string, cb: (d: ArrayBuffer) => void) => void; writeFile: (path: string, data: ArrayBuffer, cb: () => void) => void };
+          this.baseDir = dir as {
+            readFile: (path: string, cb: (d: ArrayBuffer) => void) => void;
+            writeFile: (path: string, data: ArrayBuffer, cb: () => void) => void;
+          };
           resolve();
         },
         (e) => reject(new Error(`Tizen filesystem init failed: ${e}`)),
-        'rw'
+        "rw",
       );
     });
   }
 
   private getPath(url: string): string {
-    const hash = btoa(url).replace(/[/+=]/g, '_').substring(0, 64);
+    const hash = btoa(url).replace(/[/+=]/g, "_").substring(0, 64);
     return `${hash}.bin`;
   }
 
   async get(url: string): Promise<CacheEntry | null> {
     if (!this.baseDir) return null;
     const path = this.getPath(url);
-    
+
     return new Promise((resolve) => {
-      this.baseDir!.readFile(path, (data) => {
+      this.baseDir?.readFile(path, (data) => {
         try {
           const entry = JSON.parse(new TextDecoder().decode(data.slice(0, 4096))) as CacheEntry;
           const actualData = data.slice(4096);
@@ -61,7 +67,7 @@ export class TizenAdapter implements PlatformAdapter {
     combined.set(new Uint8Array(entry.data), metaBytes.length);
 
     return new Promise((resolve) => {
-      this.baseDir!.writeFile(path, combined.buffer, () => resolve());
+      this.baseDir?.writeFile(path, combined.buffer, () => resolve());
     });
   }
 
@@ -91,3 +97,5 @@ export class TizenAdapter implements PlatformAdapter {
 export function createTizenAdapter(): PlatformAdapter {
   return new TizenAdapter();
 }
+
+export default createTizenAdapter;

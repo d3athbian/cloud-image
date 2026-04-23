@@ -5,7 +5,7 @@ export interface CacheEntry {
   url: string;
   data: ArrayBuffer;
   metadata: CacheMetadata;
-  qualityTier: 'low' | 'medium' | 'high';
+  qualityTier: "low" | "medium" | "high";
   upgradeable: boolean;
   cachedBandwidth?: number;
   expiresAt?: number;
@@ -13,7 +13,7 @@ export interface CacheEntry {
   syncedAt?: number;
 }
 
-export type CacheEntryState = 'pending' | 'caching' | 'cached' | 'validated' | 'failed';
+export type CacheEntryState = "pending" | "caching" | "cached" | "validated" | "failed";
 
 export interface CacheMetadata {
   size: number;
@@ -42,7 +42,7 @@ export interface CacheConfig {
   requestTimeout?: number;
 }
 
-import { DEFAULT_CACHE_CONFIG } from '../config/constants';
+import { DEFAULT_CACHE_CONFIG } from "../config/constants";
 
 export { DEFAULT_CACHE_CONFIG };
 
@@ -57,12 +57,12 @@ export interface CacheStats {
 /**
  * Platform types
  */
-export type PlatformType = 'web' | 'tizen' | 'webos' | 'memory';
+export type PlatformType = "web" | "tizen" | "webos" | "memory";
 
 /**
  * Circuit breaker states
  */
-export type CircuitBreakerState = 'closed' | 'open' | 'half-open';
+export type CircuitBreakerState = "closed" | "open" | "half-open";
 
 export interface CircuitBreakerConfig {
   failureThreshold?: number;
@@ -82,19 +82,12 @@ export interface NetworkStatus {
   bandwidthTested?: boolean;
 }
 
-export type BandwidthClassification = 'low' | 'medium' | 'high' | 'unknown';
+export type BandwidthClassification = "low" | "medium" | "high" | "unknown";
 
 /**
  * Worker message types
  */
-export type WorkerMessageType =
-  | 'get'
-  | 'set'
-  | 'delete'
-  | 'clear'
-  | 'stats'
-  | 'init'
-  | 'destroy';
+export type WorkerMessageType = "get" | "set" | "delete" | "clear" | "stats" | "init" | "destroy";
 
 export interface WorkerMessage<T = unknown> {
   id: string;
@@ -105,7 +98,7 @@ export interface WorkerMessage<T = unknown> {
 
 export interface WorkerResponse<T = unknown> {
   id: string;
-  type: 'success' | 'error';
+  type: "success" | "error";
   payload?: T;
   error?: string;
   timestamp: number;

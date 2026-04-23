@@ -1,4 +1,4 @@
-import type { BandwidthClassification } from './types';
+import type { BandwidthClassification } from "./types";
 
 export interface CDNVariant {
   name: string;
@@ -15,28 +15,28 @@ export interface CDNConfig {
 
 export interface CDNAdapter {
   readonly name: string;
-  
+
   generateUrl(url: string, variant: CDNVariant): string;
-  
+
   getVariantForBandwidth(bandwidth: BandwidthClassification): CDNVariant;
-  
+
   isAvailable(): boolean;
 }
 
 export class DefaultCDNAdapter implements CDNAdapter {
-  readonly name = 'default';
+  readonly name = "default";
   private config: CDNConfig;
 
   constructor(config: CDNConfig = {}) {
     this.config = {
       domain: config.domain,
       variants: config.variants ?? [
-        { name: 'small', width: 320, quality: 60 },
-        { name: 'medium', width: 640, quality: 75 },
-        { name: 'large', width: 1280, quality: 85 },
-        { name: 'original', quality: 100 },
+        { name: "small", width: 320, quality: 60 },
+        { name: "medium", width: 640, quality: 75 },
+        { name: "large", width: 1280, quality: 85 },
+        { name: "original", quality: 100 },
       ],
-      urlPattern: config.urlPattern ?? '{url}?size={variant}',
+      urlPattern: config.urlPattern ?? "{url}?size={variant}",
       bandwidthAware: config.bandwidthAware ?? true,
     };
   }
@@ -46,20 +46,20 @@ export class DefaultCDNAdapter implements CDNAdapter {
       return url;
     }
 
-    const pattern = this.config.urlPattern!.replace('{url}', url);
-    return pattern.replace('{variant}', variant.name);
+    const pattern = this.config.urlPattern?.replace("{url}", url);
+    return pattern.replace("{variant}", variant.name);
   }
 
-  getVariantForBandwidth(bandwidth: BandwidthClassification): CDNVariant {
+  getVariantForBandwidth(bandwidth: BandwidthClassification): CDNVariant | undefined {
     switch (bandwidth) {
-      case 'low':
-        return this.config.variants!.find(v => v.name === 'small')!;
-      case 'medium':
-        return this.config.variants!.find(v => v.name === 'medium')!;
-      case 'high':
-        return this.config.variants!.find(v => v.name === 'large')!;
+      case "low":
+        return this.config.variants?.find((v) => v.name === "small");
+      case "medium":
+        return this.config.variants?.find((v) => v.name === "medium");
+      case "high":
+        return this.config.variants?.find((v) => v.name === "large");
       default:
-        return this.config.variants!.find(v => v.name === 'medium')!;
+        return this.config.variants?.find((v) => v.name === "medium");
     }
   }
 
@@ -81,7 +81,7 @@ export class DefaultCDNAdapter implements CDNAdapter {
 }
 
 export class CloudinaryCDNAdapter implements CDNAdapter {
-  readonly name = 'cloudinary';
+  readonly name = "cloudinary";
   private cloudName: string;
 
   constructor(cloudName: string) {
@@ -96,14 +96,14 @@ export class CloudinaryCDNAdapter implements CDNAdapter {
 
   getVariantForBandwidth(bandwidth: BandwidthClassification): CDNVariant {
     switch (bandwidth) {
-      case 'low':
-        return { name: 'low', width: 320, quality: 60 };
-      case 'medium':
-        return { name: 'medium', width: 640, quality: 75 };
-      case 'high':
-        return { name: 'high', width: 1280, quality: 85 };
+      case "low":
+        return { name: "low", width: 320, quality: 60 };
+      case "medium":
+        return { name: "medium", width: 640, quality: 75 };
+      case "high":
+        return { name: "high", width: 1280, quality: 85 };
       default:
-        return { name: 'medium', width: 640, quality: 75 };
+        return { name: "medium", width: 640, quality: 75 };
     }
   }
 
@@ -114,7 +114,7 @@ export class CloudinaryCDNAdapter implements CDNAdapter {
   private extractPublicId(url: string): string {
     try {
       const pathname = new URL(url).pathname;
-      return pathname.replace(/^\/+/, '').replace(/\.[^.]+$/, '');
+      return pathname.replace(/^\/+/, "").replace(/\.[^.]+$/, "");
     } catch {
       return url;
     }
@@ -124,15 +124,14 @@ export class CloudinaryCDNAdapter implements CDNAdapter {
     const parts: string[] = [];
     if (variant.width) parts.push(`w_${variant.width}`);
     if (variant.quality) parts.push(`q_${variant.quality}`);
-    parts.push('f_auto');
-    return parts.join(',');
+    parts.push("f_auto");
+    return parts.join(",");
   }
 }
 
 export class ImgixCDNAdapter implements CDNAdapter {
-  readonly name = 'imgix';
+  readonly name = "imgix";
   private domain: string;
-  private _apiKey?: string;
 
   constructor(domain: string, apiKey?: string) {
     this.domain = domain;
@@ -141,10 +140,10 @@ export class ImgixCDNAdapter implements CDNAdapter {
 
   generateUrl(url: string, variant: CDNVariant): string {
     const params = new URLSearchParams();
-    if (variant.width) params.set('w', variant.width.toString());
-    if (variant.quality) params.set('q', variant.quality.toString());
-    params.set('auto', 'format,compress');
-    params.set('fit', 'crop');
+    if (variant.width) params.set("w", variant.width.toString());
+    if (variant.quality) params.set("q", variant.quality.toString());
+    params.set("auto", "format,compress");
+    params.set("fit", "crop");
 
     const baseUrl = `https://${this.domain}.imgix.net`;
     const path = this.extractPath(url);
@@ -153,14 +152,14 @@ export class ImgixCDNAdapter implements CDNAdapter {
 
   getVariantForBandwidth(bandwidth: BandwidthClassification): CDNVariant {
     switch (bandwidth) {
-      case 'low':
-        return { name: 'low', width: 320, quality: 50 };
-      case 'medium':
-        return { name: 'medium', width: 640, quality: 65 };
-      case 'high':
-        return { name: 'high', width: 1280, quality: 80 };
+      case "low":
+        return { name: "low", width: 320, quality: 50 };
+      case "medium":
+        return { name: "medium", width: 640, quality: 65 };
+      case "high":
+        return { name: "high", width: 1280, quality: 80 };
       default:
-        return { name: 'medium', width: 640, quality: 65 };
+        return { name: "medium", width: 640, quality: 65 };
     }
   }
 
@@ -179,14 +178,14 @@ export class ImgixCDNAdapter implements CDNAdapter {
 }
 
 export function createCDNAdapter(
-  type: 'default' | 'cloudinary' | 'imgix',
-  config?: { domain?: string; cloudName?: string; apiKey?: string }
+  type: "default" | "cloudinary" | "imgix",
+  config?: { domain?: string; cloudName?: string; apiKey?: string },
 ): CDNAdapter {
   switch (type) {
-    case 'cloudinary':
-      return new CloudinaryCDNAdapter(config?.cloudName ?? '');
-    case 'imgix':
-      return new ImgixCDNAdapter(config?.domain ?? '', config?.apiKey);
+    case "cloudinary":
+      return new CloudinaryCDNAdapter(config?.cloudName ?? "");
+    case "imgix":
+      return new ImgixCDNAdapter(config?.domain ?? "", config?.apiKey);
     default:
       return new DefaultCDNAdapter({ domain: config?.domain });
   }

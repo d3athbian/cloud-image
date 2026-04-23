@@ -1,4 +1,4 @@
-import type { BandwidthClassification, NetworkStatus } from './types';
+import type { BandwidthClassification, NetworkStatus } from "./types";
 
 export interface NetworkMonitorConfig {
   sampleInterval?: number;
@@ -23,7 +23,7 @@ interface BandwidthSample {
 export class NetworkMonitor {
   private status: NetworkStatus = {
     online: true,
-    bandwidth: 'unknown',
+    bandwidth: "unknown",
     bandwidthTested: false,
   };
   private samples: BandwidthSample[] = [];
@@ -34,10 +34,7 @@ export class NetworkMonitor {
   private isRetrying = false;
   private isMeasuring = false;
   private measurementInterval: ReturnType<typeof setInterval> | null = null;
-  private lastProactiveMeasure = 0;
-  private readonly MEASUREMENT_COOLDOWN = 30000;
-  private readonly MIN_BYTES_FOR_ACCURATE_TEST = 1000;
-  private readonly DEFAULT_TEST_URL = 'https://picsum.photos/100/100';
+  private readonly DEFAULT_TEST_URL = "https://picsum.photos/100/100";
 
   constructor(config: NetworkMonitorConfig = {}) {
     this.config = {
@@ -50,27 +47,27 @@ export class NetworkMonitor {
     };
     this.status.online = this.checkOnlineStatus();
     this.setupListeners();
-    
+
     setTimeout(() => {
       this.measureBandwidthProactive().catch(() => {});
     }, 2000);
   }
 
   private checkOnlineStatus(): boolean {
-    if (typeof navigator === 'undefined') {
+    if (typeof navigator === "undefined") {
       return true;
     }
     return navigator.onLine;
   }
 
   private setupListeners(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof window === "undefined") return;
 
-    window.addEventListener('online', () => {
+    window.addEventListener("online", () => {
       this.handleOnline();
     });
 
-    window.addEventListener('offline', () => {
+    window.addEventListener("offline", () => {
       this.handleOffline();
     });
 
@@ -78,20 +75,33 @@ export class NetworkMonitor {
   }
 
   private monitorConnectionAPI(): void {
-    const connection = (navigator as Navigator & { connection?: { effectiveType?: string; downlink?: number; rtt?: number; addEventListener?: (type: string, listener: () => void) => void } }).connection;
-    
+    const connection = (
+      navigator as Navigator & {
+        connection?: {
+          effectiveType?: string;
+          downlink?: number;
+          rtt?: number;
+          addEventListener?: (type: string, listener: () => void) => void;
+        };
+      }
+    ).connection;
+
     if (connection) {
       this.updateFromConnectionAPI(connection);
-      
+
       if (connection.addEventListener) {
-        connection.addEventListener('change', () => {
+        connection.addEventListener("change", () => {
           this.updateFromConnectionAPI(connection);
         });
       }
     }
   }
 
-  private updateFromConnectionAPI(connection: { effectiveType?: string; downlink?: number; rtt?: number }): void {
+  private updateFromConnectionAPI(connection: {
+    effectiveType?: string;
+    downlink?: number;
+    rtt?: number;
+  }): void {
     const previousBandwidth = this.status.bandwidth;
 
     if (connection.effectiveType) {
@@ -120,15 +130,15 @@ export class NetworkMonitor {
 
   private classifyFromEffectiveType(type: string): BandwidthClassification {
     switch (type) {
-      case 'slow-2g':
-      case '2g':
-        return 'low';
-      case '3g':
-        return 'medium';
-      case '4g':
-        return 'high';
+      case "slow-2g":
+      case "2g":
+        return "low";
+      case "3g":
+        return "medium";
+      case "4g":
+        return "high";
       default:
-        return 'unknown';
+        return "unknown";
     }
   }
 
@@ -141,7 +151,7 @@ export class NetworkMonitor {
 
   private handleOffline(): void {
     this.status.online = false;
-    this.status.bandwidth = 'unknown';
+    this.status.bandwidth = "unknown";
     this.notifyListeners();
     this.config.onStatusChange(this.status);
   }
@@ -158,25 +168,23 @@ export class NetworkMonitor {
     if (this.samples.length < 3) return;
 
     const recentSamples = this.samples.slice(-10);
-    const medianMbps = this.calculateMedian(recentSamples.map(s => s.mbps));
+    const medianMbps = this.calculateMedian(recentSamples.map((s) => s.mbps));
 
     if (medianMbps === 0) {
-      this.status.bandwidth = 'unknown';
+      this.status.bandwidth = "unknown";
     } else if (medianMbps < this.config.bandwidthThreshold.low) {
-      this.status.bandwidth = 'low';
+      this.status.bandwidth = "low";
     } else if (medianMbps < this.config.bandwidthThreshold.medium) {
-      this.status.bandwidth = 'medium';
+      this.status.bandwidth = "medium";
     } else {
-      this.status.bandwidth = 'high';
+      this.status.bandwidth = "high";
     }
   }
 
   private calculateMedian(values: number[]): number {
     const sorted = [...values].sort((a, b) => a - b);
     const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 !== 0
-      ? sorted[mid]
-      : (sorted[mid - 1] + sorted[mid]) / 2;
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
   }
 
   getStatus(): NetworkStatus {
@@ -237,7 +245,7 @@ export class NetworkMonitor {
       }
 
       const start = performance.now();
-      fetch(url, { method: 'HEAD', cache: 'no-store' })
+      fetch(url, { method: "HEAD", cache: "no-store" })
         .then(() => {
           const rtt = performance.now() - start;
           this.status.rtt = rtt;
@@ -245,17 +253,6 @@ export class NetworkMonitor {
         })
         .catch(() => resolve(-1));
     });
-  }
-
-  private startProactiveMeasurement(): void {
-    this.measurementInterval = setInterval(() => {
-      if (this.status.online && !this.isMeasuring) {
-        const now = Date.now();
-        if (now - this.lastProactiveMeasure > this.MEASUREMENT_COOLDOWN) {
-          this.measureBandwidthProactive();
-        }
-      }
-    }, this.config.sampleInterval);
   }
 
   async measureBandwidthProactive(): Promise<BandwidthClassification | null> {
@@ -269,17 +266,16 @@ export class NetworkMonitor {
     try {
       const testUrl = this.config.bandwidthTestUrl;
       const startTime = performance.now();
-      const response = await fetch(testUrl, { 
-        method: 'GET', 
-        cache: 'no-store' 
+      const response = await fetch(testUrl, {
+        method: "GET",
+        cache: "no-store",
       });
-      
+
       const endTime = performance.now();
       const durationMs = endTime - startTime;
-      const bytes = response.headers.get('content-length') 
-        ? parseInt(response.headers.get('content-length')!, 10)
-        : this.config.bandwidthTestSize;
-      
+      const contentLength = response.headers.get("content-length");
+      const bytes = contentLength ? parseInt(contentLength, 10) : this.config.bandwidthTestSize;
+
       const bytesPerSecond = (bytes / durationMs) * 1000;
       const mbps = (bytesPerSecond * 8) / 1000000;
 
@@ -293,7 +289,7 @@ export class NetworkMonitor {
 
       this.addSample(sample);
 
-      const previous = this.status.bandwidth;
+      const _previous = this.status.bandwidth;
       this.status.bandwidthTested = true;
       this.status.mbps = Math.round(mbps * 100) / 100;
       this.updateClassification();
@@ -315,20 +311,19 @@ export class NetworkMonitor {
     }
 
     const testUrl = url || this.config.bandwidthTestUrl;
-    
+
     try {
       const startTime = performance.now();
-      const response = await fetch(testUrl, { 
-        method: 'GET', 
-        cache: 'no-store' 
+      const response = await fetch(testUrl, {
+        method: "GET",
+        cache: "no-store",
       });
-      
+
       const endTime = performance.now();
       const durationMs = endTime - startTime;
-      const bytes = response.headers.get('content-length') 
-        ? parseInt(response.headers.get('content-length')!, 10)
-        : this.config.bandwidthTestSize;
-      
+      const contentLength = response.headers.get("content-length");
+      const bytes = contentLength ? parseInt(contentLength, 10) : this.config.bandwidthTestSize;
+
       const bytesPerSecond = (bytes / durationMs) * 1000;
       const mbps = (bytesPerSecond * 8) / 1000000;
 

@@ -1,4 +1,10 @@
-export * from './core';
-export * from './adapters';
-export * from './service-worker';
-export * from './react';
+export * from "./adapters";
+export * from "./core";
+export type { CacheConfig, CacheEntry, CacheStats, NetworkStatus } from "./core/types";
+export type { CloudContextValue } from "./react/hooks";
+export { CloudContext, CloudProvider, useCloud } from "./react/hooks";
+export { ErrorBoundary } from "./react/hooks/ErrorBoundary";
+export { useCacheStats } from "./react/hooks/useCacheStats";
+export type { CloudImageProps, ImageStatus } from "./react/image";
+export { CloudImage } from "./react/image";
+export * from "./service-worker";

@@ -1,13 +1,13 @@
-export type MessageType = 
-  | 'fetch'
-  | 'cache-get'
-  | 'cache-set'
-  | 'cache-delete'
-  | 'cache-clear'
-  | 'stats'
-  | 'ping'
-  | 'init'
-  | 'destroy';
+export type MessageType =
+  | "fetch"
+  | "cache-get"
+  | "cache-set"
+  | "cache-delete"
+  | "cache-clear"
+  | "stats"
+  | "ping"
+  | "init"
+  | "destroy";
 
 export interface ServiceWorkerConfig {
   scope?: string;
@@ -17,7 +17,7 @@ export interface ServiceWorkerConfig {
 
 export interface SWResponse<T = unknown> {
   id: string;
-  type: 'success' | 'error';
+  type: "success" | "error";
   payload?: T;
   error?: string;
 }

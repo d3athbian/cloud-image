@@ -10,7 +10,7 @@ export interface PerformanceMetrics {
 
 export interface PerformanceSample {
   timestamp: number;
-  type: 'message' | 'decode' | 'transfer';
+  type: "message" | "decode" | "transfer";
   duration: number;
   correlationId: string;
 }
@@ -39,18 +39,18 @@ export class PerformanceMonitor {
 
   private updateMetrics(): void {
     const now = Date.now();
-    const recentSamples = this.samples.filter(s => now - s.timestamp < 60000);
+    const recentSamples = this.samples.filter((s) => now - s.timestamp < 60000);
 
-    const messageSamples = recentSamples.filter(s => s.type === 'message');
-    const decodeSamples = recentSamples.filter(s => s.type === 'decode');
-    const transferSamples = recentSamples.filter(s => s.type === 'transfer');
+    const messageSamples = recentSamples.filter((s) => s.type === "message");
+    const decodeSamples = recentSamples.filter((s) => s.type === "decode");
+    const transferSamples = recentSamples.filter((s) => s.type === "transfer");
 
     this.metrics.messageLatency = this.calculateAverage(messageSamples);
     this.metrics.decodeTime = this.calculateAverage(decodeSamples);
     this.metrics.transferTime = this.calculateAverage(transferSamples);
     this.metrics.totalBlockingTime = this.calculateAverage(recentSamples);
     this.metrics.processedCount = recentSamples.length;
-    this.metrics.errorCount = this.samples.filter(s => s.duration < 0).length;
+    this.metrics.errorCount = this.samples.filter((s) => s.duration < 0).length;
   }
 
   private calculateAverage(samples: PerformanceSample[]): number {

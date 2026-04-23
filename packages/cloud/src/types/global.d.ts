@@ -6,7 +6,12 @@ interface TizenGlobal {
     getCapability(key: string): string;
   };
   filesystem: {
-    resolve(path: string, successCallback: (dir: unknown) => void, errorCallback?: (e: Error) => void, type?: string): void;
+    resolve(
+      path: string,
+      successCallback: (dir: unknown) => void,
+      errorCallback?: (e: Error) => void,
+      type?: string,
+    ): void;
   };
 }
 
@@ -17,7 +22,15 @@ interface WebOSGlobal {
     };
   };
   service: {
-    request(uri: string, params: { method: string; parameters?: Record<string, unknown>; onSuccess?: (r: { payload?: unknown }) => void; onFailure?: (r: { errorText: string }) => void }): void;
+    request(
+      uri: string,
+      params: {
+        method: string;
+        parameters?: Record<string, unknown>;
+        onSuccess?: (r: { payload?: unknown }) => void;
+        onFailure?: (r: { errorText: string }) => void;
+      },
+    ): void;
   };
 }
 
@@ -60,12 +73,12 @@ declare global {
 }
 
 // CSS Module declarations
-declare module '*.module.css' {
+declare module "*.module.css" {
   const classes: { readonly [key: string]: string };
   export default classes;
 }
 
-declare module '*.css' {
+declare module "*.css" {
   const content: string;
   export default content;
 }

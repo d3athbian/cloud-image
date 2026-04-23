@@ -1,8 +1,7 @@
-import { getBandwidthMonitor, type BandwidthMonitor } from './bandwidth';
-import { createCDNAdapter, type CDNAdapter, type CDNVariant } from './cdn-adapter';
-import type { CacheEntry, BandwidthClassification } from './types';
-
-import { Time } from '../config/constants';
+import { Time } from "../config/constants";
+import { type BandwidthMonitor, getBandwidthMonitor } from "./bandwidth";
+import { type CDNAdapter, createCDNAdapter } from "./cdn-adapter";
+import type { BandwidthClassification, CacheEntry } from "./types";
 
 export interface SilentUpgradeConfig {
   enabled?: boolean;
@@ -22,13 +21,13 @@ export class SilentUpgradeManager {
   constructor(
     bandwidthMonitor: BandwidthMonitor,
     cdnAdapter: CDNAdapter,
-    config: SilentUpgradeConfig = {}
+    config: SilentUpgradeConfig = {},
   ) {
     this.bandwidthMonitor = bandwidthMonitor;
     this.cdnAdapter = cdnAdapter;
     this.config = {
       enabled: config.enabled ?? true,
-      minBandwidth: config.minBandwidth ?? 'medium',
+      minBandwidth: config.minBandwidth ?? "medium",
       checkInterval: config.checkInterval ?? Time.SILENT_UPGRADE_INTERVAL,
     };
 
@@ -37,7 +36,7 @@ export class SilentUpgradeManager {
 
   private setupBandwidthListener(): void {
     this.bandwidthMonitor.subscribe((event) => {
-      if (event.type === 'classificationChange' && event.current === 'high') {
+      if (event.type === "classificationChange" && event.current === "high") {
         if (this.shouldTriggerUpgrade()) {
           this.processUpgradeQueue();
         }
@@ -61,16 +60,16 @@ export class SilentUpgradeManager {
   private shouldUpgrade(entry: CacheEntry): boolean {
     if (!this.config.enabled) return false;
     if (!entry.upgradeable) return false;
-    if (entry.qualityTier === 'high') return false;
-    
+    if (entry.qualityTier === "high") return false;
+
     return true;
   }
 
   private shouldTriggerUpgrade(): boolean {
     const current = this.bandwidthMonitor.getClassification();
     const minLevel = this.config.minBandwidth;
-    
-    const levelOrder: BandwidthClassification[] = ['low', 'medium', 'high'];
+
+    const levelOrder: BandwidthClassification[] = ["low", "medium", "high"];
     return levelOrder.indexOf(current) >= levelOrder.indexOf(minLevel);
   }
 
@@ -82,8 +81,10 @@ export class SilentUpgradeManager {
     this.isProcessing = true;
 
     while (this.upgradeQueue.length > 0) {
-      const { url, entry } = this.upgradeQueue.shift()!;
-      
+      const item = this.upgradeQueue.shift();
+      if (!item) break;
+      const { url, entry } = item;
+
       try {
         await this.performUpgrade(url, entry);
       } catch {
@@ -97,7 +98,7 @@ export class SilentUpgradeManager {
   private async performUpgrade(url: string, _entry: CacheEntry): Promise<void> {
     if (!this.upgradeCallback) return;
 
-    const variant = this.cdnAdapter.getVariantForBandwidth('high');
+    const variant = this.cdnAdapter.getVariantForBandwidth("high");
     const upgradeUrl = this.cdnAdapter.generateUrl(url, variant);
 
     try {
@@ -115,7 +116,7 @@ export class SilentUpgradeManager {
   }
 
   getQueuedUrls(): string[] {
-    return this.upgradeQueue.map(q => q.url);
+    return this.upgradeQueue.map((q) => q.url);
   }
 
   clearQueue(): void {
@@ -146,7 +147,7 @@ export class SilentUpgradeManager {
 
 export function createSilentUpgradeManager(config?: SilentUpgradeConfig): SilentUpgradeManager {
   const bandwidthMonitor = getBandwidthMonitor();
-  const cdnAdapter = createCDNAdapter('default');
-  
+  const cdnAdapter = createCDNAdapter("default");
+
   return new SilentUpgradeManager(bandwidthMonitor, cdnAdapter, config);
 }

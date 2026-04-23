@@ -1,9 +1,9 @@
-import { openDB, type IDBPDatabase } from 'idb';
-import type { CacheEntry } from '../core/types';
-import type { PlatformAdapter } from './types';
+import { type IDBPDatabase, openDB } from "idb";
+import type { CacheEntry } from "../core/types";
+import type { PlatformAdapter } from "./types";
 
-const DB_NAME = 'cloud-image-cache';
-const STORE_NAME = 'images';
+const DB_NAME = "cloud-image-cache";
+const STORE_NAME = "images";
 const DB_VERSION = 2;
 
 interface CacheDB {
@@ -14,7 +14,7 @@ interface CacheDB {
 }
 
 export class WebAdapter implements PlatformAdapter {
-  readonly platform = 'web' as const;
+  readonly platform = "web" as const;
   private db: IDBPDatabase<CacheDB> | null = null;
   private initPromise: Promise<void> | null = null;
 
@@ -32,15 +32,15 @@ export class WebAdapter implements PlatformAdapter {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           if (!db.objectStoreNames.contains(STORE_NAME)) {
-            const store = db.createObjectStore(STORE_NAME, { keyPath: 'url' });
-            store.createIndex('cachedAt', 'cachedAt', { unique: false });
+            const store = db.createObjectStore(STORE_NAME, { keyPath: "url" });
+            store.createIndex("cachedAt", "cachedAt", { unique: false });
           }
         } else if (oldVersion < 2) {
           if (db.objectStoreNames.contains(STORE_NAME)) {
-            const tx = db.transaction(STORE_NAME, 'versionchange');
+            const tx = db.transaction(STORE_NAME, "versionchange");
             const store = tx.objectStore(STORE_NAME);
-            if (!store.indexNames.contains('cachedAt')) {
-              store.createIndex('cachedAt', 'cachedAt', { unique: false });
+            if (!store.indexNames.contains("cachedAt")) {
+              store.createIndex("cachedAt", "cachedAt", { unique: false });
             }
           }
         }
@@ -52,7 +52,7 @@ export class WebAdapter implements PlatformAdapter {
     if (!this.db) {
       await this.init();
     }
-    return this.db!;
+    return this.db as IDBPDatabase<CacheDB>;
   }
 
   async get(url: string): Promise<CacheEntry | null> {
@@ -116,3 +116,5 @@ export class WebAdapter implements PlatformAdapter {
 export function createWebAdapter(): PlatformAdapter {
   return new WebAdapter();
 }
+
+export default createWebAdapter;

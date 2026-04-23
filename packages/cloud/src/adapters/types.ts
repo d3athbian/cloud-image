@@ -1,4 +1,4 @@
-import type { CacheEntry, PlatformType } from '../core/types';
+import type { CacheEntry, PlatformType } from "../core/types";
 
 export interface PlatformAdapter {
   readonly platform: PlatformType;

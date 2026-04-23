@@ -9,7 +9,7 @@ export const url = {
       return false;
     }
   },
-  
+
   isImage: (urlStr: string): boolean => {
     try {
       const urlObj = new URL(urlStr);
@@ -19,42 +19,42 @@ export const url = {
       return false;
     }
   },
-  
+
   isAbsolute: (urlStr: string): boolean => {
     try {
       const urlObj = new URL(urlStr);
-      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:';
+      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
     } catch {
       return false;
     }
   },
-  
+
   normalize: (urlStr: string): string => {
     try {
       const urlObj = new URL(urlStr);
-      urlObj.hash = '';
+      urlObj.hash = "";
       return urlObj.toString();
     } catch {
       return urlStr;
     }
   },
-  
+
   getExtension: (urlStr: string): string => {
     try {
       const urlObj = new URL(urlStr);
       const pathname = urlObj.pathname;
       const match = pathname.match(/\.([^./]+)$/);
-      return match ? match[1].toLowerCase() : '';
+      return match ? match[1].toLowerCase() : "";
     } catch {
-      return '';
+      return "";
     }
   },
-  
+
   stripQueryParams: (urlStr: string): string => {
     try {
       const urlObj = new URL(urlStr);
-      urlObj.search = '';
-      urlObj.hash = '';
+      urlObj.search = "";
+      urlObj.hash = "";
       return urlObj.toString();
     } catch {
       return urlStr;

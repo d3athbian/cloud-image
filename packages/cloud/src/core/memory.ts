@@ -13,12 +13,12 @@ export interface MemoryConfig {
   aggressiveEvictionRatio?: number;
 }
 
-import { Time, Threshold } from '../config/constants';
-import { logger } from '../utils/logger';
+import { Threshold, Time } from "../config/constants";
+import { logger } from "../utils/logger";
 
 const log = logger.MemoryMonitor;
 
-export type MemoryEventType = 'normal' | 'high' | 'critical' | 'eviction';
+export type MemoryEventType = "normal" | "high" | "critical" | "eviction";
 
 export interface MemoryEvent {
   type: MemoryEventType;
@@ -33,7 +33,7 @@ export class MemoryMonitor {
   private metrics: MemoryMetrics[] = [];
   private config: Required<MemoryConfig>;
   private listeners: Set<MemoryListener> = new Set();
-  private lastStatus: MemoryEventType = 'normal';
+  private lastStatus: MemoryEventType = "normal";
   private checkInterval: ReturnType<typeof setInterval> | null = null;
   private evictionCallback: ((ratio: number) => Promise<void>) | null = null;
 
@@ -51,12 +51,16 @@ export class MemoryMonitor {
   }
 
   getMetrics(): MemoryMetrics | null {
-    if (typeof performance === 'undefined') {
+    if (typeof performance === "undefined") {
       return null;
     }
 
-    const memory = (performance as Performance & { memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number } }).memory;
-    
+    const memory = (
+      performance as Performance & {
+        memory?: { usedJSHeapSize: number; totalJSHeapSize: number; jsHeapSizeLimit: number };
+      }
+    ).memory;
+
     if (!memory) {
       return null;
     }
@@ -74,30 +78,30 @@ export class MemoryMonitor {
 
   getStatus(): MemoryEventType {
     const metrics = this.getMetrics();
-    
+
     if (!metrics) {
-      return 'normal';
+      return "normal";
     }
 
     if (metrics.percentage >= this.config.criticalThreshold) {
-      return 'critical';
+      return "critical";
     }
 
     if (metrics.percentage >= this.config.highThreshold) {
-      return 'high';
+      return "high";
     }
 
-    return 'normal';
+    return "normal";
   }
 
   shouldEvict(): { shouldEvict: boolean; ratio: number } {
     const status = this.getStatus();
-    
-    if (status === 'critical') {
+
+    if (status === "critical") {
       return { shouldEvict: true, ratio: this.config.aggressiveEvictionRatio };
     }
 
-    if (status === 'high') {
+    if (status === "high") {
       return { shouldEvict: true, ratio: this.config.aggressiveEvictionRatio / 2 };
     }
 
@@ -131,8 +135,8 @@ export class MemoryMonitor {
       // Proactive eviction - coordinate with cache before reaching critical
       const eviction = this.shouldEvict();
       if (eviction.shouldEvict && this.evictionCallback) {
-        this.evictionCallback(eviction.ratio).catch(err => {
-          log.warn('[MemoryMonitor] Proactive eviction failed:', err);
+        this.evictionCallback(eviction.ratio).catch((err) => {
+          log.warn("[MemoryMonitor] Proactive eviction failed:", err);
         });
       }
 
@@ -173,7 +177,7 @@ export class MemoryMonitor {
   }
 
   isSupported(): boolean {
-    if (typeof performance === 'undefined') {
+    if (typeof performance === "undefined") {
       return false;
     }
     const memory = (performance as Performance & { memory?: unknown }).memory;

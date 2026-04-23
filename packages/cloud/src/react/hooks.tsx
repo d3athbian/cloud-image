@@ -1,11 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { ImageEngine } from '../core/engine';
-import type { CacheConfig, CacheStats, NetworkStatus } from '../core/types';
-import { logger } from '../utils/logger';
+import type React from "react";
+import { createContext, useContext, useEffect, useState } from "react";
+import { ImageEngine } from "../core/engine";
+import type { CacheConfig, CacheStats, NetworkStatus } from "../core/types";
+import { logger } from "../utils/logger";
 
 const log = logger.CloudImage;
 
-const SW_STATE_KEY = '__CLOUD_SW_STATE__';
+const SW_STATE_KEY = "__CLOUD_SW_STATE__";
 
 const swScript = `
 (function() {
@@ -26,9 +27,9 @@ const swScript = `
 })();
 `;
 
-if (typeof document !== 'undefined' && !document.getElementById('cloud-sw-register')) {
-  const script = document.createElement('script');
-  script.id = 'cloud-sw-register';
+if (typeof document !== "undefined" && !document.getElementById("cloud-sw-register")) {
+  const script = document.createElement("script");
+  script.id = "cloud-sw-register";
   script.textContent = swScript;
   if (document.head) {
     document.head.appendChild(script);
@@ -71,11 +72,13 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
         setIsReady(true);
 
         const swState = (window as unknown as Record<string, unknown>)[SW_STATE_KEY];
-        if (swState === 'registered' && devtools) {
-          log.info('[CloudImage] Service Worker ready (inline registration)');
-        } else if (swState === 'failed' && devtools) {
-          log.warn('[CloudImage] Service Worker blocked by CSP');
-          log.warn('[CloudImage] To fix: add <script src="register.js"></script> in your HTML head');
+        if (swState === "registered" && devtools) {
+          log.info("[CloudImage] Service Worker ready (inline registration)");
+        } else if (swState === "failed" && devtools) {
+          log.warn("[CloudImage] Service Worker blocked by CSP");
+          log.warn(
+            '[CloudImage] To fix: add <script src="register.js"></script> in your HTML head',
+          );
         }
 
         if (devtools) {
@@ -86,7 +89,7 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
           };
         }
       } catch (err) {
-        console.error('[CloudProvider] Init failed:', err);
+        console.error("[CloudProvider] Init failed:", err);
         setError(err as Error);
         setIsReady(false);
       }
@@ -97,14 +100,33 @@ export const CloudProvider: React.FC<CloudProviderProps> = ({
     return () => {
       engine?.destroy();
     };
-  }, []);
+  }, [engine?.destroy, devtools, config]);
 
   return (
     <CloudContext.Provider value={{ engine, isReady, error }}>
-      {isReady ? children : (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: 40, height: 40, border: '3px solid #f3f3f3', borderTop: '3px solid #3498db', borderRadius: '50%', animation: 'cloudSpin 1s linear infinite', margin: '0 auto 16px' }} />
+      {isReady ? (
+        children
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            minHeight: "100vh",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                border: "3px solid #f3f3f3",
+                borderTop: "3px solid #3498db",
+                borderRadius: "50%",
+                animation: "cloudSpin 1s linear infinite",
+                margin: "0 auto 16px",
+              }}
+            />
             <p>Initializing CLOUD Image Cache...</p>
           </div>
           <style>{`@keyframes cloudSpin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
@@ -125,9 +147,9 @@ export function useCloud(): {
   network: NetworkStatus;
 } {
   const context = useContext(CloudContext);
-  
+
   if (!context) {
-    throw new Error('useCloud must be used within CloudProvider');
+    throw new Error("useCloud must be used within CloudProvider");
   }
 
   const { engine } = context;
@@ -137,8 +159,8 @@ export function useCloud(): {
       return engine.getNetworkStatus();
     }
     return {
-      online: typeof navigator !== 'undefined' ? navigator.onLine : true,
-      bandwidth: 'unknown',
+      online: typeof navigator !== "undefined" ? navigator.onLine : true,
+      bandwidth: "unknown",
       bandwidthTested: false,
     };
   });
@@ -173,13 +195,15 @@ export function useCloud(): {
         await engine?.delete(url);
       },
       getStats: async () => {
-        return engine?.getStats() ?? {
-          itemCount: 0,
-          totalSize: 0,
-          hitRate: 0,
-          missRate: 0,
-          evictionCount: 0,
-        };
+        return (
+          engine?.getStats() ?? {
+            itemCount: 0,
+            totalSize: 0,
+            hitRate: 0,
+            missRate: 0,
+            evictionCount: 0,
+          }
+        );
       },
     },
     network,

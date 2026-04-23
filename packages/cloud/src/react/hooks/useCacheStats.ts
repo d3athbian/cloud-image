@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import type { CacheStats } from '../core/types';
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { CacheStats } from "../core/types";
 
 export interface CacheLike {
   getStats(): Promise<CacheStats>;

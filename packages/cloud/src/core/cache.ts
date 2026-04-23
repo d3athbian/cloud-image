@@ -1,11 +1,6 @@
-import {
-  CacheEntry,
-  CacheConfig,
-  CacheStats,
-  DEFAULT_CACHE_CONFIG,
-} from './types';
-import type { PlatformAdapter } from '../adapters/types';
-import { logger } from '../utils/logger';
+import type { PlatformAdapter } from "../adapters/types";
+import { logger } from "../utils/logger";
+import { type CacheConfig, type CacheEntry, type CacheStats, DEFAULT_CACHE_CONFIG } from "./types";
 
 const log = logger.ImageCache;
 
@@ -16,12 +11,18 @@ class SimpleMutex {
   async acquire(): Promise<() => void> {
     if (!this.locked) {
       this.locked = true;
-      return () => { this.locked = false; this.releaseNext(); };
+      return () => {
+        this.locked = false;
+        this.releaseNext();
+      };
     }
     return new Promise((resolve) => {
       this.queue.push(() => {
         this.locked = true;
-        resolve(() => { this.locked = false; this.releaseNext(); });
+        resolve(() => {
+          this.locked = false;
+          this.releaseNext();
+        });
       });
     });
   }
@@ -34,7 +35,7 @@ class SimpleMutex {
 
 export class ImageCache {
   private entries: Map<string, CacheEntry> = new Map();
-  private config: Required<Omit<CacheConfig, 'platformOverride'>> & { platformOverride?: string };
+  private config: Required<Omit<CacheConfig, "platformOverride">> & { platformOverride?: string };
   private stats: CacheStats = {
     itemCount: 0,
     totalSize: 0,
@@ -48,7 +49,9 @@ export class ImageCache {
   private lock = new SimpleMutex();
 
   constructor(config: Partial<CacheConfig> = {}, adapter?: PlatformAdapter) {
-    this.config = { ...DEFAULT_CACHE_CONFIG, ...config } as Required<Omit<CacheConfig, 'platformOverride'>> & { platformOverride?: string };
+    this.config = { ...DEFAULT_CACHE_CONFIG, ...config } as Required<
+      Omit<CacheConfig, "platformOverride">
+    > & { platformOverride?: string };
     this.adapter = adapter ?? null;
   }
 
@@ -58,39 +61,14 @@ export class ImageCache {
 
   async init(): Promise<void> {
     if (this.adapter) {
-      this.adapter.init().catch(err => log.warn('Adapter init failed:', err));
-      this.loadFromAdapter().catch(err => log.warn('Load failed:', err));
-    }
-  }
-
-  private async verifyStateConsistency(): Promise<void> {
-    if (!this.adapter) return;
-    
-    try {
-      const adapterKeys = await this.adapter.keys();
-      const memoryCount = this.entries.size;
-      
-        if (adapterKeys.length !== memoryCount) {
-        log.warn(
-          `State inconsistency detected: adapter has ${adapterKeys.length} keys, ` +
-          `memory has ${memoryCount}. Attempting sync...`
-        );
-        
-        // Force rebuild from adapter
-        this.entries.clear();
-        await this.loadFromAdapter();
-        
-        const newCount = this.entries.size;
-        log.info(`Sync complete: ${newCount} entries in memory`);
-      }
-    } catch (error) {
-      log.warn('State verification failed:', error);
+      this.adapter.init().catch((err) => log.warn("Adapter init failed:", err));
+      this.loadFromAdapter().catch((err) => log.warn("Load failed:", err));
     }
   }
 
   private async loadFromAdapter(): Promise<void> {
     if (!this.adapter) return;
-    
+
     try {
       const keys = await this.adapter.keys();
       for (const url of keys) {
@@ -115,40 +93,44 @@ export class ImageCache {
       }
       this.stats.itemCount = this.entries.size;
     } catch (error) {
-      log.warn('[ImageCache] Failed to load from adapter:', error);
+      log.warn("[ImageCache] Failed to load from adapter:", error);
     }
   }
 
-  private validateCacheEntry(entry: CacheEntry): { valid: boolean; entry: CacheEntry; errors: string[] } {
+  private validateCacheEntry(entry: CacheEntry): {
+    valid: boolean;
+    entry: CacheEntry;
+    errors: string[];
+  } {
     const errors: string[] = [];
-    
-    if (!entry.url || typeof entry.url !== 'string') {
-      errors.push('Missing or invalid url');
+
+    if (!entry.url || typeof entry.url !== "string") {
+      errors.push("Missing or invalid url");
     }
     if (!entry.data || !(entry.data instanceof ArrayBuffer)) {
-      errors.push('Missing or invalid data (not ArrayBuffer)');
+      errors.push("Missing or invalid data (not ArrayBuffer)");
     }
     if (!entry.metadata) {
-      errors.push('Missing metadata');
+      errors.push("Missing metadata");
     } else {
-      if (typeof entry.metadata.size !== 'number' || entry.metadata.size <= 0) {
-        errors.push('Invalid metadata.size (must be positive number)');
+      if (typeof entry.metadata.size !== "number" || entry.metadata.size <= 0) {
+        errors.push("Invalid metadata.size (must be positive number)");
       }
-      if (typeof entry.metadata.cachedAt !== 'number') {
-        errors.push('Missing metadata.cachedAt');
+      if (typeof entry.metadata.cachedAt !== "number") {
+        errors.push("Missing metadata.cachedAt");
       }
-      if (typeof entry.metadata.accessedAt !== 'number') {
-        errors.push('Missing metadata.accessedAt');
+      if (typeof entry.metadata.accessedAt !== "number") {
+        errors.push("Missing metadata.accessedAt");
       }
-      if (typeof entry.metadata.accessCount !== 'number') {
-        errors.push('Missing metadata.accessCount');
+      if (typeof entry.metadata.accessCount !== "number") {
+        errors.push("Missing metadata.accessCount");
       }
     }
     if (!entry.state) {
-      errors.push('Missing state (defaulting to cached)');
-      entry.state = 'cached';
+      errors.push("Missing state (defaulting to cached)");
+      entry.state = "cached";
     }
-    
+
     return {
       valid: errors.length === 0,
       entry,
@@ -171,7 +153,7 @@ export class ImageCache {
 
   private async getInternal(url: string): Promise<CacheEntry | null> {
     const entry = this.entries.get(url);
-    
+
     if (!entry) {
       if (this.adapter) {
         const adapterEntry = await this.adapter.get(url);
@@ -202,11 +184,11 @@ export class ImageCache {
     entry.metadata.accessCount++;
     this.hits++;
     this.updateRates();
-    
+
     if (this.adapter) {
       await this.adapter.set(entry).catch(log.warn);
     }
-    
+
     return entry;
   }
 
@@ -221,7 +203,7 @@ export class ImageCache {
 
   private async setInternal(entry: CacheEntry): Promise<void> {
     const existingEntry = this.entries.get(entry.url);
-    
+
     if (existingEntry) {
       this.stats.totalSize -= existingEntry.metadata.size;
       this.stats.totalSize += entry.metadata.size;
@@ -234,7 +216,7 @@ export class ImageCache {
 
     const newEntry: CacheEntry = {
       ...entry,
-      state: 'cached',
+      state: "cached",
       metadata: {
         ...entry.metadata,
         cachedAt: Date.now(),
@@ -250,7 +232,7 @@ export class ImageCache {
       try {
         await this.adapter.set(newEntry);
       } catch (adapterError) {
-        log.error('[ImageCache] Persistence failed for', entry.url, adapterError);
+        log.error("[ImageCache] Persistence failed for", entry.url, adapterError);
         this.entries.delete(entry.url);
         this.stats.itemCount = this.entries.size;
         this.stats.totalSize -= newEntry.metadata.size;
@@ -270,7 +252,7 @@ export class ImageCache {
 
   private async deleteInternal(url: string): Promise<boolean> {
     const entry = this.entries.get(url);
-    
+
     if (!entry) {
       if (this.adapter) {
         const existed = await this.adapter.delete(url);
@@ -282,11 +264,11 @@ export class ImageCache {
     this.entries.delete(url);
     this.stats.itemCount = this.entries.size;
     this.stats.totalSize -= entry.metadata.size;
-    
+
     if (this.adapter) {
       await this.adapter.delete(url).catch(log.warn);
     }
-    
+
     return true;
   }
 
@@ -299,7 +281,7 @@ export class ImageCache {
       this.hits = 0;
       this.misses = 0;
       this.updateRates();
-      
+
       if (this.adapter) {
         await this.adapter.clear().catch(log.warn);
       }
@@ -316,20 +298,20 @@ export class ImageCache {
         const keys = await this.adapter.keys();
         this.stats.itemCount = keys.length;
       } catch (error) {
-        log.warn('[ImageCache] Failed to get adapter stats:', error);
+        log.warn("[ImageCache] Failed to get adapter stats:", error);
       }
     }
     return { ...this.stats };
   }
 
   getAdapterPlatform(): string {
-    return this.adapter?.platform ?? 'memory';
+    return this.adapter?.platform ?? "memory";
   }
 
   private isExpired(entry: CacheEntry): boolean {
     const ttlExpired = Date.now() - entry.metadata.cachedAt > this.config.defaultTTL;
     if (ttlExpired) return true;
-    
+
     if (entry.expiresAt && entry.expiresAt < Date.now()) {
       return true;
     }
@@ -344,7 +326,7 @@ export class ImageCache {
   private async evict(_incomingSize: number): Promise<void> {
     const targetSize = this.config.maxSize * 0.8;
     const entries = Array.from(this.entries.values());
-    
+
     const scoredEntries = entries
       .filter((e) => this.isExpired(e))
       .map((e) => ({ entry: e, score: 0 }));
@@ -392,7 +374,7 @@ export class ImageCache {
     this.stats.itemCount = this.entries.size;
     this.stats.totalSize = Array.from(this.entries.values()).reduce(
       (sum, e) => sum + e.metadata.size,
-      0
+      0,
     );
   }
 
@@ -400,10 +382,13 @@ export class ImageCache {
     const ttl = this.config.defaultTTL || 1;
     const recencyFactor = Math.max(0, 1 - (Date.now() - entry.metadata.accessedAt) / ttl);
     const normalizedAccess = Math.min(entry.metadata.accessCount / 100, 1);
-    
-    const viewportBonus = entry.metadata.isInViewport ? 0.3 : 
-      (entry.metadata.lastViewportSeen && Date.now() - entry.metadata.lastViewportSeen < 300000 ? 0.15 : 0);
-    
+
+    const viewportBonus = entry.metadata.isInViewport
+      ? 0.3
+      : entry.metadata.lastViewportSeen && Date.now() - entry.metadata.lastViewportSeen < 300000
+        ? 0.15
+        : 0;
+
     return normalizedAccess * 0.4 + recencyFactor * 0.3 + viewportBonus;
   }
 
@@ -415,7 +400,7 @@ export class ImageCache {
         entry.metadata.lastViewportSeen = Date.now();
       }
       if (this.adapter) {
-        await this.adapter.set(entry).catch(err => log.warn('Viewport update failed:', err));
+        await this.adapter.set(entry).catch((err) => log.warn("Viewport update failed:", err));
       }
     }
   }

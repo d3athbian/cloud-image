@@ -1,10 +1,21 @@
-import React, { createContext, useContext, useEffect, useState, useMemo, type ReactNode } from 'react';
-import { ImageEngine } from '../core/engine';
-import { getNetworkMonitor } from '../core/network';
-import { createOfflineStrategy } from '../core/offline';
-import { createAdapter } from '../adapters/factory';
-import type { CacheConfig, CacheStats, BandwidthClassification, NetworkStatus } from '../core/types';
-import { Size, Time } from '../config/constants';
+import React, {
+  createContext,
+  type ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { Size, Time } from "../config/constants";
+import { ImageEngine } from "../core/engine";
+import { getNetworkMonitor } from "../core/network";
+import { createOfflineStrategy } from "../core/offline";
+import type {
+  BandwidthClassification,
+  CacheConfig,
+  CacheStats,
+  NetworkStatus,
+} from "../core/types";
 
 export interface CloudProviderConfig {
   cache?: Partial<CacheConfig>;
@@ -12,7 +23,7 @@ export interface CloudProviderConfig {
   LoadingComponent?: React.ComponentType;
   ErrorComponent?: React.ComponentType<{ error: Error }>;
   devtools?: boolean;
-  offlineStrategy?: 'default' | 'aggressive';
+  offlineStrategy?: "default" | "aggressive";
 }
 
 export interface useCloudReturn {
@@ -41,17 +52,17 @@ export function CloudProvider({
   LoadingComponent,
   ErrorComponent,
   devtools = false,
-  offlineStrategy: strategyType = 'default',
+  offlineStrategy: strategyType = "default",
 }: CloudProviderConfig): React.ReactElement {
   const [engine, setEngine] = useState<ImageEngine | null>(null);
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
     online: true,
-    bandwidth: 'unknown',
+    bandwidth: "unknown",
   });
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [networkMonitor] = useState(() => getNetworkMonitor());
-  const [offlineStrategy] = useState(() => createOfflineStrategy(strategyType));
+  const [_offlineStrategy] = useState(() => createOfflineStrategy(strategyType));
 
   useEffect(() => {
     const initEngine = async () => {
@@ -69,11 +80,11 @@ export function CloudProvider({
         setEngine(imageEngine);
         setIsReady(true);
 
-        if (devtools && typeof window !== 'undefined') {
+        if (devtools && typeof window !== "undefined") {
           (window as Window & { __CLOUD_ENGINE__?: ImageEngine }).__CLOUD_ENGINE__ = imageEngine;
         }
       } catch (err) {
-        setError(err instanceof Error ? err : new Error('Failed to initialize'));
+        setError(err instanceof Error ? err : new Error("Failed to initialize"));
       }
     };
 
@@ -85,44 +96,59 @@ export function CloudProvider({
       unsubscribe();
       engine?.destroy();
     };
-  }, []);
+  }, [
+    devtools,
+    networkMonitor.subscribe,
+    cache?.requestTimeout,
+    cache?.maxRetries,
+    engine?.destroy,
+    cache?.memoryTierSize,
+    cache?.maxSize,
+    cache?.defaultTTL,
+  ]);
 
-  const cacheAPI = useMemo(() => ({
-    get: async (url: string): Promise<string | null> => {
-      if (!engine) return null;
-      return engine.get(url);
-    },
-    prefetch: async (urls: string[]): Promise<void> => {
-      if (!engine) return;
-      await Promise.all(urls.map(url => engine.get(url)));
-    },
-    invalidate: async (url: string): Promise<void> => {
-      if (!engine) return;
-      await engine.delete(url);
-    },
-    clear: async (): Promise<void> => {
-      if (!engine) return;
-      await engine.clear();
-    },
-    getStats: async (): Promise<CacheStats> => {
-      if (!engine) {
-        return { itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 };
-      }
-      return engine.getStats();
-    },
-  }), [engine]);
+  const cacheAPI = useMemo(
+    () => ({
+      get: async (url: string): Promise<string | null> => {
+        if (!engine) return null;
+        return engine.get(url);
+      },
+      prefetch: async (urls: string[]): Promise<void> => {
+        if (!engine) return;
+        await Promise.all(urls.map((url) => engine.get(url)));
+      },
+      invalidate: async (url: string): Promise<void> => {
+        if (!engine) return;
+        await engine.delete(url);
+      },
+      clear: async (): Promise<void> => {
+        if (!engine) return;
+        await engine.clear();
+      },
+      getStats: async (): Promise<CacheStats> => {
+        if (!engine) {
+          return { itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 };
+        }
+        return engine.getStats();
+      },
+    }),
+    [engine],
+  );
 
-  const value: useCloudReturn = useMemo(() => ({
-    cache: cacheAPI,
-    network: {
-      online: networkStatus.online,
-      bandwidth: networkStatus.bandwidth,
-      mbps: networkStatus.mbps,
-      rtt: networkStatus.rtt,
-    },
-    engine,
-    isReady,
-  }), [cacheAPI, networkStatus, engine, isReady]);
+  const value: useCloudReturn = useMemo(
+    () => ({
+      cache: cacheAPI,
+      network: {
+        online: networkStatus.online,
+        bandwidth: networkStatus.bandwidth,
+        mbps: networkStatus.mbps,
+        rtt: networkStatus.rtt,
+      },
+      engine,
+      isReady,
+    }),
+    [cacheAPI, networkStatus, engine, isReady],
+  );
 
   if (error) {
     if (ErrorComponent) {
@@ -135,16 +161,12 @@ export function CloudProvider({
     return <LoadingComponent />;
   }
 
-  return (
-    <CloudContext.Provider value={value}>
-      {children}
-    </CloudContext.Provider>
-  );
+  return <CloudContext.Provider value={value}>{children}</CloudContext.Provider>;
 }
 
 export function useCloud(): useCloudReturn {
   const context = useContext(CloudContext);
-  
+
   if (!context) {
     return {
       cache: {
@@ -152,11 +174,17 @@ export function useCloud(): useCloudReturn {
         prefetch: async () => {},
         invalidate: async () => {},
         clear: async () => {},
-        getStats: async () => ({ itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 }),
+        getStats: async () => ({
+          itemCount: 0,
+          totalSize: 0,
+          hitRate: 0,
+          missRate: 0,
+          evictionCount: 0,
+        }),
       },
       network: {
         online: true,
-        bandwidth: 'unknown',
+        bandwidth: "unknown",
       },
       engine: null,
       isReady: false,

@@ -1,10 +1,10 @@
-import { logger } from '../utils/logger';
+import { logger } from "../utils/logger";
 
 const log = logger.ImageCache;
 
 export interface PendingOperation {
   id: string;
-  type: 'set' | 'delete' | 'prefetch';
+  type: "set" | "delete" | "prefetch";
   url: string;
   data?: ArrayBuffer;
   metadata?: Record<string, unknown>;
@@ -13,7 +13,7 @@ export interface PendingOperation {
 }
 
 export interface SyncQueue {
-  enqueue(op: Omit<PendingOperation, 'id' | 'timestamp' | 'retries'>): string;
+  enqueue(op: Omit<PendingOperation, "id" | "timestamp" | "retries">): string;
   dequeue(): PendingOperation | null;
   getAll(): PendingOperation[];
   remove(id: string): boolean;
@@ -24,7 +24,7 @@ export interface SyncQueue {
 class MemorySyncQueue implements SyncQueue {
   private queue: PendingOperation[] = [];
 
-  enqueue(op: Omit<PendingOperation, 'id' | 'timestamp' | 'retries'>): string {
+  enqueue(op: Omit<PendingOperation, "id" | "timestamp" | "retries">): string {
     const operation: PendingOperation = {
       ...op,
       id: this.generateId(),
@@ -32,13 +32,13 @@ class MemorySyncQueue implements SyncQueue {
       retries: 0,
     };
     this.queue.push(operation);
-    log.info('[SyncQueue] Enqueued:', operation.type, operation.url);
+    log.info("[SyncQueue] Enqueued:", operation.type, operation.url);
     return operation.id;
   }
 
   dequeue(): PendingOperation | null {
-    if (this.queue.length === 0) return null;
-    return this.queue.shift()!;
+    const item = this.queue.shift();
+    return item ?? null;
   }
 
   getAll(): PendingOperation[] {
@@ -46,7 +46,7 @@ class MemorySyncQueue implements SyncQueue {
   }
 
   remove(id: string): boolean {
-    const index = this.queue.findIndex(op => op.id === id);
+    const index = this.queue.findIndex((op) => op.id === id);
     if (index === -1) return false;
     this.queue.splice(index, 1);
     return true;
@@ -67,8 +67,8 @@ class MemorySyncQueue implements SyncQueue {
 
 class PersistedSyncQueue implements SyncQueue {
   private queue: PendingOperation[] = [];
-  private dbName = '__CLOUD_SYNC_QUEUE__';
-  private storeName = 'pending';
+  private dbName = "__CLOUD_SYNC_QUEUE__";
+  private storeName = "pending";
   private initialized = false;
 
   async init(): Promise<void> {
@@ -82,7 +82,7 @@ class PersistedSyncQueue implements SyncQueue {
         request.onsuccess = async () => {
           const db = request.result;
           if (!db.objectStoreNames.contains(this.storeName)) {
-            db.createObjectStore(this.storeName, { keyPath: 'id' });
+            db.createObjectStore(this.storeName, { keyPath: "id" });
           }
           this.initialized = true;
           await this.loadFromDB();
@@ -92,19 +92,19 @@ class PersistedSyncQueue implements SyncQueue {
         request.onupgradeneeded = (event) => {
           const db = (event.target as IDBOpenDBRequest).result;
           if (!db.objectStoreNames.contains(this.storeName)) {
-            db.createObjectStore(this.storeName, { keyPath: 'id' });
+            db.createObjectStore(this.storeName, { keyPath: "id" });
           }
         };
       });
     } catch (e) {
-      log.warn('[SyncQueue] IndexedDB init failed:', e);
+      log.warn("[SyncQueue] IndexedDB init failed:", e);
     }
   }
 
   private async loadFromDB(): Promise<void> {
     try {
       const db = await this.openDB();
-      const tx = db.transaction(this.storeName, 'readonly');
+      const tx = db.transaction(this.storeName, "readonly");
       const store = tx.objectStore(this.storeName);
       const request = store.getAll();
 
@@ -117,7 +117,7 @@ class PersistedSyncQueue implements SyncQueue {
         request.onerror = () => resolve();
       });
     } catch (e) {
-      log.warn('[SyncQueue] Load from DB failed:', e);
+      log.warn("[SyncQueue] Load from DB failed:", e);
     }
   }
 
@@ -129,7 +129,7 @@ class PersistedSyncQueue implements SyncQueue {
     });
   }
 
-  async enqueue(op: Omit<PendingOperation, 'id' | 'timestamp' | 'retries'>): Promise<string> {
+  async enqueue(op: Omit<PendingOperation, "id" | "timestamp" | "retries">): Promise<string> {
     const operation: PendingOperation = {
       ...op,
       id: this.generateId(),
@@ -139,19 +139,19 @@ class PersistedSyncQueue implements SyncQueue {
 
     this.queue.push(operation);
     await this.saveToDB(operation);
-    
-    log.info('[SyncQueue] Enqueued:', operation.type, operation.url);
+
+    log.info("[SyncQueue] Enqueued:", operation.type, operation.url);
     return operation.id;
   }
 
   private async saveToDB(op: PendingOperation): Promise<void> {
     try {
       const db = await this.openDB();
-      const tx = db.transaction(this.storeName, 'readwrite');
+      const tx = db.transaction(this.storeName, "readwrite");
       const store = tx.objectStore(this.storeName);
       store.put(op);
     } catch (e) {
-      log.warn('[SyncQueue] Save to DB failed:', e);
+      log.warn("[SyncQueue] Save to DB failed:", e);
     }
   }
 
@@ -169,7 +169,7 @@ class PersistedSyncQueue implements SyncQueue {
   }
 
   async remove(id: string): Promise<boolean> {
-    const index = this.queue.findIndex(op => op.id === id);
+    const index = this.queue.findIndex((op) => op.id === id);
     if (index === -1) return false;
     this.queue.splice(index, 1);
     return this.removeFromDB(id);
@@ -178,11 +178,11 @@ class PersistedSyncQueue implements SyncQueue {
   private async removeFromDB(id: string): Promise<void> {
     try {
       const db = await this.openDB();
-      const tx = db.transaction(this.storeName, 'readwrite');
+      const tx = db.transaction(this.storeName, "readwrite");
       const store = tx.objectStore(this.storeName);
       store.delete(id);
     } catch (e) {
-      log.warn('[SyncQueue] Remove from DB failed:', e);
+      log.warn("[SyncQueue] Remove from DB failed:", e);
     }
   }
 
@@ -194,11 +194,11 @@ class PersistedSyncQueue implements SyncQueue {
     this.queue = [];
     try {
       const db = await this.openDB();
-      const tx = db.transaction(this.storeName, 'readwrite');
+      const tx = db.transaction(this.storeName, "readwrite");
       const store = tx.objectStore(this.storeName);
       store.clear();
     } catch (e) {
-      log.warn('[SyncQueue] Clear DB failed:', e);
+      log.warn("[SyncQueue] Clear DB failed:", e);
     }
   }
 
@@ -224,9 +224,13 @@ export class SyncQueueManager {
     }
   }
 
-  enqueue(op: Omit<PendingOperation, 'id' | 'timestamp' | 'retries'>): string {
+  enqueue(op: Omit<PendingOperation, "id" | "timestamp" | "retries">): string {
     if (this.persistedQueue) {
-      return this.persistedQueue.enqueue(op) as any;
+      const result = this.persistedQueue.enqueue(op);
+      if (result instanceof Promise) {
+        return "";
+      }
+      return result;
     }
     return this.memoryQueue.enqueue(op);
   }
