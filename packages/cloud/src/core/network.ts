@@ -1,3 +1,4 @@
+import { networkAtom } from "./system-atoms";
 import type { BandwidthClassification, NetworkStatus } from "./types";
 
 export interface NetworkMonitorConfig {
@@ -147,6 +148,11 @@ export class NetworkMonitor {
     this.notifyListeners();
     this.config.onStatusChange(this.status);
     this.processRetryQueue();
+    networkAtom.set({
+      status: "ONLINE",
+      rtt: 0,
+      lastChecked: Date.now(),
+    });
   }
 
   private handleOffline(): void {
@@ -154,6 +160,11 @@ export class NetworkMonitor {
     this.status.bandwidth = "unknown";
     this.notifyListeners();
     this.config.onStatusChange(this.status);
+    networkAtom.set({
+      status: "OFFLINE",
+      rtt: 0,
+      lastChecked: Date.now(),
+    });
   }
 
   private addSample(sample: BandwidthSample): void {

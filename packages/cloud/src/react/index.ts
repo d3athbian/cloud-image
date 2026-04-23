@@ -1,4 +1,7 @@
 export type { CacheConfig, CacheEntry, CacheStats, NetworkStatus } from "../core/types";
+export { CacheStatus } from "./components/CacheStatus";
+export { NetworkBadge } from "./components/NetworkBadge";
+export { SelectiveRenderDemo } from "./examples/SelectiveRenderDemo";
 export type { CloudContextValue } from "./hooks";
 export { CloudContext, CloudProvider, useCloud } from "./hooks";
 export { ErrorBoundary } from "./hooks/ErrorBoundary";

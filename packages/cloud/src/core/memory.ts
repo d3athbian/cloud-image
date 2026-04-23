@@ -15,6 +15,7 @@ export interface MemoryConfig {
 
 import { Threshold, Time } from "../config/constants";
 import { logger } from "../utils/logger";
+import { memoryAtom } from "./system-atoms";
 
 const log = logger.MemoryMonitor;
 
@@ -174,6 +175,14 @@ export class MemoryMonitor {
         // Ignore listener errors
       }
     }
+    const pressureLevel =
+      event.type === "critical" ? "high" : event.type === "high" ? "medium" : "low";
+    memoryAtom.set({
+      isUnderPressure: event.type !== "normal",
+      pressureLevel,
+      usedJSHeapSize: event.metrics.usedJSHeapSize,
+      jsHeapSizeLimit: event.metrics.jsHeapSizeLimit,
+    });
   }
 
   isSupported(): boolean {
