@@ -8,6 +8,7 @@ Auto-generated from all feature plans. Last updated: 2026-04-23
 - TypeScript 5.x (strict mode) | constitution + Jotai (~2KB), React 19 (020-jotai-atoms)
 - IndexedDB (existing via idb) (020-jotai-atoms)
 - TypeScript 5.x (strict mode) + None (wrapper pattern, no new deps) (022-event-error-interceptor)
+- TypeScript 5.x (strict mode) + jotai (existing), idb (existing) - no new deps (023-global-state-sync)
 
 - TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression) (002-cloud-image-cache-engine)
 
@@ -66,9 +67,9 @@ TypeScript 5.x (strict mode): Follow standard conventions
 - Transferable objects for zero-copy
 
 ## Recent Changes
+- 023-global-state-sync: Added TypeScript 5.x (strict mode) + jotai (existing), idb (existing) - no new deps
 - 022-event-error-interceptor: Added TypeScript 5.x (strict mode) + None (wrapper pattern, no new deps)
 - 020-jotai-atoms: Added TypeScript 5.x (strict mode) | constitution + Jotai (~2KB), React 19
-- 003-workers-to-serviceworkers: Added TypeScript 5.x (strict mode) + Vitest (testing), Vite (build)
 
 
 <!-- MANUAL ADDITIONS START -->
