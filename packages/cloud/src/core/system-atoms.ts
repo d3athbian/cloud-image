@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { StateSync } from "./state-sync";
 
-export type NetworkStatus = "ONLINE" | "OFFLINE" | "LOW_BANDWIDTH";
+export type ConnectionStatus = "ONLINE" | "OFFLINE" | "LOW_BANDWIDTH";
 export type PressureLevel = "low" | "medium" | "high";
 
 let stateSyncInstance: StateSync | null = null;
@@ -22,7 +22,7 @@ export interface CacheState {
 }
 
 export interface NetworkState {
-  status: NetworkStatus;
+  status: ConnectionStatus;
   rtt: number;
   lastChecked: number;
 }

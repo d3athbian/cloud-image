@@ -1,7 +1,10 @@
+import { getSystemSettings } from "../config/settings";
 import { logger } from "../utils/logger";
 import { EventInterceptor } from "./event-interceptor";
-import { networkAtom } from "./system-atoms";
+import { setNetworkAtom } from "./system-atoms";
 import type { BandwidthClassification, NetworkStatus } from "./types";
+
+const systemSettings = getSystemSettings();
 
 export interface NetworkMonitorConfig {
   sampleInterval?: number;
@@ -37,7 +40,6 @@ export class NetworkMonitor {
   private isRetrying = false;
   private isMeasuring = false;
   private measurementInterval: ReturnType<typeof setInterval> | null = null;
-  private readonly DEFAULT_TEST_URL = "https://picsum.photos/100/100";
   private boundConnectionChange: (() => void) | null = null;
   private connectionRef: {
     effectiveType?: string;
@@ -51,11 +53,14 @@ export class NetworkMonitor {
   constructor(config: NetworkMonitorConfig = {}) {
     this.config = {
       sampleInterval: config.sampleInterval ?? 5000,
-      bandwidthThreshold: config.bandwidthThreshold ?? { low: 1.5, medium: 6 },
+      bandwidthThreshold: config.bandwidthThreshold ?? {
+        low: systemSettings.bandwidthLowThreshold,
+        medium: systemSettings.bandwidthMediumThreshold,
+      },
       onStatusChange: config.onStatusChange ?? (() => {}),
       onBandwidthChange: config.onBandwidthChange ?? (() => {}),
-      bandwidthTestUrl: config.bandwidthTestUrl ?? this.DEFAULT_TEST_URL,
-      bandwidthTestSize: config.bandwidthTestSize ?? 10000,
+      bandwidthTestUrl: config.bandwidthTestUrl ?? systemSettings.bandwidthTestUrl,
+      bandwidthTestSize: config.bandwidthTestSize ?? systemSettings.bandwidthTestSize,
     };
     this.status.online = this.checkOnlineStatus();
 
@@ -163,7 +168,7 @@ export class NetworkMonitor {
     this.notifyListeners();
     this.config.onStatusChange(this.status);
     this.processRetryQueue();
-    networkAtom.set({
+    setNetworkAtom({
       status: "ONLINE",
       rtt: 0,
       lastChecked: Date.now(),
@@ -175,7 +180,7 @@ export class NetworkMonitor {
     this.status.bandwidth = "unknown";
     this.notifyListeners();
     this.config.onStatusChange(this.status);
-    networkAtom.set({
+    setNetworkAtom({
       status: "OFFLINE",
       rtt: 0,
       lastChecked: Date.now(),

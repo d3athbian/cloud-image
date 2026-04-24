@@ -31,16 +31,9 @@ export interface CacheMetadata {
 
 /**
  * CacheConfig - Configuration options for the cache system
+ * @deprecated Use CacheConfig from ../types/cache-config.schema.ts
  */
-export interface CacheConfig {
-  maxSize: number;
-  defaultTTL: number;
-  memoryTierSize: number;
-  platformOverride?: PlatformType;
-  debug?: boolean;
-  maxRetries?: number;
-  requestTimeout?: number;
-}
+export type CacheConfig = import("../types/cache-config.schema").CacheConfig;
 
 import { DEFAULT_CACHE_CONFIG } from "../config/constants";
 
@@ -56,33 +49,34 @@ export interface CacheStats {
 
 /**
  * Platform types
+ * @deprecated Use PlatformType from ../types/cache-config.schema.ts
  */
-export type PlatformType = "web" | "tizen" | "webos" | "memory";
+export type PlatformType = import("../types/cache-config.schema").PlatformType;
 
 /**
  * Circuit breaker states
+ * @deprecated Use CircuitBreakerState from ../types/circuit-breaker.schema.ts
  */
-export type CircuitBreakerState = "closed" | "open" | "half-open";
+export type CircuitBreakerState = import("../types/circuit-breaker.schema").CircuitBreakerState;
 
-export interface CircuitBreakerConfig {
-  failureThreshold?: number;
-  successThreshold?: number;
-  resetTimeout?: number;
-  halfOpenMaxCalls?: number;
-}
+/**
+ * Circuit breaker configuration
+ * @deprecated Use CircuitBreakerConfig from ../types/circuit-breaker.schema.ts
+ */
+export type CircuitBreakerConfig = import("../types/circuit-breaker.schema").CircuitBreakerConfig;
 
 /**
  * Network status
+ * @deprecated Use NetworkStatus from ../types/network-monitor.schema.ts
  */
-export interface NetworkStatus {
-  online: boolean;
-  bandwidth: BandwidthClassification;
-  mbps?: number;
-  rtt?: number;
-  bandwidthTested?: boolean;
-}
+export type NetworkStatus = import("../types/network-monitor.schema").NetworkStatus;
 
-export type BandwidthClassification = "low" | "medium" | "high" | "unknown";
+/**
+ * Bandwidth classification
+ * @deprecated Use BandwidthClassification from ../types/network-monitor.schema.ts
+ */
+export type BandwidthClassification =
+  import("../types/network-monitor.schema").BandwidthClassification;
 
 /**
  * Worker message types

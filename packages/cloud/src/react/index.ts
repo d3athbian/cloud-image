@@ -1,4 +1,5 @@
-export type { CacheConfig, CacheEntry, CacheStats, NetworkStatus } from "../core/types";
+export type { CacheEntry, CacheStats, NetworkStatus } from "../core/types";
+export type { CacheConfig } from "../types/cache-config.schema";
 export { CacheStatus } from "./components/CacheStatus";
 export { NetworkBadge } from "./components/NetworkBadge";
 export { SelectiveRenderDemo } from "./examples/SelectiveRenderDemo";
