@@ -1,6 +1,7 @@
 export * from "./adapters";
 export * from "./core";
 export type { CacheConfig, CacheEntry, CacheStats, NetworkStatus } from "./core/types";
+export * from "./debugger";
 export type { CloudContextValue } from "./react/hooks";
 export { CloudContext, CloudProvider, useCloud } from "./react/hooks";
 export { ErrorBoundary } from "./react/hooks/ErrorBoundary";

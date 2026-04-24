@@ -29,6 +29,42 @@ body {
   flex-direction: column;
 }
 
+.demo-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.demo-header {
+  padding: 2rem 2rem 1.5rem;
+  text-align: center;
+  background: linear-gradient(180deg, var(--color-bg-secondary) 0%, var(--color-bg) 100%);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.demo-header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #fff 0%, #3b82f6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.demo-header p {
+  margin: 0.5rem 0 0;
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+}
+
+.demo-main {
+  flex: 1;
+  padding: 2rem;
+}
+
 .header {
   padding: 1.5rem 2rem;
   border-bottom: 1px solid var(--color-border);
@@ -154,6 +190,11 @@ body {
 .main {
   flex: 1;
   padding: 1.5rem 2rem;
+}
+
+.demo-container .main, .demo-main {
+  flex: 1;
+  padding: 2rem;
 }
 
 .grid {

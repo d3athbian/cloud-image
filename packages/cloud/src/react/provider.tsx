@@ -12,7 +12,7 @@ import { ImageEngine } from "../core/engine";
 import { getMemoryMonitor } from "../core/memory";
 import { getNetworkMonitor } from "../core/network";
 import { createOfflineStrategy } from "../core/offline";
-import { hydrateState, setCacheAtom, setNetworkAtom, setMemoryAtom } from "../core/system-atoms";
+import { hydrateState, setCacheAtom, setMemoryAtom, setNetworkAtom } from "../core/system-atoms";
 import type {
   BandwidthClassification,
   CacheConfig,
@@ -74,7 +74,7 @@ export function CloudProvider({
         await hydrateState(
           (data) => setCacheAtom(data),
           (data) => setNetworkAtom(data),
-          (data) => setMemoryAtom(data)
+          (data) => setMemoryAtom(data),
         );
 
         const imageEngine = new ImageEngine({

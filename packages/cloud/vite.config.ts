@@ -42,6 +42,7 @@ export default defineConfig({
         core: resolve(__dirname, 'src/core/index.ts'),
         adapters: resolve(__dirname, 'src/adapters/index.ts'),
         react: resolve(__dirname, 'src/react/index.ts'),
+        debugger: resolve(__dirname, 'src/debugger/index.ts'),
       },
       name: 'CloudImage',
       formats: ['es'],
@@ -63,6 +64,9 @@ export default defineConfig({
           }
           if (id.includes('/react/')) {
             return 'cloud-react';
+          }
+          if (id.includes('/debugger/')) {
+            return 'debugger';
           }
         },
         chunkFileNames: '[name].js',

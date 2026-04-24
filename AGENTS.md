@@ -1,6 +1,6 @@
 # carbon-image Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-23
+Auto-generated from all feature plans. Last updated: 2026-04-24
 
 ## Active Technologies
 - TypeScript 5.x (strict mode) + Vitest (testing), Vite (build) (003-workers-to-serviceworkers)
@@ -9,6 +9,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-23
 - IndexedDB (existing via idb) (020-jotai-atoms)
 - TypeScript 5.x (strict mode) + None (wrapper pattern, no new deps) (022-event-error-interceptor)
 - TypeScript 5.x (strict mode) + jotai (existing), idb (existing) - no new deps (023-global-state-sync)
+- TypeScript 5.x (strict mode) + React 19, Jotai (existing) (024-demo-ui-tool)
+- IndexedDB (via idb - existing) (024-demo-ui-tool)
 
 - TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression) (002-cloud-image-cache-engine)
 
@@ -67,9 +69,9 @@ TypeScript 5.x (strict mode): Follow standard conventions
 - Transferable objects for zero-copy
 
 ## Recent Changes
+- 024-demo-ui-tool: Added TypeScript 5.x (strict mode) + React 19, Jotai (existing)
 - 023-global-state-sync: Added TypeScript 5.x (strict mode) + jotai (existing), idb (existing) - no new deps
 - 022-event-error-interceptor: Added TypeScript 5.x (strict mode) + None (wrapper pattern, no new deps)
-- 020-jotai-atoms: Added TypeScript 5.x (strict mode) | constitution + Jotai (~2KB), React 19
 
 
 <!-- MANUAL ADDITIONS START -->

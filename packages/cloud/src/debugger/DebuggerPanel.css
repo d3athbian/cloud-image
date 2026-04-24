@@ -1,0 +1,292 @@
+.debugger-panel {
+  position: fixed;
+  background: var(--debugger-bg, #0f0f0f);
+  border: 1px solid var(--debugger-border, #333);
+  border-radius: 12px;
+  width: 320px;
+  max-height: 400px;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 13px;
+  color: var(--debugger-text, #ededed);
+  z-index: 9999;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.debugger-panel-fullwidth {
+  width: calc(100vw - 32px);
+  max-width: 100%;
+  left: 16px !important;
+  right: 16px !important;
+  max-height: 45vh;
+}
+
+.debugger-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--debugger-text, #888);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px 8px 0 0;
+}
+
+.debugger-tab:hover {
+  color: var(--debugger-text, #ededed);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.debugger-tab.active {
+  color: var(--debugger-accent, #3b82f6);
+  border-bottom-color: var(--debugger-accent, #3b82f6);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.debugger-tab svg {
+  opacity: 0.8;
+  width: 16px;
+  height: 16px;
+}
+
+.debugger-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid var(--debugger-border, #333);
+}
+
+.debugger-tabs {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.debugger-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.debugger-close-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.debugger-close-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.debugger-panel-content {
+  padding: 16px;
+  max-height: calc(45vh - 60px);
+  overflow-y: auto;
+}
+
+.debugger-panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.debugger-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.debugger-stat {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.debugger-label {
+  font-size: 10px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.debugger-value {
+  font-size: 16px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.debugger-actions {
+  display: flex;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.debugger-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  border-radius: 8px;
+  color: var(--debugger-accent, #3b82f6);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.debugger-action-btn:hover {
+  background: rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.debugger-action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+.text-green-500 {
+  color: #22c55e;
+}
+
+.text-red-500 {
+  color: #ef4444;
+}
+
+.text-yellow-500 {
+  color: #eab308;
+}
+
+.debugger-toggle {
+  position: fixed;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0f0f0f 100%);
+  border: 1px solid var(--debugger-border, #333);
+  color: var(--debugger-text, #ededed);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 9998;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.debugger-toggle:hover {
+  background: linear-gradient(135deg, #252525 0%, #1a1a1a 100%);
+  border-color: var(--debugger-accent, #3b82f6);
+  transform: scale(1.05);
+}
+
+.debugger-toggle svg {
+  width: 20px;
+  height: 20px;
+  opacity: 0.9;
+}
+
+.debugger-toggle:hover svg {
+  opacity: 1;
+  color: var(--debugger-accent, #3b82f6);
+}
+
+.debugger-state-content {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.debugger-state-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.debugger-state-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(59, 130, 246, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--debugger-accent, #3b82f6);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.debugger-state-header svg {
+  width: 14px;
+  height: 14px;
+}
+
+.debugger-state-body {
+  padding: 8px 0;
+}
+
+.debugger-state-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.debugger-state-row span:first-child {
+  color: #666;
+}
+
+.debugger-state-row span:last-child {
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.debugger-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: #666;
+  font-size: 13px;
+}
+
+@media (max-width: 768px) {
+  .debugger-state-content {
+    grid-template-columns: 1fr;
+  }
+  
+  .debugger-metrics {
+    grid-template-columns: 1fr;
+  }
+  
+  .debugger-tabs {
+    flex-wrap: wrap;
+  }
+}
