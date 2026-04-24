@@ -151,6 +151,8 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
   useEffect(() => {
     if (!isInViewport || !isReady) return;
 
+    abortControllerRef.current = new AbortController();
+
     const loadImage = async () => {
       if (!isOnline) {
         setStatus("offline");
@@ -175,7 +177,9 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
 
         if (!url) {
           try {
-            const response = await fetch(src);
+            const response = await fetch(src, {
+              signal: abortControllerRef.current?.signal,
+            });
 
             if (response.ok) {
               const blob = await response.blob();
@@ -251,6 +255,7 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
     loadImage();
 
     return () => {
+      abortControllerRef.current?.abort();
       cancelTransition();
     };
   }, [

@@ -36,6 +36,16 @@ export class NetworkMonitor {
   private isMeasuring = false;
   private measurementInterval: ReturnType<typeof setInterval> | null = null;
   private readonly DEFAULT_TEST_URL = "https://picsum.photos/100/100";
+  private boundHandleOnline: () => void = () => this.handleOnline();
+  private boundHandleOffline: () => void = () => this.handleOffline();
+  private boundConnectionChange: (() => void) | null = null;
+  private connectionRef: {
+    effectiveType?: string;
+    downlink?: number;
+    rtt?: number;
+    addEventListener?: (type: string, listener: () => void) => void;
+    removeEventListener?: (type: string, listener: () => void) => void;
+  } | null = null;
 
   constructor(config: NetworkMonitorConfig = {}) {
     this.config = {
@@ -64,13 +74,8 @@ export class NetworkMonitor {
   private setupListeners(): void {
     if (typeof window === "undefined") return;
 
-    window.addEventListener("online", () => {
-      this.handleOnline();
-    });
-
-    window.addEventListener("offline", () => {
-      this.handleOffline();
-    });
+    window.addEventListener("online", this.boundHandleOnline);
+    window.addEventListener("offline", this.boundHandleOffline);
 
     this.monitorConnectionAPI();
   }
@@ -83,17 +88,20 @@ export class NetworkMonitor {
           downlink?: number;
           rtt?: number;
           addEventListener?: (type: string, listener: () => void) => void;
+          removeEventListener?: (type: string, listener: () => void) => void;
         };
       }
     ).connection;
 
     if (connection) {
+      this.connectionRef = connection;
       this.updateFromConnectionAPI(connection);
 
       if (connection.addEventListener) {
-        connection.addEventListener("change", () => {
+        this.boundConnectionChange = () => {
           this.updateFromConnectionAPI(connection);
-        });
+        };
+        connection.addEventListener("change", this.boundConnectionChange);
       }
     }
   }
@@ -345,6 +353,17 @@ export class NetworkMonitor {
   }
 
   destroy(): void {
+    if (typeof window === "undefined") return;
+
+    window.removeEventListener("online", this.boundHandleOnline);
+    window.removeEventListener("offline", this.boundHandleOffline);
+
+    if (this.connectionRef && this.boundConnectionChange) {
+      this.connectionRef.removeEventListener?.("change", this.boundConnectionChange);
+      this.connectionRef = null;
+      this.boundConnectionChange = null;
+    }
+
     if (this.reconnectTimeout) {
       clearTimeout(this.reconnectTimeout);
     }
