@@ -43,11 +43,11 @@
   },
   "peerDependencies": {
     "react": "^19.2.5",
-    "react-dom": "^19.2.5"
+    "react-dom": "^19.2.5",
+    "jotai": "^2.10.0"
   },
   "dependencies": {
-    "idb": "^8.0.0",
-    "jotai": "^2.10.0"
+    "idb": "^8.0.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.12",
