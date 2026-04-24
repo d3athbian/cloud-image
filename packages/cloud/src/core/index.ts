@@ -1,3 +1,4 @@
+export type { LoggerInterface } from "../utils/logger";
 export { BandwidthMonitor, getBandwidthMonitor } from "./bandwidth";
 export { ImageCache } from "./cache";
 export {
@@ -13,7 +14,7 @@ export { ImageEngine } from "./engine";
 export { EventInterceptor, type EventInterceptorConfig } from "./event-interceptor";
 export { getFormatDetector } from "./format-detector";
 export { ImageValidator } from "./image-validator";
-export { getLogger, type LoggerInterface } from "./logger";
+export { getLogger } from "./logger";
 export { getMemoryMonitor, MemoryMonitor } from "./memory";
 export { getNetworkMonitor, NetworkMonitor } from "./network";
 export {
@@ -29,12 +30,11 @@ export { StateSync } from "./state-sync";
 export { getSyncQueue, SyncQueueManager } from "./sync-queue";
 export {
   type CacheState,
+  type ConnectionStatus,
   cacheAtom,
   hydrateState,
   type MemoryState,
   memoryAtom,
-  type NetworkState,
-  type NetworkStatus,
   networkAtom,
   type PressureLevel,
   setCacheAtom,

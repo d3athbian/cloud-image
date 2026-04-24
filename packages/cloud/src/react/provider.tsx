@@ -7,7 +7,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { Size, Time } from "../config/constants";
+import { getSystemSettings } from "../config/settings";
 import { ImageEngine } from "../core/engine";
 import { getMemoryMonitor } from "../core/memory";
 import { getNetworkMonitor } from "../core/network";
@@ -67,6 +67,7 @@ export function CloudProvider({
   const [networkMonitor] = useState(() => getNetworkMonitor());
   const [memoryMonitor] = useState(() => getMemoryMonitor());
   const [_offlineStrategy] = useState(() => createOfflineStrategy(strategyType));
+  const systemSettings = getSystemSettings();
 
   useEffect(() => {
     const initEngine = async () => {
@@ -78,12 +79,12 @@ export function CloudProvider({
         );
 
         const imageEngine = new ImageEngine({
-          maxSize: cache?.maxSize ?? Size.DEFAULT_MAX_SIZE,
-          defaultTTL: cache?.defaultTTL ?? Time.DEFAULT_TTL,
-          memoryTierSize: cache?.memoryTierSize ?? Size.DEFAULT_MEMORY_TIER,
-          debug: devtools,
-          maxRetries: cache?.maxRetries ?? 3,
-          requestTimeout: cache?.requestTimeout ?? Time.REQUEST_TIMEOUT,
+          maxSize: cache?.maxSize ?? systemSettings.cacheMaxSize,
+          defaultTTL: cache?.defaultTTL ?? systemSettings.cacheDefaultTTL,
+          memoryTierSize: cache?.memoryTierSize ?? systemSettings.cacheMemoryTierSize,
+          debug: devtools ?? systemSettings.enableDevtools,
+          maxRetries: cache?.maxRetries ?? systemSettings.maxRetries,
+          requestTimeout: cache?.requestTimeout ?? systemSettings.requestTimeout,
         });
 
         await imageEngine.init();

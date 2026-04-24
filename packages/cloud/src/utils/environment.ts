@@ -9,6 +9,15 @@ export const env = {
 
   hasWorker: typeof Worker !== "undefined",
 
+  isDevelopment: (): boolean => {
+    if (typeof process !== "undefined" && process.env?.NODE_ENV) {
+      return process.env.NODE_ENV !== "production";
+    }
+    return typeof window !== "undefined"; // Assume dev in browser without process.env
+  },
+
+  isProduction: (): boolean => !env.isDevelopment(),
+
   isOnline: (): boolean => {
     if (!env.hasNavigator) return true;
     return navigator.onLine;
