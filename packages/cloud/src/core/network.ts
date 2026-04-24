@@ -1,3 +1,5 @@
+import { logger } from "../utils/logger";
+import { EventInterceptor } from "./event-interceptor";
 import { networkAtom } from "./system-atoms";
 import type { BandwidthClassification, NetworkStatus } from "./types";
 
@@ -36,8 +38,6 @@ export class NetworkMonitor {
   private isMeasuring = false;
   private measurementInterval: ReturnType<typeof setInterval> | null = null;
   private readonly DEFAULT_TEST_URL = "https://picsum.photos/100/100";
-  private boundHandleOnline: () => void = () => this.handleOnline();
-  private boundHandleOffline: () => void = () => this.handleOffline();
   private boundConnectionChange: (() => void) | null = null;
   private connectionRef: {
     effectiveType?: string;
@@ -46,6 +46,7 @@ export class NetworkMonitor {
     addEventListener?: (type: string, listener: () => void) => void;
     removeEventListener?: (type: string, listener: () => void) => void;
   } | null = null;
+  private interceptor: EventInterceptor;
 
   constructor(config: NetworkMonitorConfig = {}) {
     this.config = {
@@ -57,6 +58,12 @@ export class NetworkMonitor {
       bandwidthTestSize: config.bandwidthTestSize ?? 10000,
     };
     this.status.online = this.checkOnlineStatus();
+
+    this.interceptor = new EventInterceptor({
+      moduleName: "NetworkMonitor",
+      logger: logger.NetworkMonitor,
+    });
+
     this.setupListeners();
 
     setTimeout(() => {
@@ -74,8 +81,8 @@ export class NetworkMonitor {
   private setupListeners(): void {
     if (typeof window === "undefined") return;
 
-    window.addEventListener("online", this.boundHandleOnline);
-    window.addEventListener("offline", this.boundHandleOffline);
+    this.interceptor.on(window, "online", "handleOnline", () => this.handleOnline());
+    this.interceptor.on(window, "offline", "handleOffline", () => this.handleOffline());
 
     this.monitorConnectionAPI();
   }
@@ -355,8 +362,7 @@ export class NetworkMonitor {
   destroy(): void {
     if (typeof window === "undefined") return;
 
-    window.removeEventListener("online", this.boundHandleOnline);
-    window.removeEventListener("offline", this.boundHandleOffline);
+    this.interceptor?.destroy();
 
     if (this.connectionRef && this.boundConnectionChange) {
       this.connectionRef.removeEventListener?.("change", this.boundConnectionChange);

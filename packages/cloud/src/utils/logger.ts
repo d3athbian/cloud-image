@@ -32,6 +32,7 @@ export const logger = {
   WebAdapter: createLogger("WebAdapter"),
   CloudImage: createLogger("CloudImage"),
   CloudProvider: createLogger("CloudProvider"),
+  EventInterceptor: createLogger("EventInterceptor"),
 };
 
 export type { Logger as LoggerInterface };
