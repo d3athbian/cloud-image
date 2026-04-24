@@ -4,6 +4,7 @@ import { CacheStatsDisplay } from './components/CacheStatsDisplay';
 import { NetworkStatusDisplay } from './components/NetworkStatusDisplay';
 import { Controls } from './components/Controls';
 import { ImageGrid } from './components/ImageGrid';
+import { StateSyncDemo } from './components/StateSyncDemo';
 import { STATIC_IMAGES, type PicsumImage } from './types/images';
 import './styles/app.css';
 
@@ -59,6 +60,7 @@ function AppContent() {
           onClear={handleClear}
           isLoading={isLoading}
         />
+        <StateSyncDemo />
       </aside>
       
       <main className="main">

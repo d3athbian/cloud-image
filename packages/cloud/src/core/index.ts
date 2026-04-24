@@ -26,6 +26,7 @@ export { PrefetchQueue } from "./prefetch";
 export { RetryHandler, retry, withRetry } from "./retry";
 export { SilentUpgradeManager } from "./silent-upgrade";
 export { getSyncQueue, SyncQueueManager } from "./sync-queue";
+export { StateSync } from "./state-sync";
 export {
   type CacheState,
   cacheAtom,
@@ -38,6 +39,7 @@ export {
   setCacheAtom,
   setMemoryAtom,
   setNetworkAtom,
+  hydrateState,
 } from "./system-atoms";
 export type {
   BandwidthClassification,
