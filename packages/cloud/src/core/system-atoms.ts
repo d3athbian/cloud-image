@@ -1,7 +1,18 @@
 import { atom } from "jotai";
+import { StateSync } from "./state-sync";
 
 export type NetworkStatus = "ONLINE" | "OFFLINE" | "LOW_BANDWIDTH";
 export type PressureLevel = "low" | "medium" | "high";
+
+let stateSyncInstance: StateSync | null = null;
+
+export function getStateSync(): StateSync {
+  if (!stateSyncInstance) {
+    stateSyncInstance = new StateSync();
+    stateSyncInstance.init().catch(() => {});
+  }
+  return stateSyncInstance;
+}
 
 export interface CacheState {
   totalItems: number;
@@ -49,7 +60,9 @@ export const setCacheAtom = atom(
   (get) => get(cacheAtom),
   (_get, set, update: Partial<CacheState>) => {
     const current = _get(cacheAtom);
-    set(cacheAtom, { ...current, ...update });
+    const newState = { ...current, ...update };
+    set(cacheAtom, newState);
+    getStateSync().syncState("cache", newState);
   },
 );
 
@@ -57,7 +70,9 @@ export const setNetworkAtom = atom(
   (get) => get(networkAtom),
   (_get, set, update: Partial<NetworkState>) => {
     const current = _get(networkAtom);
-    set(networkAtom, { ...current, ...update });
+    const newState = { ...current, ...update };
+    set(networkAtom, newState);
+    getStateSync().syncState("network", newState);
   },
 );
 
@@ -65,6 +80,26 @@ export const setMemoryAtom = atom(
   (get) => get(memoryAtom),
   (_get, set, update: Partial<MemoryState>) => {
     const current = _get(memoryAtom);
-    set(memoryAtom, { ...current, ...update });
+    const newState = { ...current, ...update };
+    set(memoryAtom, newState);
+    getStateSync().syncState("memory", newState);
   },
 );
+
+export async function hydrateState(
+  setCache: (value: CacheState) => void,
+  setNetwork: (value: NetworkState) => void,
+  setMemory: (value: MemoryState) => void,
+): Promise<void> {
+  const sync = getStateSync();
+  await sync.init();
+
+  const cache = await sync.readState<CacheState>("cache");
+  if (cache) setCache(cache);
+
+  const network = await sync.readState<NetworkState>("network");
+  if (network) setNetwork(network);
+
+  const memory = await sync.readState<MemoryState>("memory");
+  if (memory) setMemory(memory);
+}

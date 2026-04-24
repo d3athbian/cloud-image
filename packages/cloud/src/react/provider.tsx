@@ -12,6 +12,7 @@ import { ImageEngine } from "../core/engine";
 import { getMemoryMonitor } from "../core/memory";
 import { getNetworkMonitor } from "../core/network";
 import { createOfflineStrategy } from "../core/offline";
+import { hydrateState, setCacheAtom, setNetworkAtom, setMemoryAtom } from "../core/system-atoms";
 import type {
   BandwidthClassification,
   CacheConfig,
@@ -70,6 +71,12 @@ export function CloudProvider({
   useEffect(() => {
     const initEngine = async () => {
       try {
+        await hydrateState(
+          (data) => setCacheAtom(data),
+          (data) => setNetworkAtom(data),
+          (data) => setMemoryAtom(data)
+        );
+
         const imageEngine = new ImageEngine({
           maxSize: cache?.maxSize ?? Size.DEFAULT_MAX_SIZE,
           defaultTTL: cache?.defaultTTL ?? Time.DEFAULT_TTL,
