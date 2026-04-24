@@ -12,6 +12,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-24
 - TypeScript 5.x (strict mode) + React 19, Jotai (existing) + Zod (validation) (024-demo-ui-tool, 025-global-config-management)
 - IndexedDB (via idb - existing) (024-demo-ui-tool)
 - TypeScript 5.x (strict mode) + jotai (state), idb (IndexedDB), React 19 (025-global-config-management)
+- TypeScript 5.x (strict mode) + Existing - Worker, ImageBitmap API, IndexedDB (idb), Jotai (026-worker-comms-optimize)
+- IndexedDB (idb) for image cache (026-worker-comms-optimize)
 
 - TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression) (002-cloud-image-cache-engine)
 
@@ -71,10 +73,9 @@ TypeScript 5.x (strict mode): Follow standard conventions
 - Transferable objects for zero-copy
 
 ## Recent Changes
+- 026-worker-comms-optimize: Added TypeScript 5.x (strict mode) + Existing - Worker, ImageBitmap API, IndexedDB (idb), Jotai
 - 025-global-config-management: Added Zod schemas for configuration validation, global config management
 - 024-demo-ui-tool: Added DevTools Panel (debugger) with Cache/Network/Performance/State tabs
-- 023-global-state-sync: Added TypeScript 5.x (strict mode) + jotai (existing), idb (existing) - no new deps
-- 022-event-error-interceptor: Added TypeScript 5.x (strict mode) + None (wrapper pattern, no new deps)
 
 
 <!-- MANUAL ADDITIONS START -->
