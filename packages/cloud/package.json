@@ -24,6 +24,10 @@
     },
     "./register": {
       "import": "./dist/register.js"
+    },
+    "./debugger": {
+      "types": "./dist/debugger/index.d.ts",
+      "import": "./dist/debugger/index.js"
     }
   },
   "files": [

@@ -1,10 +1,8 @@
-import { useState, useOptimistic } from 'react';
-import { CloudProvider, useCloud, ErrorBoundary, useCacheStats } from '@cloudimage/cloud';
-import { CacheStatsDisplay } from './components/CacheStatsDisplay';
-import { NetworkStatusDisplay } from './components/NetworkStatusDisplay';
-import { Controls } from './components/Controls';
+import { useState, useCallback } from 'react';
+import { useAtom } from 'jotai';
+import { CloudProvider, useCloud, ErrorBoundary, useCacheStats, cacheAtom, networkAtom, memoryAtom } from '@cloudimage/cloud';
+import { DebuggerTool } from '@cloudimage/cloud/debugger';
 import { ImageGrid } from './components/ImageGrid';
-import { StateSyncDemo } from './components/StateSyncDemo';
 import { STATIC_IMAGES, type PicsumImage } from './types/images';
 import './styles/app.css';
 
@@ -17,56 +15,64 @@ function AppContent() {
   const { images } = usePicsumImages();
   const { cache, network } = useCloud();
   const { stats, isLoading, prefetch, clear } = useCacheStats(cache, 2000);
-  const [optimisticStats, setOptimisticStats] = useOptimistic(
-    stats,
-    (state, newStats: typeof stats) => newStats ?? state
-  );
+  
+  const [jotaiCache] = useAtom(cacheAtom);
+  const [jotaiNetwork] = useAtom(networkAtom);
+  const [jotaiMemory] = useAtom(memoryAtom);
 
-  const handlePrefetch = () => {
-    setOptimisticStats({
-      itemCount: optimisticStats?.itemCount ?? 0,
-      totalSize: (optimisticStats?.totalSize ?? 0) + 5000000,
-      hitRate: optimisticStats?.hitRate ?? 0,
-      missRate: optimisticStats?.missRate ?? 0,
-      evictionCount: optimisticStats?.evictionCount ?? 0,
-    });
+  const handlePrefetch = useCallback(() => {
     const urls = images.slice(0, 10).map(img => img.download_url);
     prefetch(urls);
-  };
+  }, [prefetch, images]);
 
-  const handleClear = () => {
-    setOptimisticStats({
-      itemCount: 0,
-      totalSize: 0,
-      hitRate: 0,
-      missRate: 0,
-      evictionCount: optimisticStats?.evictionCount ?? 0,
-    });
+  const handleClear = useCallback(() => {
     clear();
+  }, [clear]);
+
+  const handleUpdateNetwork = useCallback(() => {
+    console.log('[Debugger] Triggering network speed test...');
+  }, []);
+
+  const debuggerProps = {
+    cacheStats: stats,
+    networkStatus: (network?.status ?? 'online') as 'online' | 'offline' | 'slow',
+    networkDetails: {
+      bandwidth: network?.bandwidth ?? 'unknown',
+      bandwidthTested: network?.bandwidthTested ?? false,
+      mbps: network?.mbps,
+      online: network?.online ?? true,
+    },
+    performanceMetrics: { avgResponseTime: 150, totalRequests: 42 },
+    jotaiState: {
+      cache: { ...jotaiCache },
+      network: { status: jotaiNetwork.status, rtt: jotaiNetwork.rtt, lastChecked: jotaiNetwork.lastChecked },
+      memory: { isUnderPressure: jotaiMemory.isUnderPressure, pressureLevel: jotaiMemory.pressureLevel as 'low' | 'medium' | 'high' },
+    },
+    onUpdateCache: handlePrefetch,
+    onUpdateNetwork: handleUpdateNetwork,
+    onClearCache: handleClear,
   };
 
   return (
-    <div className="container">
-      <header className="header">
-        <h1>CLOUD Image Cache Demo</h1>
-        <p>Testing with {images.length} images (picsum.photos)</p>
-      </header>
+    <>
+      <div className="demo-container">
+        <header className="demo-header">
+          <h1>CLOUD Image Cache</h1>
+          <p>Intelligent image caching for modern web apps</p>
+        </header>
+        
+        <main className="demo-main">
+          <ImageGrid images={images} />
+        </main>
+      </div>
       
-      <aside className="sidebar">
-        <CacheStatsDisplay stats={optimisticStats} />
-        <NetworkStatusDisplay network={network} />
-        <Controls 
-          onPrefetch={handlePrefetch} 
-          onClear={handleClear}
-          isLoading={isLoading}
-        />
-        <StateSyncDemo />
-      </aside>
-      
-      <main className="main">
-        <ImageGrid images={images} />
-      </main>
-    </div>
+      <DebuggerTool 
+        initialIsOpen={false}
+        position="bottom-right"
+        panelMode="fullwidth"
+        {...debuggerProps}
+      />
+    </>
   );
 }
 
