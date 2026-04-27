@@ -22,11 +22,12 @@ export function useCacheStats(cache: CacheLike | undefined, refreshInterval = 20
       if (cacheRef.current) {
         const s = await cacheRef.current.getStats();
         setStats(s);
-        if ((s.hitCount ?? 0) > 0 || (s.missCount ?? 0) > 0) {
+        if ((s.hitCount ?? 0) > 0 || (s.missCount ?? 0) > 0 || (s.totalSize ?? 0) > 0) {
           updateCache({
             hitCount: s.hitCount ?? 0,
             missCount: s.missCount ?? 0,
             totalItems: s.itemCount ?? 0,
+            totalSize: s.totalSize ?? 0,
             lastAccessTime: Date.now(),
           });
         }

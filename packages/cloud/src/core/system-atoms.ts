@@ -17,6 +17,7 @@ export function getStateSync(): StateSync {
 
 export interface CacheState {
   totalItems: number;
+  totalSize: number;
   hitCount: number;
   missCount: number;
   lastAccessTime: number;
@@ -37,6 +38,7 @@ export interface MemoryState {
 
 const initialCacheState: CacheState = {
   totalItems: 0,
+  totalSize: 0,
   hitCount: 0,
   missCount: 0,
   lastAccessTime: 0,
@@ -72,7 +74,7 @@ export const cacheStatsAtom = atom<CacheStatsDerived>((get) => {
   const total = cache.hitCount + cache.missCount;
   return {
     itemCount: cache.totalItems,
-    totalSize: 0,
+    totalSize: cache.totalSize,
     hitRate: total > 0 ? cache.hitCount / total : 0,
     missRate: total > 0 ? cache.missCount / total : 0,
     evictionCount: 0,

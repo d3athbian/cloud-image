@@ -282,6 +282,7 @@ export const DebuggerPanel = memo(function DebuggerPanel({
   onTabChange,
   onClose,
   onUpdateCache,
+  onUpdateNetwork,
   onClearCache,
   cacheStats,
   jotaiState,

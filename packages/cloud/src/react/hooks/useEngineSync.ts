@@ -21,6 +21,7 @@ export function useEngineSync(
         hitCount?: number;
         missCount?: number;
         itemCount?: number;
+        totalSize?: number;
       };
       console.log("[useEngineSync] getStats result:", stats);
       if (stats && (stats.hitCount !== undefined || stats.missCount !== undefined)) {
@@ -28,6 +29,7 @@ export function useEngineSync(
           hitCount: stats.hitCount ?? 0,
           missCount: stats.missCount ?? 0,
           totalItems: stats.itemCount ?? 0,
+          totalSize: stats.totalSize ?? 0,
           lastAccessTime: Date.now(),
         });
         console.log("[useEngineSync] Updated cacheAtom with:", stats);

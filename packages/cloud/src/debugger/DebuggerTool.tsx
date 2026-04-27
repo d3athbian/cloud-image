@@ -87,6 +87,7 @@ export const DebuggerTool = memo(function DebuggerTool({
     const stats = await engine.getStats();
     updateCache({
       totalItems: stats.itemCount,
+      totalSize: stats.totalSize ?? 0,
       hitCount: stats.hitCount ?? 0,
       missCount: stats.missCount ?? 0,
       lastAccessTime: Date.now(),
