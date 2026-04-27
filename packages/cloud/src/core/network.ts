@@ -280,6 +280,7 @@ export class NetworkMonitor {
         .then(() => {
           const rtt = performance.now() - start;
           this.status.rtt = rtt;
+          updateNetwork({ rtt, lastChecked: Date.now() });
           resolve(rtt);
         })
         .catch(() => resolve(-1));
@@ -321,7 +322,10 @@ export class NetworkMonitor {
 
       this.status.bandwidthTested = true;
       this.status.mbps = Math.round(mbps * 100) / 100;
+      this.status.rtt = durationMs;
       this.updateClassification();
+
+      updateNetwork({ rtt: durationMs, lastChecked: Date.now() });
 
       this.config.onBandwidthChange(this.status.bandwidth);
       this.notifyListeners();
