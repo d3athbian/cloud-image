@@ -10,6 +10,18 @@ import type { CacheConfig, CacheEntry, CacheStats } from "./types";
 
 const log = logger.ImageEngine;
 
+export type EngineEventType = "cache-hit" | "cache-miss" | "cache-set" | "cache-delete" | "cache-clear";
+export type EngineEventListener = (data: EngineEventData) => void;
+export interface EngineEventData {
+  type: EngineEventType;
+  url?: string;
+  stats?: CacheStats;
+}
+
+type EngineEventListeners = {
+  [K in EngineEventType]?: EngineEventListener[];
+};
+
 export class ImageEngine {
   private cache: ImageCache;
   private swClient: ServiceWorkerClient;
@@ -22,6 +34,7 @@ export class ImageEngine {
   private circuitBreaker: CircuitBreaker;
   private objectURLs: Set<string> = new Set();
   private imageValidator: ImageValidator;
+  private eventListeners: EngineEventListeners = {};
 
   constructor(config: Partial<CacheConfig> = {}) {
     const finalConfig = { ...config };
@@ -91,6 +104,9 @@ export class ImageEngine {
   }
 
   async get(url: string): Promise<string | null> {
+    let result: string | null = null;
+    let source: "sw" | "adapter" | "network" | null = null;
+
     // Bandwidth unknown or offline → direct to cache fallback (NO network)
     if (this.shouldUseOfflineFallback()) {
       this.log("[ImageEngine] Offline/unknown bandwidth, skipping network");
@@ -110,10 +126,13 @@ export class ImageEngine {
         this.pendingRequests.set(url, pending);
 
         try {
-          const result = await pending;
+          const res = await pending;
           this.pendingRequests.delete(url);
           this.circuitBreaker.recordSuccess();
-          return result;
+          if (res) {
+            result = res;
+            source = "sw";
+          }
         } catch (error) {
           this.pendingRequests.delete(url);
           this.circuitBreaker.recordFailure();
@@ -123,16 +142,19 @@ export class ImageEngine {
     }
 
     // Fallback: use adapter directly (web/memory adapter with IndexedDB)
-    try {
-      const entry = await this.cache.get(url);
-      if (entry) {
-        const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
-        const objectUrl = URL.createObjectURL(blob);
-        this.objectURLs.add(objectUrl);
-        return objectUrl;
+    if (!result) {
+      try {
+        const entry = await this.cache.get(url);
+        if (entry) {
+          const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
+          const objectUrl = URL.createObjectURL(blob);
+          this.objectURLs.add(objectUrl);
+          result = objectUrl;
+          source = source ?? "adapter";
+        }
+      } catch (adapterError) {
+        this.log("[ImageEngine] Adapter failed:", this.translateError(adapterError, "adapter_error"));
       }
-    } catch (adapterError) {
-      this.log("[ImageEngine] Adapter failed:", this.translateError(adapterError, "adapter_error"));
     }
 
     // Final fallback: direct fetch with circuit breaker protection
@@ -187,7 +209,8 @@ export class ImageEngine {
 
       const objectUrl = URL.createObjectURL(blob);
       this.objectURLs.add(objectUrl);
-      return objectUrl;
+      result = objectUrl;
+      source = source ?? "network";
     } catch (fetchError) {
       this.activeControllers.delete(url);
       this.circuitBreaker.recordFailure();
@@ -195,8 +218,15 @@ export class ImageEngine {
         "[ImageEngine] All fallbacks failed:",
         this.translateError(fetchError, "fetch_error"),
       );
-      return null;
     }
+
+    if (result) {
+      this.emit("cache-hit", { url, stats: undefined });
+    } else {
+      this.emit("cache-miss", { url, stats: undefined });
+    }
+
+    return result;
   }
 
   async set(url: string, data: ArrayBuffer, metadata: CacheEntry["metadata"]): Promise<void> {
@@ -211,8 +241,10 @@ export class ImageEngine {
     await this.cache.set(entry);
 
     if (!this.swClient.isFallbackMode()) {
-      await this.swClient.set(url, data, metadata);
+      await this.swClient.set(url, data, metadata as unknown as Record<string, unknown>);
     }
+
+    this.emit("cache-set", { url, stats: undefined });
   }
 
   async delete(url: string): Promise<boolean> {
@@ -220,9 +252,11 @@ export class ImageEngine {
 
     if (!this.swClient.isFallbackMode()) {
       const swDeleted = await this.swClient.delete(url);
+      this.emit("cache-delete", { url, stats: undefined });
       return cacheDeleted || swDeleted;
     }
 
+    this.emit("cache-delete", { url, stats: undefined });
     return cacheDeleted;
   }
 
@@ -232,6 +266,8 @@ export class ImageEngine {
     if (!this.swClient.isFallbackMode()) {
       await this.swClient.clear();
     }
+
+    this.emit("cache-clear", { stats: undefined });
   }
 
   async getStats(): Promise<CacheStats> {
@@ -240,18 +276,25 @@ export class ImageEngine {
     if (!this.swClient.isFallbackMode()) {
       try {
         const swStats = await this.swClient.getStats();
+        const total = swStats.hits + swStats.misses;
         return {
           ...cacheStats,
-          hitRate: swStats.hitRate,
-          missRate: swStats.missRate,
+          hitRate: total > 0 ? swStats.hits / total : 0,
+          missRate: total > 0 ? swStats.misses / total : 0,
           evictionCount: swStats.evictionCount,
+          hitCount: swStats.hits,
+          missCount: swStats.misses,
         };
       } catch {
         return cacheStats;
       }
     }
 
-    return cacheStats;
+    return {
+      ...cacheStats,
+      hitCount: 0,
+      missCount: 0,
+    };
   }
 
   async updateViewportStatus(url: string, isInViewport: boolean): Promise<void> {
@@ -282,6 +325,31 @@ export class ImageEngine {
     return this.cache.has(url);
   }
 
+  on(event: EngineEventType, listener: EngineEventListener): () => void {
+    if (!this.eventListeners[event]) {
+      this.eventListeners[event] = [];
+    }
+    this.eventListeners[event]!.push(listener);
+    return () => {
+      this.eventListeners[event] = this.eventListeners[event]?.filter((l) => l !== listener);
+    };
+  }
+
+  private emit(event: EngineEventType, data: Omit<EngineEventData, "type"> = {}): void {
+    const listeners = this.eventListeners[event];
+    console.log(`[ImageEngine] Emitting ${event}:`, data, "listeners:", listeners?.length ?? 0);
+    if (listeners) {
+      const fullData: EngineEventData = { type: event, ...data };
+      listeners.forEach((listener) => {
+        try {
+          listener(fullData);
+        } catch (err) {
+          this.log(`[ImageEngine] Event listener error for ${event}:`, err);
+        }
+      });
+    }
+  }
+
   destroy(): void {
     // Cancel all in-flight requests
     for (const [url, controller] of this.activeControllers) {
@@ -304,7 +372,7 @@ export class ImageEngine {
 
   private log(...args: unknown[]): void {
     if (this.debug) {
-      log.debug(...args);
+      log.debug.apply(log, args as [string, ...unknown[]]);
     }
   }
 }

@@ -207,7 +207,7 @@ class ServiceWorkerClient {
 
   private log(...args: unknown[]): void {
     if (this.debug) {
-      log.debug(...args);
+      log.debug.apply(log, args as [string, ...unknown[]]);
     }
   }
 

@@ -63,3 +63,10 @@ export interface MemoryStateData {
   isUnderPressure: boolean;
   pressureLevel: "low" | "medium" | "high";
 }
+
+export interface TransferStats {
+  totalBytesTransferred: number;
+  totalMessages: number;
+  avgTransferTime: number;
+  compressionRatio: number;
+}

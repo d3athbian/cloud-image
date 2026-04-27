@@ -36,13 +36,9 @@ export function createAdapter(config: AdapterConfig = {}): PlatformAdapter {
   return createFn();
 }
 
-export type {
-  AdapterConfig,
-  MemoryAdapter,
-  PlatformAdapter,
-  PlatformType,
-  TizenAdapter,
-  WebAdapter,
-  WebOSAdapter,
-} from "./types";
+export { MemoryAdapter } from "./memory";
+export { TizenAdapter } from "./tizen";
+export type { AdapterConfig, PlatformAdapter, PlatformType } from "./types";
+export { WebAdapter } from "./web";
+export { WebOSAdapter } from "./webos";
 export { createMemoryAdapter, createTizenAdapter, createWebAdapter, createWebOSAdapter };

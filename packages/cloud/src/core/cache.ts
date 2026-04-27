@@ -1,6 +1,6 @@
 import type { PlatformAdapter } from "../adapters/types";
 import { logger } from "../utils/logger";
-import { setCacheAtom } from "./system-atoms";
+import { updateCache } from "./system-atoms";
 import { type CacheConfig, type CacheEntry, type CacheStats, DEFAULT_CACHE_CONFIG } from "./types";
 
 const log = logger.ImageCache;
@@ -43,6 +43,8 @@ export class ImageCache {
     hitRate: 0,
     missRate: 0,
     evictionCount: 0,
+    hitCount: 0,
+    missCount: 0,
   };
   private hits = 0;
   private misses = 0;
@@ -416,6 +418,6 @@ export class ImageCache {
       missCount: this.misses,
       lastAccessTime: Date.now(),
     };
-    (setCacheAtom as unknown as (update: import("./system-atoms").CacheState) => void)(update);
+    updateCache(update);
   }
 }

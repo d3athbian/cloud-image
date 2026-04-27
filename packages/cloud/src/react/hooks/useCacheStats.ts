@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { CacheStats } from "../core/types";
+import { updateCache } from "../../core/system-atoms";
+import type { CacheStats } from "../../core/types";
 
 export interface CacheLike {
   getStats(): Promise<CacheStats>;
@@ -21,6 +22,14 @@ export function useCacheStats(cache: CacheLike | undefined, refreshInterval = 20
       if (cacheRef.current) {
         const s = await cacheRef.current.getStats();
         setStats(s);
+        if ((s.hitCount ?? 0) > 0 || (s.missCount ?? 0) > 0) {
+          updateCache({
+            hitCount: s.hitCount ?? 0,
+            missCount: s.missCount ?? 0,
+            totalItems: s.itemCount ?? 0,
+            lastAccessTime: Date.now(),
+          });
+        }
       }
     };
 

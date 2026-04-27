@@ -116,7 +116,7 @@ async function withDB<T>(operation: (database: IDBDatabase) => Promise<T>): Prom
     try {
       database = await openDB();
 
-      if (!database || database.closed) {
+      if (!database) {
         if (db) {
           try {
             db.close();
@@ -276,12 +276,15 @@ async function clearIDB(): Promise<void> {
  * - El QuotaExceededError handler en saveToIDB actúa como segunda línea de defensa
  */
 async function checkAndEvictIfNeeded(incomingBytes = 0): Promise<void> {
-  if (!("storage" in navigator) || !("estimate" in navigator.storage)) {
+  const nav = navigator as Navigator & {
+    storage?: { estimate: () => Promise<{ usage?: number; quota?: number }> };
+  };
+  if (!("storage" in nav) || !nav.storage?.estimate) {
     return; // API no disponible → depender del error handler
   }
 
   try {
-    const estimate = await navigator.storage.estimate();
+    const estimate = await nav.storage.estimate();
     const usage = estimate.usage ?? 0;
     const quota = estimate.quota ?? Infinity;
 
@@ -398,6 +401,8 @@ async function getStatsFromIDB(): Promise<Record<string, unknown>> {
         hitRate: number;
         missRate: number;
         evictionCount: number;
+        hits: number;
+        misses: number;
       }>((resolve) => {
         const transaction = database.transaction(STORE_NAME, "readonly");
         const store = transaction.objectStore(STORE_NAME);
@@ -412,10 +417,20 @@ async function getStatsFromIDB(): Promise<Record<string, unknown>> {
             hitRate: total > 0 ? stats.hits / total : 0,
             missRate: total > 0 ? stats.misses / total : 0,
             evictionCount: 0,
+            hits: stats.hits,
+            misses: stats.misses,
           });
         };
         request.onerror = () =>
-          resolve({ itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 });
+          resolve({
+            itemCount: 0,
+            totalSize: 0,
+            hitRate: 0,
+            missRate: 0,
+            evictionCount: 0,
+            hits: stats.hits,
+            misses: stats.misses,
+          });
       }),
   );
 
@@ -424,9 +439,12 @@ async function getStatsFromIDB(): Promise<Record<string, unknown>> {
 }
 
 async function getStorageInfo(): Promise<StorageInfo | null> {
-  if (!("storage" in navigator) || !("estimate" in navigator.storage)) return null;
+  const nav = navigator as Navigator & {
+    storage?: { estimate: () => Promise<{ usage?: number; quota?: number }> };
+  };
+  if (!("storage" in nav) || !nav.storage?.estimate) return null;
   try {
-    const estimate = await navigator.storage.estimate();
+    const estimate = await nav.storage.estimate();
     return {
       usage: estimate.usage ?? 0,
       quota: estimate.quota ?? 0,
@@ -454,19 +472,21 @@ function isImageURL(url: string): boolean {
 
 // ─── Service Worker lifecycle ─────────────────────────────────────────────────
 
-self.addEventListener("install", () => {
+const sw = self as unknown as ServiceWorkerGlobalScope;
+
+sw.addEventListener("install", () => {
   console.log("[SW] Installing...");
-  self.skipWaiting();
+  sw.skipWaiting();
 });
 
-self.addEventListener("activate", (event: ExtendableEvent) => {
+sw.addEventListener("activate", (event: ExtendableEvent) => {
   console.log("[SW] Activating...");
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(sw.clients.claim());
 });
 
 // ─── Fetch interceptor ────────────────────────────────────────────────────────
 
-self.addEventListener("fetch", (event: FetchEvent) => {
+sw.addEventListener("fetch", (event: FetchEvent) => {
   const url = event.request.url;
 
   if (!isImageURL(url)) return;
@@ -512,7 +532,7 @@ async function handleFetch(url: string): Promise<Response> {
       const responseToCache = response.clone();
       responseToCache.blob().then((blob) => {
         blob.arrayBuffer().then((arrayBuffer) => {
-          const entry = {
+          const entry: CacheEntry = {
             url,
             data: arrayBuffer,
             metadata: {
@@ -573,37 +593,44 @@ function createCachedResponse(entry: CacheEntry): Response {
 
 // ─── Message handler ──────────────────────────────────────────────────────────
 
-self.addEventListener("message", async (event: ExtendableMessageEvent) => {
+import { compressPayload, shouldCompress } from "../worker/compression";
+
+sw.addEventListener("message", async (event: ExtendableMessageEvent) => {
   const { id, type, payload } = event.data as {
     id: string;
     type: string;
     payload: Record<string, unknown>;
   };
 
-  const reply = (responsePayload: unknown) => {
+  const reply = (responsePayload: unknown, transfer?: Transferable[]) => {
+    let finalPayload = responsePayload;
+    const finalTransfer = transfer ?? [];
+
+    if (shouldCompress(responsePayload) && !transfer?.length) {
+      const { compressed, metadata } = compressPayload(responsePayload);
+      finalPayload = { data: compressed, _compression: metadata };
+    }
+
+    const message = { id, type: "success", payload: finalPayload };
     if (event.source) {
-      (event.source as unknown as Client).postMessage({
-        id,
-        type: "success",
-        payload: responsePayload,
-      });
+      event.source.postMessage(message, { transfer: finalTransfer });
     } else {
-      self.clients.matchAll().then((clients) => {
+      sw.clients.matchAll().then((clients) => {
         for (const client of clients) {
-          client.postMessage({ id, type: "success", payload: responsePayload });
+          client.postMessage(message, { transfer: finalTransfer });
         }
       });
     }
   };
 
   const replyError = (error: unknown) => {
-    const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    const message = error instanceof Error ? error.message : String(error);
     if (event.source) {
-      (event.source as unknown as Client).postMessage({ id, type: "error", error: errorMsg });
+      event.source.postMessage({ id, type: "error", error: message });
     } else {
-      self.clients.matchAll().then((clients) => {
+      sw.clients.matchAll().then((clients) => {
         for (const client of clients) {
-          client.postMessage({ id, type: "error", error: errorMsg });
+          client.postMessage({ id, type: "error", error: message });
         }
       });
     }
@@ -614,10 +641,13 @@ self.addEventListener("message", async (event: ExtendableMessageEvent) => {
     switch (type) {
       case "cache-get": {
         const entry = await getFromIDB(payload.url as string);
-        response = entry
-          ? { found: true, data: entry.data, metadata: entry.metadata }
-          : { found: false };
-        break;
+        if (entry) {
+          const responsePayload = { found: true, metadata: entry.metadata };
+          reply(responsePayload, [entry.data]);
+        } else {
+          reply({ found: false });
+        }
+        return;
       }
       case "cache-set": {
         const entry: CacheEntry = {

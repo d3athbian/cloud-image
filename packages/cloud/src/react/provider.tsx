@@ -1,27 +1,38 @@
-import { Provider } from "jotai";
-import React, {
-  createContext,
-  type ReactNode,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { Provider, useAtom, useSetAtom } from "jotai";
+import React, { type ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { getSystemSettings } from "../config/settings";
 import { ImageEngine } from "../core/engine";
 import { getMemoryMonitor } from "../core/memory";
 import { getNetworkMonitor } from "../core/network";
 import { createOfflineStrategy } from "../core/offline";
-import { hydrateState, setCacheAtom, setMemoryAtom, setNetworkAtom } from "../core/system-atoms";
+import {
+  engineAtom,
+  hydrateState,
+  registerStateUpdater,
+  setCacheAtom,
+  setMemoryAtom,
+  setNetworkAtom,
+  updateCache,
+  updateMemory,
+  updateNetwork,
+} from "../core/system-atoms";
 import type {
   BandwidthClassification,
-  CacheConfig,
   CacheStats,
   NetworkStatus,
 } from "../core/types";
+import { CloudContext } from "./context";
+import { useEngineSync } from "./hooks/useEngineSync";
 
 export interface CloudProviderConfig {
-  cache?: Partial<CacheConfig>;
+  cache?: Partial<{
+    maxSize: number;
+    defaultTTL: number;
+    memoryTierSize: number;
+    maxRetries: number;
+    requestTimeout: number;
+    platformOverride?: string;
+  }>;
   children: ReactNode;
   LoadingComponent?: React.ComponentType;
   ErrorComponent?: React.ComponentType<{ error: Error }>;
@@ -47,9 +58,11 @@ export interface useCloudReturn {
   isReady: boolean;
 }
 
-const CloudContext = createContext<useCloudReturn | null>(null);
-
-export function CloudProvider({
+/**
+ * Inner component that lives INSIDE the Jotai Provider.
+ * This ensures all useAtom/useSetAtom calls share the same Jotai store.
+ */
+function CloudProviderInner({
   cache,
   children,
   LoadingComponent,
@@ -57,7 +70,6 @@ export function CloudProvider({
   devtools = false,
   offlineStrategy: strategyType = "default",
 }: CloudProviderConfig): React.ReactElement {
-  const [engine, setEngine] = useState<ImageEngine | null>(null);
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
     online: true,
     bandwidth: "unknown",
@@ -68,15 +80,21 @@ export function CloudProvider({
   const [memoryMonitor] = useState(() => getMemoryMonitor());
   const [_offlineStrategy] = useState(() => createOfflineStrategy(strategyType));
   const systemSettings = getSystemSettings();
+  const setCache = useSetAtom(setCacheAtom);
+  const setNetwork = useSetAtom(setNetworkAtom);
+  const setMemory = useSetAtom(setMemoryAtom);
+  const [engine, setEngine] = useAtom(engineAtom);
+
+  // useEngineSync must be called unconditionally (React hook rules)
+  useEngineSync(engine);
 
   useEffect(() => {
     const initEngine = async () => {
       try {
-        await hydrateState(
-          (data) => setCacheAtom(data),
-          (data) => setNetworkAtom(data),
-          (data) => setMemoryAtom(data),
-        );
+        registerStateUpdater(setCache, setNetwork, setMemory);
+        console.log("[CloudProvider] State updaters registered, hydrating...");
+        await hydrateState(updateCache, updateNetwork, updateMemory);
+        console.log("[CloudProvider] State hydration complete.");
 
         const imageEngine = new ImageEngine({
           maxSize: cache?.maxSize ?? systemSettings.cacheMaxSize,
@@ -108,18 +126,9 @@ export function CloudProvider({
     return () => {
       unsubscribe();
       memoryMonitor.stopMonitoring();
-      engine?.destroy();
     };
-  }, [
-    devtools,
-    networkMonitor.subscribe,
-    cache?.requestTimeout,
-    cache?.maxRetries,
-    engine?.destroy,
-    cache?.memoryTierSize,
-    cache?.maxSize,
-    cache?.defaultTTL,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [devtools]);
 
   const cacheAPI = useMemo(
     () => ({
@@ -141,7 +150,15 @@ export function CloudProvider({
       },
       getStats: async (): Promise<CacheStats> => {
         if (!engine) {
-          return { itemCount: 0, totalSize: 0, hitRate: 0, missRate: 0, evictionCount: 0 };
+          return {
+            itemCount: 0,
+            totalSize: 0,
+            hitRate: 0,
+            missRate: 0,
+            evictionCount: 0,
+            hitCount: 0,
+            missCount: 0,
+          };
         }
         return engine.getStats();
       },
@@ -176,8 +193,18 @@ export function CloudProvider({
   }
 
   return (
+    <CloudContext.Provider value={value}>{children}</CloudContext.Provider>
+  );
+}
+
+/**
+ * CloudProvider wraps children in a Jotai Provider first, then the inner
+ * provider. This ensures all atom reads/writes share the same store.
+ */
+export function CloudProvider(props: CloudProviderConfig): React.ReactElement {
+  return (
     <Provider>
-      <CloudContext.Provider value={value}>{children}</CloudContext.Provider>
+      <CloudProviderInner {...props} />
     </Provider>
   );
 }
@@ -198,6 +225,8 @@ export function useCloud(): useCloudReturn {
           hitRate: 0,
           missRate: 0,
           evictionCount: 0,
+          hitCount: 0,
+          missCount: 0,
         }),
       },
       network: {

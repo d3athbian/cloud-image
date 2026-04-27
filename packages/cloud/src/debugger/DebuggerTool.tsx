@@ -1,8 +1,18 @@
-import { memo, type CSSProperties, useEffect, useCallback } from "react";
+import { useAtom } from "jotai";
+import { type CSSProperties, memo, useCallback, useEffect } from "react";
+import {
+  cacheAtom,
+  cacheStatsAtom,
+  engineAtom,
+  memoryAtom,
+  networkAtom,
+  updateCache,
+} from "../core/system-atoms";
 import { DebuggerPanel } from "./DebuggerPanel";
 import { useDebuggerState } from "./hooks/useDebuggerState";
-import type { Position, Tab, DebuggerState } from "./types";
 import "./DebuggerPanel.css";
+
+type Position = "top-left" | "top-right" | "bottom-left" | "bottom-right";
 
 const CSS_VARIABLES_STYLE = `
 :root {
@@ -19,44 +29,6 @@ interface DebuggerToolProps {
   panelMode?: "floating" | "fullwidth";
   className?: string;
   onToggle?: (isOpen: boolean) => void;
-  cacheStats?: {
-    itemCount: number;
-    totalSize: number;
-    hitRate: number;
-    missRate: number;
-    evictionCount: number;
-  } | null;
-  networkStatus?: "online" | "offline" | "slow";
-  networkDetails?: {
-    bandwidth: string;
-    bandwidthTested: boolean;
-    mbps?: number;
-    online: boolean;
-  };
-  performanceMetrics?: {
-    avgResponseTime: number;
-    totalRequests: number;
-  };
-  jotaiState?: {
-    cache: {
-      totalItems: number;
-      hitCount: number;
-      missCount: number;
-      lastAccessTime: number;
-    };
-    network: {
-      status: string;
-      rtt: number;
-      lastChecked: number;
-    };
-    memory: {
-      isUnderPressure: boolean;
-      pressureLevel: string;
-    };
-  };
-  onUpdateCache?: () => void;
-  onUpdateNetwork?: () => void;
-  onClearCache?: () => void;
 }
 
 const POSITION_STYLES: Record<Position, CSSProperties> = {
@@ -72,20 +44,58 @@ export const DebuggerTool = memo(function DebuggerTool({
   panelMode = "fullwidth",
   className,
   onToggle,
-  cacheStats = null,
-  networkStatus = "online",
-  networkDetails,
-  performanceMetrics = { avgResponseTime: 0, totalRequests: 0 },
-  jotaiState,
-  onUpdateCache,
-  onUpdateNetwork,
-  onClearCache,
 }: DebuggerToolProps) {
   const { state, toggle, setTab } = useDebuggerState({
     isOpen: initialIsOpen,
     position,
     panelMode,
   });
+
+  const [jotaiCache] = useAtom(cacheAtom);
+  const [jotaiNetwork] = useAtom(networkAtom);
+  const [jotaiMemory] = useAtom(memoryAtom);
+  const [cacheStats] = useAtom(cacheStatsAtom);
+  const [engine] = useAtom(engineAtom);
+
+  const jotaiState = {
+    cache: { ...jotaiCache },
+    network: {
+      status: jotaiNetwork.status,
+      rtt: jotaiNetwork.rtt,
+      lastChecked: jotaiNetwork.lastChecked,
+    },
+    memory: {
+      isUnderPressure: jotaiMemory.isUnderPressure,
+      pressureLevel: jotaiMemory.pressureLevel,
+    },
+  };
+
+  const performanceMetrics = {
+    avgResponse: jotaiNetwork.rtt || 0,
+    totalRequests: (jotaiCache.hitCount || 0) + (jotaiCache.missCount || 0),
+    successRate: (jotaiCache.hitCount || 0) / Math.max(1, (jotaiCache.hitCount || 0) + (jotaiCache.missCount || 0)),
+  };
+
+  const handleClearCache = useCallback(async () => {
+    if (!engine) return;
+    await engine.clear();
+    await engine.getStats();
+  }, [engine]);
+
+  const handlePrefetch = useCallback(async () => {
+    if (!engine) return;
+    const stats = await engine.getStats();
+    updateCache({
+      totalItems: stats.itemCount,
+      hitCount: stats.hitCount ?? 0,
+      missCount: stats.missCount ?? 0,
+      lastAccessTime: Date.now(),
+    });
+  }, [engine]);
+
+  const handleTestNetwork = useCallback(async () => {
+    console.log("[Debugger] Network test triggered via atom");
+  }, []);
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -133,14 +143,12 @@ export const DebuggerTool = memo(function DebuggerTool({
           state={state}
           onTabChange={setTab}
           onClose={toggle}
-          onUpdateCache={onUpdateCache}
-          onUpdateNetwork={onUpdateNetwork}
-          onClearCache={onClearCache}
-          cacheStats={cacheStats}
-          networkStatus={networkStatus}
-          networkDetails={networkDetails}
-          performanceMetrics={performanceMetrics}
+          onUpdateCache={handlePrefetch}
+          onUpdateNetwork={handleTestNetwork}
+          onClearCache={handleClearCache}
           jotaiState={jotaiState}
+          cacheStats={cacheStats}
+          performanceMetrics={performanceMetrics}
         />
       )}
     </>

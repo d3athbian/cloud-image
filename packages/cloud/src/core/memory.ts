@@ -15,7 +15,7 @@ export interface MemoryConfig {
 
 import { Threshold, Time } from "../config/constants";
 import { logger } from "../utils/logger";
-import { setMemoryAtom } from "./system-atoms";
+import { updateMemory } from "./system-atoms";
 
 const log = logger.MemoryMonitor;
 
@@ -177,7 +177,7 @@ export class MemoryMonitor {
     }
     const pressureLevel =
       event.type === "critical" ? "high" : event.type === "high" ? "medium" : "low";
-    setMemoryAtom({
+    updateMemory({
       isUnderPressure: event.type !== "normal",
       pressureLevel,
       usedJSHeapSize: event.metrics.usedJSHeapSize,

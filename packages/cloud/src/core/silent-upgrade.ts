@@ -98,7 +98,7 @@ export class SilentUpgradeManager {
   private async performUpgrade(url: string, _entry: CacheEntry): Promise<void> {
     if (!this.upgradeCallback) return;
 
-    const variant = this.cdnAdapter.getVariantForBandwidth("high");
+    const variant = this.cdnAdapter.getVariantForBandwidth("high") ?? { name: "high" };
     const upgradeUrl = this.cdnAdapter.generateUrl(url, variant);
 
     try {

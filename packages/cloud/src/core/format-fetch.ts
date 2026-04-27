@@ -1,10 +1,13 @@
-import { FormatDetector, type ImageFormat } from "./format-detector";
+import { getFormatDetector, type ImageFormat } from "./format-detector";
+
+export type { ImageFormat };
 
 export async function fetchWithFormatSupport(
   url: string,
   options: RequestInit = {},
 ): Promise<Response> {
-  const acceptHeader = FormatDetector.getAcceptHeader();
+  const detector = getFormatDetector();
+  const acceptHeader = detector.getAcceptHeader();
 
   const headers = new Headers(options.headers);
   headers.set("Accept", acceptHeader);

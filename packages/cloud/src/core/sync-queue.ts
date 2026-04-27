@@ -129,7 +129,7 @@ class PersistedSyncQueue implements SyncQueue {
     });
   }
 
-  async enqueue(op: Omit<PendingOperation, "id" | "timestamp" | "retries">): Promise<string> {
+  enqueue(op: Omit<PendingOperation, "id" | "timestamp" | "retries">): string {
     const operation: PendingOperation = {
       ...op,
       id: this.generateId(),
@@ -138,7 +138,7 @@ class PersistedSyncQueue implements SyncQueue {
     };
 
     this.queue.push(operation);
-    await this.saveToDB(operation);
+    this.saveToDB(operation).catch(() => {});
 
     log.info("[SyncQueue] Enqueued:", operation.type, operation.url);
     return operation.id;
@@ -159,20 +159,21 @@ class PersistedSyncQueue implements SyncQueue {
     if (this.queue.length === 0) return null;
     const op = this.queue.shift();
     if (op) {
-      this.removeFromDB(op.id);
+      this.removeFromDB(op.id).catch(() => {});
     }
-    return op;
+    return op ?? null;
   }
 
   getAll(): PendingOperation[] {
     return [...this.queue];
   }
 
-  async remove(id: string): Promise<boolean> {
+  remove(id: string): boolean {
     const index = this.queue.findIndex((op) => op.id === id);
     if (index === -1) return false;
     this.queue.splice(index, 1);
-    return this.removeFromDB(id);
+    this.removeFromDB(id).catch(() => {});
+    return true;
   }
 
   private async removeFromDB(id: string): Promise<void> {
@@ -190,16 +191,17 @@ class PersistedSyncQueue implements SyncQueue {
     return this.queue.length;
   }
 
-  async clear(): Promise<void> {
+  clear(): void {
     this.queue = [];
-    try {
-      const db = await this.openDB();
-      const tx = db.transaction(this.storeName, "readwrite");
-      const store = tx.objectStore(this.storeName);
-      store.clear();
-    } catch (e) {
-      log.warn("[SyncQueue] Clear DB failed:", e);
-    }
+    this.openDB()
+      .then((db) => {
+        const tx = db.transaction(this.storeName, "readwrite");
+        const store = tx.objectStore(this.storeName);
+        store.clear();
+      })
+      .catch((e) => {
+        log.warn("[SyncQueue] Clear DB failed:", e);
+      });
   }
 
   private generateId(): string {
@@ -226,11 +228,7 @@ export class SyncQueueManager {
 
   enqueue(op: Omit<PendingOperation, "id" | "timestamp" | "retries">): string {
     if (this.persistedQueue) {
-      const result = this.persistedQueue.enqueue(op);
-      if (result instanceof Promise) {
-        return "";
-      }
-      return result;
+      return this.persistedQueue.enqueue(op);
     }
     return this.memoryQueue.enqueue(op);
   }

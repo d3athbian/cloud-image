@@ -33,6 +33,7 @@ export const logger = {
   CloudImage: createLogger("CloudImage"),
   CloudProvider: createLogger("CloudProvider"),
   EventInterceptor: createLogger("EventInterceptor"),
+  StateSync: createLogger("StateSync"),
 };
 
 export type { Logger as LoggerInterface };

@@ -18,6 +18,7 @@
     "baseUrl": ".",
     "paths": {
       "@cloudimage/cloud": ["../../packages/cloud/src/index.ts"],
+      "@cloudimage/cloud/debugger": ["../../packages/cloud/src/debugger/index.ts"],
       "@cloudimage/cloud/*": ["../../packages/cloud/src/*"]
     }
   },

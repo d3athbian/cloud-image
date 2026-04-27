@@ -1,7 +1,7 @@
 import { getSystemSettings } from "../config/settings";
 import { logger } from "../utils/logger";
 import { EventInterceptor } from "./event-interceptor";
-import { setNetworkAtom } from "./system-atoms";
+import { updateNetwork } from "./system-atoms";
 import type { BandwidthClassification, NetworkStatus } from "./types";
 
 const systemSettings = getSystemSettings();
@@ -168,7 +168,7 @@ export class NetworkMonitor {
     this.notifyListeners();
     this.config.onStatusChange(this.status);
     this.processRetryQueue();
-    setNetworkAtom({
+    updateNetwork({
       status: "ONLINE",
       rtt: 0,
       lastChecked: Date.now(),
@@ -180,7 +180,7 @@ export class NetworkMonitor {
     this.status.bandwidth = "unknown";
     this.notifyListeners();
     this.config.onStatusChange(this.status);
-    setNetworkAtom({
+    updateNetwork({
       status: "OFFLINE",
       rtt: 0,
       lastChecked: Date.now(),
@@ -292,7 +292,6 @@ export class NetworkMonitor {
     }
 
     this.isMeasuring = true;
-    this.lastProactiveMeasure = Date.now();
 
     try {
       const testUrl = this.config.bandwidthTestUrl;
@@ -320,7 +319,6 @@ export class NetworkMonitor {
 
       this.addSample(sample);
 
-      const _previous = this.status.bandwidth;
       this.status.bandwidthTested = true;
       this.status.mbps = Math.round(mbps * 100) / 100;
       this.updateClassification();

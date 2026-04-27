@@ -202,6 +202,8 @@ export function useCloud(): {
             hitRate: 0,
             missRate: 0,
             evictionCount: 0,
+            hitCount: 0,
+            missCount: 0,
           }
         );
       },

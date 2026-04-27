@@ -45,6 +45,8 @@ export interface CacheStats {
   hitRate: number;
   missRate: number;
   evictionCount: number;
+  hitCount: number;
+  missCount: number;
 }
 
 /**
@@ -96,4 +98,19 @@ export interface WorkerResponse<T = unknown> {
   payload?: T;
   error?: string;
   timestamp: number;
+  transfer?: Transferable[];
+}
+
+export interface TransferBatch<T = unknown> {
+  batchId: string;
+  items: WorkerResponse<T>[];
+  size: number;
+  timestamp: number;
+}
+
+export interface CompressionMetadata {
+  originalSize: number;
+  compressedSize: number;
+  ratio: number;
+  algorithm: "none" | "lz4" | "gzip";
 }

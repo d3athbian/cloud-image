@@ -4,11 +4,12 @@ export * from "./core";
 export type { CacheEntry, CacheStats } from "./core/types";
 export * from "./debugger";
 export type { CloudContextValue } from "./react/hooks";
-export { CloudContext, CloudProvider, useCloud } from "./react/hooks";
+export { CloudContext } from "./react/hooks";
 export { ErrorBoundary } from "./react/hooks/ErrorBoundary";
 export { useCacheStats } from "./react/hooks/useCacheStats";
 export type { CloudImageProps, ImageStatus } from "./react/image";
 export { CloudImage } from "./react/image";
+export { CloudProvider, useCloud } from "./react/provider";
 export * from "./service-worker";
 
 export type { CacheConfig, PlatformType } from "./types/cache-config.schema";

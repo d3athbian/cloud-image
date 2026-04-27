@@ -1,7 +1,7 @@
 import type React from "react";
 import { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { getNetworkMonitor } from "../core/network";
-import { CloudContext } from "./hooks";
+import { CloudContext } from "./context";
 
 export interface CloudImageProps
   extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, "onError" | "onLoad"> {
@@ -86,7 +86,6 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
   const networkMonitorRef = useRef<ReturnType<typeof getNetworkMonitor> | null>(null);
   const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const _resolvedSrc = cacheKey || src;
   const hasBlurPlaceholder = blurPlaceholder || placeholder;
 
   useEffect(() => {

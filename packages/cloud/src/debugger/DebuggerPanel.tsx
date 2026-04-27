@@ -1,5 +1,5 @@
 import { memo } from "react";
-import type { DebuggerState, Position, Tab } from "./types";
+import type { DebuggerState, Tab } from "./types";
 
 const TAB_LABELS: Record<Tab, string> = {
   cache: "Cache",
@@ -32,17 +32,6 @@ interface DebuggerPanelProps {
     hitRate: number;
     missRate: number;
     evictionCount: number;
-  } | null;
-  networkStatus: "online" | "offline" | "slow";
-  networkDetails?: {
-    bandwidth: string;
-    bandwidthTested: boolean;
-    mbps?: number;
-    online: boolean;
-  };
-  performanceMetrics: {
-    avgResponseTime: number;
-    totalRequests: number;
   };
   jotaiState?: {
     cache: {
@@ -61,6 +50,11 @@ interface DebuggerPanelProps {
       pressureLevel: string;
     };
   };
+  performanceMetrics?: {
+    avgResponse: number;
+    totalRequests: number;
+    successRate: number;
+  };
 }
 
 const formatSize = (bytes: number): string => {
@@ -74,44 +68,66 @@ const formatTime = (timestamp: number): string => {
   return date.toLocaleTimeString();
 };
 
-const StatItem = ({ label, value, color }: { label: string; value: string | number; color?: string }) => (
+const StatItem = ({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string | number;
+  color?: string;
+}) => (
   <div className="debugger-stat">
     <span className="debugger-label">{label}</span>
     <span className={`debugger-value ${color ?? ""}`}>{value}</span>
   </div>
 );
 
-const ActionButton = ({ onClick, icon, label }: { onClick?: () => void; icon: string; label: string }) => (
+const ActionButton = ({
+  onClick,
+  icon,
+  label,
+}: {
+  onClick?: () => void;
+  icon: string;
+  label: string;
+}) => (
   <button className="debugger-action-btn" onClick={onClick} title={label}>
     <span dangerouslySetInnerHTML={{ __html: icon }} />
     <span>{label}</span>
   </button>
 );
 
-const CachePanel = memo(function CachePanel({ 
-  stats, 
-  onUpdateCache, 
-  onClearCache 
-}: { 
+const CachePanel = memo(function CachePanel({
+  stats,
+  onUpdateCache,
+  onClearCache,
+}: {
   stats: DebuggerPanelProps["cacheStats"];
   onUpdateCache?: () => void;
   onClearCache?: () => void;
 }) {
-  const hitRate = stats ? Math.round(stats.hitRate * 100) : 0;
-  const missRate = stats ? Math.round(stats.missRate * 100) : 0;
-  
+  const hitRate = Math.round(stats.hitRate * 100);
+  const missRate = Math.round(stats.missRate * 100);
+
   return (
     <div className="debugger-panel-section">
       <div className="debugger-metrics">
-        <StatItem label="Items Cached" value={stats?.itemCount ?? 0} />
-        <StatItem label="Total Size" value={formatSize(stats?.totalSize ?? 0)} />
-        <StatItem label="Hit Rate" value={`${hitRate}%`} color={hitRate >= 80 ? "text-green-500" : hitRate >= 50 ? "text-yellow-500" : "text-red-500"} />
+        <StatItem label="Items Cached" value={stats.itemCount} />
+        <StatItem label="Total Size" value={formatSize(stats.totalSize)} />
+        <StatItem
+          label="Hit Rate"
+          value={`${hitRate}%`}
+          color={
+            hitRate >= 80 ? "text-green-500" : hitRate >= 50 ? "text-yellow-500" : "text-red-500"
+          }
+        />
         <StatItem label="Miss Rate" value={`${missRate}%`} />
-        <StatItem label="Evictions" value={stats?.evictionCount ?? 0} />
+        <StatItem label="Evictions" value={stats.evictionCount} />
       </div>
-      
+
       <div className="debugger-actions">
-        <ActionButton onClick={onUpdateCache} icon={ICONS.refresh} label="Prefetch Images" />
+        <ActionButton onClick={onUpdateCache} icon={ICONS.refresh} label="Refresh Stats" />
         <ActionButton onClick={onClearCache} icon={ICONS.clear} label="Clear Cache" />
       </div>
     </div>
@@ -120,43 +136,27 @@ const CachePanel = memo(function CachePanel({
 
 const NetworkPanel = memo(function NetworkPanel({
   status,
-  details,
   onUpdateNetwork,
 }: {
-  status: DebuggerPanelProps["networkStatus"];
-  details?: DebuggerPanelProps["networkDetails"];
+  status: string;
   onUpdateNetwork?: () => void;
 }) {
   const statusColors: Record<string, string> = {
-    online: "text-green-500",
-    offline: "text-red-500",
-    slow: "text-yellow-500",
+    ONLINE: "text-green-500",
+    OFFLINE: "text-red-500",
+    LOW_BANDWIDTH: "text-yellow-500",
   };
 
   return (
     <div className="debugger-panel-section">
       <div className="debugger-metrics">
-        <StatItem 
-          label="Connection" 
-          value={details?.online ? "Online" : "Offline"} 
-          color={details?.online ? "text-green-500" : "text-red-500"} 
-        />
-        <StatItem 
-          label="Status" 
-          value={status.charAt(0).toUpperCase() + status.slice(1)} 
-          color={statusColors[status]} 
-        />
-        <StatItem 
-          label="Bandwidth" 
-          value={details?.bandwidth === "high" ? "High" : details?.bandwidth === "medium" ? "Medium" : details?.bandwidth === "low" ? "Low" : "Unknown"} 
-          color={details?.bandwidth === "high" ? "text-green-500" : details?.bandwidth === "medium" ? "text-yellow-500" : details?.bandwidth === "low" ? "text-red-500" : ""} 
-        />
-        <StatItem 
-          label="Speed Test" 
-          value={details?.bandwidthTested ? (details.mbps ? `${details.mbps} Mbps` : "Testing...") : "Not tested"} 
+        <StatItem
+          label="Status"
+          value={status.charAt(0).toUpperCase() + status.slice(1)}
+          color={statusColors[status]}
         />
       </div>
-      
+
       <div className="debugger-actions">
         <ActionButton onClick={onUpdateNetwork} icon={ICONS.sync} label="Test Speed" />
       </div>
@@ -167,15 +167,14 @@ const NetworkPanel = memo(function NetworkPanel({
 const PerformancePanel = memo(function PerformancePanel({
   metrics,
 }: {
-  metrics: DebuggerPanelProps["performanceMetrics"];
+  metrics?: DebuggerPanelProps["performanceMetrics"];
 }) {
   return (
     <div className="debugger-panel-section">
       <div className="debugger-metrics">
-        <StatItem label="Avg Response" value={`${metrics.avgResponseTime}ms`} />
-        <StatItem label="Total Requests" value={metrics.totalRequests} />
-        <StatItem label="Success Rate" value="95%" color="text-green-500" />
-        <StatItem label="Error Rate" value="0.5%" />
+        <StatItem label="Avg Response" value={metrics ? `${Math.round(metrics.avgResponse)}ms` : "N/A"} />
+        <StatItem label="Total Requests" value={metrics ? metrics.totalRequests : "N/A"} />
+        <StatItem label="Success Rate" value={metrics ? `${Math.round(metrics.successRate * 100)}%` : "N/A"} />
       </div>
     </div>
   );
@@ -229,7 +228,9 @@ const StatePanel = memo(function StatePanel({
         <div className="debugger-state-body">
           <div className="debugger-state-row">
             <span>Status</span>
-            <span className={jotaiState.network.status === "ONLINE" ? "text-green-500" : "text-red-500"}>
+            <span
+              className={jotaiState.network.status === "ONLINE" ? "text-green-500" : "text-red-500"}
+            >
               {jotaiState.network.status}
             </span>
           </div>
@@ -258,10 +259,15 @@ const StatePanel = memo(function StatePanel({
           </div>
           <div className="debugger-state-row">
             <span>Pressure Level</span>
-            <span className={
-              jotaiState.memory.pressureLevel === "high" ? "text-red-500" : 
-              jotaiState.memory.pressureLevel === "medium" ? "text-yellow-500" : "text-green-500"
-            }>
+            <span
+              className={
+                jotaiState.memory.pressureLevel === "high"
+                  ? "text-red-500"
+                  : jotaiState.memory.pressureLevel === "medium"
+                    ? "text-yellow-500"
+                    : "text-green-500"
+              }
+            >
               {jotaiState.memory.pressureLevel}
             </span>
           </div>
@@ -276,24 +282,21 @@ export const DebuggerPanel = memo(function DebuggerPanel({
   onTabChange,
   onClose,
   onUpdateCache,
-  onUpdateNetwork,
   onClearCache,
   cacheStats,
-  networkStatus,
-  networkDetails,
-  performanceMetrics,
   jotaiState,
+  performanceMetrics,
 }: DebuggerPanelProps) {
   const tabs: Tab[] = ["cache", "network", "performance", "state"];
 
-  const getPositionStyles = (position: Position): React.CSSProperties => {
+  const getPositionStyles = (): React.CSSProperties => {
     const styles: React.CSSProperties = {};
-    if (position.includes("top")) {
+    if (state.position.includes("top")) {
       styles.top = 0;
     } else {
       styles.bottom = 0;
     }
-    if (position.includes("left")) {
+    if (state.position.includes("left")) {
       styles.left = 0;
     } else {
       styles.right = 0;
@@ -304,11 +307,11 @@ export const DebuggerPanel = memo(function DebuggerPanel({
   return (
     <div
       className={`debugger-panel ${state.panelMode === "fullwidth" ? "debugger-panel-fullwidth" : ""}`}
-      style={getPositionStyles(state.position)}
+      style={getPositionStyles()}
     >
       <div className="debugger-header">
         <div className="debugger-tabs">
-          {tabs.map((tab, idx) => (
+          {tabs.map((tab) => (
             <button
               type="button"
               key={tab}
@@ -320,37 +323,27 @@ export const DebuggerPanel = memo(function DebuggerPanel({
             </button>
           ))}
         </div>
-        <button
-          type="button"
-          className="debugger-close-btn"
-          onClick={onClose}
-          title="Close"
-        >
+        <button type="button" className="debugger-close-btn" onClick={onClose} title="Close">
           <span dangerouslySetInnerHTML={{ __html: ICONS.close }} />
         </button>
       </div>
-      
+
       <div className="debugger-panel-content">
         {state.activeTab === "cache" && (
-          <CachePanel 
-            stats={cacheStats} 
+          <CachePanel
+            stats={cacheStats}
             onUpdateCache={onUpdateCache}
             onClearCache={onClearCache}
           />
         )}
         {state.activeTab === "network" && (
-          <NetworkPanel 
-            status={networkStatus} 
-            details={networkDetails}
+          <NetworkPanel
+            status={jotaiState?.network.status ?? "ONLINE"}
             onUpdateNetwork={onUpdateNetwork}
           />
         )}
-        {state.activeTab === "performance" && (
-          <PerformancePanel metrics={performanceMetrics} />
-        )}
-        {state.activeTab === "state" && (
-          <StatePanel jotaiState={jotaiState} />
-        )}
+        {state.activeTab === "performance" && <PerformancePanel metrics={performanceMetrics} />}
+        {state.activeTab === "state" && <StatePanel jotaiState={jotaiState} />}
       </div>
     </div>
   );

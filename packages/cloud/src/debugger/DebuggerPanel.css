@@ -281,11 +281,11 @@
   .debugger-state-content {
     grid-template-columns: 1fr;
   }
-  
+
   .debugger-metrics {
     grid-template-columns: 1fr;
   }
-  
+
   .debugger-tabs {
     flex-wrap: wrap;
   }

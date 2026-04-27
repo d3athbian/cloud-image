@@ -18,7 +18,7 @@ export interface CDNAdapter {
 
   generateUrl(url: string, variant: CDNVariant): string;
 
-  getVariantForBandwidth(bandwidth: BandwidthClassification): CDNVariant;
+  getVariantForBandwidth(bandwidth: BandwidthClassification): CDNVariant | undefined;
 
   isAvailable(): boolean;
 }
@@ -46,7 +46,7 @@ export class DefaultCDNAdapter implements CDNAdapter {
       return url;
     }
 
-    const pattern = this.config.urlPattern?.replace("{url}", url);
+    const pattern = this.config.urlPattern?.replace("{url}", url) ?? url;
     return pattern.replace("{variant}", variant.name);
   }
 
@@ -89,7 +89,6 @@ export class CloudinaryCDNAdapter implements CDNAdapter {
   }
 
   generateUrl(url: string, variant: CDNVariant): string {
-    const _extractedId = this.extractPublicId(url);
     const transformations = this.buildTransformations(variant);
     return `https://res.cloudinary.com/${this.cloudName}/image/fetch/${transformations}/${encodeURIComponent(url)}`;
   }
@@ -111,15 +110,6 @@ export class CloudinaryCDNAdapter implements CDNAdapter {
     return !!this.cloudName;
   }
 
-  private extractPublicId(url: string): string {
-    try {
-      const pathname = new URL(url).pathname;
-      return pathname.replace(/^\/+/, "").replace(/\.[^.]+$/, "");
-    } catch {
-      return url;
-    }
-  }
-
   private buildTransformations(variant: CDNVariant): string {
     const parts: string[] = [];
     if (variant.width) parts.push(`w_${variant.width}`);
@@ -133,9 +123,8 @@ export class ImgixCDNAdapter implements CDNAdapter {
   readonly name = "imgix";
   private domain: string;
 
-  constructor(domain: string, apiKey?: string) {
-    this.domain = domain;
-    this._apiKey = apiKey;
+  constructor(domain: string, _apiKey?: string) {
+    this.domain = _apiKey ? domain : domain;
   }
 
   generateUrl(url: string, variant: CDNVariant): string {

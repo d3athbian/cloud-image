@@ -40,6 +40,9 @@ export {
   setCacheAtom,
   setMemoryAtom,
   setNetworkAtom,
+  updateCache,
+  updateMemory,
+  updateNetwork,
 } from "./system-atoms";
 export type {
   BandwidthClassification,
@@ -50,9 +53,11 @@ export type {
   CacheStats,
   CircuitBreakerConfig,
   CircuitBreakerState,
+  CompressionMetadata,
   DEFAULT_CACHE_CONFIG,
   NetworkStatus,
   PlatformType,
+  TransferBatch,
   WorkerMessage,
   WorkerMessageType,
   WorkerResponse,
