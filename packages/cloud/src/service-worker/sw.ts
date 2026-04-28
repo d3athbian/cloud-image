@@ -642,7 +642,7 @@ sw.addEventListener("message", async (event: ExtendableMessageEvent) => {
       case "cache-get": {
         const entry = await getFromIDB(payload.url as string);
         if (entry) {
-          const responsePayload = { found: true, metadata: entry.metadata };
+          const responsePayload = { found: true, metadata: entry.metadata, data: entry.data };
           reply(responsePayload, [entry.data]);
         } else {
           reply({ found: false });

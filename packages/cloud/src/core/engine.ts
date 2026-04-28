@@ -279,6 +279,7 @@ export class ImageEngine {
         const total = swStats.hits + swStats.misses;
         return {
           ...cacheStats,
+          itemCount: swStats.itemCount ?? cacheStats.itemCount,
           totalSize: swStats.totalSize ?? cacheStats.totalSize,
           hitRate: total > 0 ? swStats.hits / total : 0,
           missRate: total > 0 ? swStats.misses / total : 0,
