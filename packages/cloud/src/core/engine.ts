@@ -10,7 +10,12 @@ import type { CacheConfig, CacheEntry, CacheStats } from "./types";
 
 const log = logger.ImageEngine;
 
-export type EngineEventType = "cache-hit" | "cache-miss" | "cache-set" | "cache-delete" | "cache-clear";
+export type EngineEventType =
+  | "cache-hit"
+  | "cache-miss"
+  | "cache-set"
+  | "cache-delete"
+  | "cache-clear";
 export type EngineEventListener = (data: EngineEventData) => void;
 export interface EngineEventData {
   type: EngineEventType;
@@ -153,7 +158,10 @@ export class ImageEngine {
           source = source ?? "adapter";
         }
       } catch (adapterError) {
-        this.log("[ImageEngine] Adapter failed:", this.translateError(adapterError, "adapter_error"));
+        this.log(
+          "[ImageEngine] Adapter failed:",
+          this.translateError(adapterError, "adapter_error"),
+        );
       }
     }
 

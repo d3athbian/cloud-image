@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 import { resolve } from 'path';
 import { copyFileSync, mkdirSync } from 'fs';
 import { buildSync } from 'esbuild';
@@ -7,6 +8,7 @@ import { buildSync } from 'esbuild';
 export default defineConfig({
   plugins: [
     react(),
+    tailwindcss(),
     {
       name: 'build-service-worker',
       // Runs after Vite has finished writing dist/ so outDir already exists.

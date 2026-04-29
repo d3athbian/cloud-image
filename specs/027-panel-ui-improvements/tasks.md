@@ -12,11 +12,11 @@
 
 ### Implementation
 
-- [ ] T001 Install `@tailwindcss/vite` and `tailwindcss@4` as dev dependencies in `packages/cloud`
-- [ ] T002 Create `packages/cloud/src/debugger/styles/devtools.css` with `@import "tailwindcss"` directive
-- [ ] T003 Add `@theme` block with design tokens from `docs/design.md` (colors, fonts)
-- [ ] T004 Integrate `@tailwindcss/vite` plugin in `packages/cloud/vite.config.ts`
-- [ ] T005 Create `packages/cloud/src/debugger/types/devtools.types.ts` with all type definitions from data-model.md
+- [X] T001 Install `@tailwindcss/vite` and `tailwindcss@4` as dev dependencies in `packages/cloud`
+- [X] T002 Create `packages/cloud/src/debugger/styles/devtools.css` with `@import "tailwindcss"` directive
+- [X] T003 Add `@theme` block with design tokens from `docs/design.md` (colors, fonts)
+- [X] T004 Integrate `@tailwindcss/vite` plugin in `packages/cloud/vite.config.ts`
+- [X] T005 Create `packages/cloud/src/debugger/types/devtools.types.ts` with all type definitions from data-model.md
 
 ### Build & Test
 
@@ -35,10 +35,10 @@ cd packages/cloud && npm run build
 
 ### Implementation
 
-- [ ] T006 [P] Create `packages/cloud/src/debugger/components/layout/DevToolsLayout.tsx` with CSS Grid: `grid-cols-[1fr_350px] grid-rows-[48px_1fr_250px]`
-- [ ] T007 [P] Create `packages/cloud/src/debugger/components/layout/Topbar.tsx` with brand, version pill, status indicators
-- [ ] T008 [P] Create `packages/cloud/src/debugger/components/layout/SidePanel.tsx` (empty container, 350px right column)
-- [ ] T009 [P] Create `packages/cloud/src/debugger/components/layout/BottomPanel.tsx` (empty container, 250px footer)
+- [X] T006 [P] Create `packages/cloud/src/debugger/components/layout/DevToolsLayout.tsx` with CSS Grid: `grid-cols-[1fr_350px] grid-rows-[48px_1fr_250px]`
+- [X] T007 [P] Create `packages/cloud/src/debugger/components/layout/Topbar.tsx` with brand, version pill, status indicators
+- [X] T008 [P] Create `packages/cloud/src/debugger/components/layout/SidePanel.tsx` (empty container, 350px right column)
+- [X] T009 [P] Create `packages/cloud/src/debugger/components/layout/BottomPanel.tsx` (empty container, 250px footer)
 
 ### Build & Test
 
@@ -57,10 +57,10 @@ cd packages/cloud && npm run build
 
 ### Implementation
 
-- [ ] T010 Create `packages/cloud/src/debugger/store/devtools-atoms.ts` with `activeTabAtom`, `selectedItemUrlAtom`, `devToolsOpenAtom`
-- [ ] T011 Create `packages/cloud/src/debugger/hooks/useDevToolsLayout.ts` for layout state management
-- [ ] T012 [P] Create tab bar component with 4 tabs: Cache, Network, Performance, State
-- [ ] T013 [P] Connect tab switching to `activeTabAtom` with conditional rendering of tab content
+- [X] T010 Create `packages/cloud/src/debugger/store/devtools-atoms.ts` with `activeTabAtom`, `selectedItemUrlAtom`, `devToolsOpenAtom`
+- [X] T011 Create `packages/cloud/src/debugger/hooks/useDevToolsLayout.ts` for layout state management
+- [X] T012 [P] Create tab bar component with 4 tabs: Cache, Network, Performance, State
+- [X] T013 [P] Connect tab switching to `activeTabAtom` with conditional rendering of tab content
 
 ### Build & Test
 
@@ -79,11 +79,11 @@ cd packages/cloud && npm run build
 
 ### Implementation
 
-- [ ] T014 Create `packages/cloud/src/debugger/store/logger-atoms.ts` with `logsAtom`, `logsFilterAtom`, `filteredLogsAtom`
-- [ ] T015 Create `packages/cloud/src/debugger/hooks/useLogger.ts` with FIFO limit (500 entries), `addLog`, `clearLogs`
-- [ ] T016 [P] Create `packages/cloud/src/debugger/components/logger/LogEntry.tsx` for single log row
-- [ ] T017 [P] Create `packages/cloud/src/debugger/components/logger/LoggerPanel.tsx` with filter buttons (All, Info, Warn, Error) and auto-scroll
-- [ ] T018 Create empty StateViewer placeholder in BottomPanel
+- [X] T014 Create `packages/cloud/src/debugger/store/logger-atoms.ts` with `logsAtom`, `logsFilterAtom`, `filteredLogsAtom`
+- [X] T015 Create `packages/cloud/src/debugger/hooks/useLogger.ts` with FIFO limit (500 entries), `addLog`, `clearLogs`
+- [X] T016 [P] Create `packages/cloud/src/debugger/components/logger/LogEntry.tsx` for single log row
+- [X] T017 [P] Create `packages/cloud/src/debugger/components/logger/LoggerPanel.tsx` with filter buttons (All, Info, Warn, Error) and auto-scroll
+- [X] T018 Create empty StateViewer placeholder in BottomPanel
 
 ### Build & Test
 
@@ -102,12 +102,12 @@ cd packages/cloud && npm run build
 
 ### Implementation
 
-- [ ] T019 [P] Create `packages/cloud/src/debugger/components/cache/CacheCard.tsx` with thumbnail, LRU badge, copy icon, metadata
-- [ ] T020 [P] Create `packages/cloud/src/debugger/components/cache/CacheGrid.tsx` with CSS Grid (`auto-fill, minmax(220px, 1fr)`) and React.memo
-- [ ] T021 [P] Create `packages/cloud/src/debugger/components/cache/StatsOverview.tsx` with widgets: Items, Size, Hit Rate, Evictions, TTL Expired, Pinned
-- [ ] T022 Create `packages/cloud/src/debugger/components/cache/CacheToolbar.tsx` with search input (in-memory filter) and Status/Sort dropdowns
-- [ ] T023 Create empty/skeleton loading state when cache is loading
-- [ ] T024 Create "No cached images" empty state when cache is empty
+- [X] T019 [P] Create `packages/cloud/src/debugger/components/cache/CacheCard.tsx` with thumbnail, LRU badge, copy icon, metadata
+- [X] T020 [P] Create `packages/cloud/src/debugger/components/cache/CacheGrid.tsx` with CSS Grid (`auto-fill, minmax(220px, 1fr)`) and React.memo
+- [X] T021 [P] Create `packages/cloud/src/debugger/components/cache/StatsOverview.tsx` with widgets: Items, Size, Hit Rate, Evictions, TTL Expired, Pinned
+- [X] T022 Create `packages/cloud/src/debugger/components/cache/CacheToolbar.tsx` with search input (in-memory filter) and Status/Sort dropdowns
+- [X] T023 Create empty/skeleton loading state when cache is loading
+- [X] T024 Create "No cached images" empty state when cache is empty
 
 ### Build & Test
 
@@ -126,11 +126,11 @@ cd packages/cloud && npm run build
 
 ### Implementation
 
-- [ ] T025 [P] Create `packages/cloud/src/debugger/components/shared/JsonView.tsx` with syntax highlighting (keys, strings, numbers)
-- [ ] T026 [P] Create `packages/cloud/src/debugger/components/state/StateViewer.tsx` showing cacheAtom, networkAtom, memoryAtom, cacheStatsAtom as formatted JSON
-- [ ] T027 [P] Create `packages/cloud/src/debugger/components/shared/Button.tsx` and `Badge.tsx` for consistent styling
-- [ ] T028 Create `packages/cloud/src/debugger/components/state/QuickActions.tsx` with buttons: Disable Cache, Simulate Offline, Clear All, Export Snapshot
-- [ ] T029 Wire QuickActions to `window.__CLOUD_ENGINE__` methods
+- [X] T025 [P] Create `packages/cloud/src/debugger/components/shared/JsonView.tsx` with syntax highlighting (keys, strings, numbers)
+- [X] T026 [P] Create `packages/cloud/src/debugger/components/state/StateViewer.tsx` showing cacheAtom, networkAtom, memoryAtom, cacheStatsAtom as formatted JSON
+- [X] T027 [P] Create `packages/cloud/src/debugger/components/shared/Button.tsx` and `Badge.tsx` for consistent styling
+- [X] T028 Create `packages/cloud/src/debugger/components/state/QuickActions.tsx` with buttons: Disable Cache, Simulate Offline, Clear All, Export Snapshot
+- [X] T029 Wire QuickActions to `window.__CLOUD_ENGINE__` methods
 
 ### Build & Test
 
@@ -149,11 +149,11 @@ cd packages/cloud && npm run build
 
 ### Implementation
 
-- [ ] T030 [P] Create `packages/cloud/src/debugger/components/layout/ImageDetails.tsx` with full metadata display and action buttons (Preview, Refetch, Delete, Pin)
-- [ ] T031 [P] Create `packages/cloud/src/debugger/hooks/useCacheExplorer.ts` for IDB interaction
-- [ ] T032 Wire ImageDetails to `selectedItemUrlAtom` observation
-- [ ] T033 Add IndexedDB failure handling: try/catch, warning in grid UI, disabled sections for IDB-dependent features
-- [ ] T034 Add skeleton loading cards animation with CSS @keyframes
+- [X] T030 [P] Create `packages/cloud/src/debugger/components/layout/ImageDetails.tsx` with full metadata display and action buttons (Preview, Refetch, Delete, Pin)
+- [X] T031 [P] Create `packages/cloud/src/debugger/hooks/useCacheExplorer.ts` for IDB interaction
+- [X] T032 Wire ImageDetails to `selectedItemUrlAtom` observation
+- [X] T033 Add IndexedDB failure handling: try/catch, warning in grid UI, disabled sections for IDB-dependent features
+- [X] T034 Add skeleton loading cards animation with CSS @keyframes
 
 ### Build & Test
 
@@ -170,9 +170,9 @@ cd packages/cloud && npm run build
 
 ### Implementation
 
-- [ ] T035 Run `npm run typecheck` in `packages/cloud`
-- [ ] T036 Run `npm run lint` in `packages/cloud`
-- [ ] T037 Verify build passes with `npm run build`
+- [X] T035 Run `npm run typecheck` in `packages/cloud`
+- [X] T036 Run `npm run lint` in `packages/cloud`
+- [X] T037 Verify build passes with `npm run build`
 
 ### Final Test
 

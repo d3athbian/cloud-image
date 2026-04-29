@@ -16,11 +16,7 @@ import {
   updateMemory,
   updateNetwork,
 } from "../core/system-atoms";
-import type {
-  BandwidthClassification,
-  CacheStats,
-  NetworkStatus,
-} from "../core/types";
+import type { BandwidthClassification, CacheStats, NetworkStatus } from "../core/types";
 import { CloudContext } from "./context";
 import { useEngineSync } from "./hooks/useEngineSync";
 
@@ -192,9 +188,7 @@ function CloudProviderInner({
     return <LoadingComponent />;
   }
 
-  return (
-    <CloudContext.Provider value={value}>{children}</CloudContext.Provider>
-  );
+  return <CloudContext.Provider value={value}>{children}</CloudContext.Provider>;
 }
 
 /**

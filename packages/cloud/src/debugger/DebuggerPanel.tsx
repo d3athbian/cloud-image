@@ -172,9 +172,15 @@ const PerformancePanel = memo(function PerformancePanel({
   return (
     <div className="debugger-panel-section">
       <div className="debugger-metrics">
-        <StatItem label="Avg Response" value={metrics ? `${Math.round(metrics.avgResponse)}ms` : "N/A"} />
+        <StatItem
+          label="Avg Response"
+          value={metrics ? `${Math.round(metrics.avgResponse)}ms` : "N/A"}
+        />
         <StatItem label="Total Requests" value={metrics ? metrics.totalRequests : "N/A"} />
-        <StatItem label="Success Rate" value={metrics ? `${Math.round(metrics.successRate * 100)}%` : "N/A"} />
+        <StatItem
+          label="Success Rate"
+          value={metrics ? `${Math.round(metrics.successRate * 100)}%` : "N/A"}
+        />
       </div>
     </div>
   );

@@ -1,13 +1,16 @@
-import { useEffect, useRef, useCallback } from "react";
-import { updateCache } from "../../core/system-atoms";
+import { useCallback, useEffect, useRef } from "react";
 import type { EngineEventType } from "../../core/engine";
+import { updateCache } from "../../core/system-atoms";
 
 interface UseEngineSyncOptions {
   refreshInterval?: number;
 }
 
 export function useEngineSync(
-  engine: { on: (event: EngineEventType, listener: (data: unknown) => void) => () => void; getStats: () => Promise<unknown> } | null,
+  engine: {
+    on: (event: EngineEventType, listener: (data: unknown) => void) => () => void;
+    getStats: () => Promise<unknown>;
+  } | null,
   options: UseEngineSyncOptions = {},
 ): void {
   const { refreshInterval = 2000 } = options;
@@ -17,7 +20,7 @@ export function useEngineSync(
   const syncStats = useCallback(async () => {
     if (!engineRef.current) return;
     try {
-      const stats = await engineRef.current.getStats() as {
+      const stats = (await engineRef.current.getStats()) as {
         hitCount?: number;
         missCount?: number;
         itemCount?: number;

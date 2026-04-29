@@ -73,7 +73,9 @@ export const DebuggerTool = memo(function DebuggerTool({
   const performanceMetrics = {
     avgResponse: jotaiNetwork.rtt || 0,
     totalRequests: (jotaiCache.hitCount || 0) + (jotaiCache.missCount || 0),
-    successRate: (jotaiCache.hitCount || 0) / Math.max(1, (jotaiCache.hitCount || 0) + (jotaiCache.missCount || 0)),
+    successRate:
+      (jotaiCache.hitCount || 0) /
+      Math.max(1, (jotaiCache.hitCount || 0) + (jotaiCache.missCount || 0)),
   };
 
   const handleClearCache = useCallback(async () => {
