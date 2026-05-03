@@ -2,8 +2,8 @@ import {
   type CoreServiceOptions,
   CoreServiceOptionsSchema,
   type PartialCoreServiceOptions,
-} from "../types/core-options.schema";
-import { DEFAULT_SYSTEM_OPTIONS } from "./defaults";
+} from '../types/core-options.schema';
+import { DEFAULT_SYSTEM_OPTIONS } from './defaults';
 
 let currentOptions: CoreServiceOptions = { ...DEFAULT_SYSTEM_OPTIONS };
 
@@ -68,7 +68,7 @@ export function resetSystemSettings(): void {
  */
 function getEnvVar(name: string, defaultValue: string): string {
   if (
-    typeof globalThis !== "undefined" &&
+    typeof globalThis !== 'undefined' &&
     (globalThis as { process?: { env?: Record<string, string> } }).process?.env
   ) {
     return (
@@ -85,32 +85,32 @@ function getEnvVar(name: string, defaultValue: string): string {
 export function initFromEnvironment(): void {
   const envOptions: Record<string, unknown> = {};
 
-  const cacheMaxSize = getEnvVar("CLOUD_CACHE_SIZE", "");
+  const cacheMaxSize = getEnvVar('CLOUD_CACHE_SIZE', '');
   if (cacheMaxSize) {
     const parsed = parseInt(cacheMaxSize, 10);
     if (!Number.isNaN(parsed)) envOptions.cacheMaxSize = parsed;
   }
 
-  const requestTimeout = getEnvVar("CLOUD_TIMEOUT_MS", "");
+  const requestTimeout = getEnvVar('CLOUD_TIMEOUT_MS', '');
   if (requestTimeout) {
     const parsed = parseInt(requestTimeout, 10);
     if (!Number.isNaN(parsed)) envOptions.requestTimeout = parsed;
   }
 
-  const maxRetries = getEnvVar("CLOUD_MAX_RETRIES", "");
+  const maxRetries = getEnvVar('CLOUD_MAX_RETRIES', '');
   if (maxRetries) {
     const parsed = parseInt(maxRetries, 10);
     if (!Number.isNaN(parsed)) envOptions.maxRetries = parsed;
   }
 
-  const enableLogging = getEnvVar("CLOUD_LOGGING", "");
+  const enableLogging = getEnvVar('CLOUD_LOGGING', '');
   if (enableLogging) {
-    envOptions.enableLogging = enableLogging.toLowerCase() === "true";
+    envOptions.enableLogging = enableLogging.toLowerCase() === 'true';
   }
 
-  const enableDevtools = getEnvVar("CLOUD_DEVTOOLS", "");
+  const enableDevtools = getEnvVar('CLOUD_DEVTOOLS', '');
   if (enableDevtools) {
-    envOptions.enableDevtools = enableDevtools.toLowerCase() === "true";
+    envOptions.enableDevtools = enableDevtools.toLowerCase() === 'true';
   }
 
   if (Object.keys(envOptions).length > 0) {

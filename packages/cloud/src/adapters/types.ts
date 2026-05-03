@@ -1,5 +1,5 @@
-import type { CacheEntry } from "../core/types";
-import type { PlatformType } from "../types/cache-config.schema";
+import type { CacheEntry } from '../core/types';
+import type { PlatformType } from '../types/cache-config.schema';
 
 export type { PlatformType };
 

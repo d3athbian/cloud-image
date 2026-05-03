@@ -1,10 +1,10 @@
-import { Provider, useAtom, useSetAtom } from "jotai";
-import React, { type ReactNode, useContext, useEffect, useMemo, useState } from "react";
-import { getSystemSettings } from "../config/settings";
-import { ImageEngine } from "../core/engine";
-import { getMemoryMonitor } from "../core/memory";
-import { getNetworkMonitor } from "../core/network";
-import { createOfflineStrategy } from "../core/offline";
+import { Provider, useAtom, useSetAtom } from 'jotai';
+import React, { type ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { getSystemSettings } from '../config/settings';
+import { ImageEngine } from '../core/engine';
+import { getMemoryMonitor } from '../core/memory';
+import { getNetworkMonitor } from '../core/network';
+import { createOfflineStrategy } from '../core/offline';
 import {
   engineAtom,
   hydrateState,
@@ -15,14 +15,10 @@ import {
   updateCache,
   updateMemory,
   updateNetwork,
-} from "../core/system-atoms";
-import type {
-  BandwidthClassification,
-  CacheStats,
-  NetworkStatus,
-} from "../core/types";
-import { CloudContext } from "./context";
-import { useEngineSync } from "./hooks/useEngineSync";
+} from '../core/system-atoms';
+import type { BandwidthClassification, CacheStats, NetworkStatus } from '../core/types';
+import { CloudContext } from './context';
+import { useEngineSync } from './hooks/useEngineSync';
 
 export interface CloudProviderConfig {
   cache?: Partial<{
@@ -37,7 +33,7 @@ export interface CloudProviderConfig {
   LoadingComponent?: React.ComponentType;
   ErrorComponent?: React.ComponentType<{ error: Error }>;
   devtools?: boolean;
-  offlineStrategy?: "default" | "aggressive";
+  offlineStrategy?: 'default' | 'aggressive';
 }
 
 export interface useCloudReturn {
@@ -68,11 +64,11 @@ function CloudProviderInner({
   LoadingComponent,
   ErrorComponent,
   devtools = false,
-  offlineStrategy: strategyType = "default",
+  offlineStrategy: strategyType = 'default',
 }: CloudProviderConfig): React.ReactElement {
   const [networkStatus, setNetworkStatus] = useState<NetworkStatus>({
     online: true,
-    bandwidth: "unknown",
+    bandwidth: 'unknown',
   });
   const [isReady, setIsReady] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -92,9 +88,9 @@ function CloudProviderInner({
     const initEngine = async () => {
       try {
         registerStateUpdater(setCache, setNetwork, setMemory);
-        console.log("[CloudProvider] State updaters registered, hydrating...");
+        console.log('[CloudProvider] State updaters registered, hydrating...');
         await hydrateState(updateCache, updateNetwork, updateMemory);
-        console.log("[CloudProvider] State hydration complete.");
+        console.log('[CloudProvider] State hydration complete.');
 
         const imageEngine = new ImageEngine({
           maxSize: cache?.maxSize ?? systemSettings.cacheMaxSize,
@@ -109,11 +105,11 @@ function CloudProviderInner({
         setEngine(imageEngine);
         setIsReady(true);
 
-        if (devtools && typeof window !== "undefined") {
+        if (devtools && typeof window !== 'undefined') {
           (window as Window & { __CLOUD_ENGINE__?: ImageEngine }).__CLOUD_ENGINE__ = imageEngine;
         }
       } catch (err) {
-        setError(err instanceof Error ? err : new Error("Failed to initialize"));
+        setError(err instanceof Error ? err : new Error('Failed to initialize'));
       }
     };
 
@@ -128,7 +124,27 @@ function CloudProviderInner({
       memoryMonitor.stopMonitoring();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [devtools]);
+  }, [
+    devtools,
+    systemSettings.cacheMemoryTierSize,
+    systemSettings.enableDevtools,
+    systemSettings.maxRetries,
+    systemSettings.cacheMaxSize,
+    systemSettings.requestTimeout,
+    systemSettings.cacheDefaultTTL,
+    setNetwork,
+    setMemory,
+    setEngine,
+    setCache,
+    memoryMonitor.startMonitoring,
+    networkMonitor.subscribe,
+    cache?.requestTimeout,
+    cache?.maxRetries,
+    memoryMonitor.stopMonitoring,
+    cache?.memoryTierSize,
+    cache?.maxSize,
+    cache?.defaultTTL,
+  ]);
 
   const cacheAPI = useMemo(
     () => ({
@@ -192,9 +208,7 @@ function CloudProviderInner({
     return <LoadingComponent />;
   }
 
-  return (
-    <CloudContext.Provider value={value}>{children}</CloudContext.Provider>
-  );
+  return <CloudContext.Provider value={value}>{children}</CloudContext.Provider>;
 }
 
 /**
@@ -231,7 +245,7 @@ export function useCloud(): useCloudReturn {
       },
       network: {
         online: true,
-        bandwidth: "unknown",
+        bandwidth: 'unknown',
       },
       engine: null,
       isReady: false,

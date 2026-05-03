@@ -1,5 +1,5 @@
-import { getNetworkMonitor } from "./network";
-import type { CacheEntry } from "./types";
+import { getNetworkMonitor } from './network';
+import type { CacheEntry } from './types';
 
 export interface OfflineStrategy {
   readonly name: string;
@@ -9,7 +9,7 @@ export interface OfflineStrategy {
 }
 
 export class DefaultOfflineStrategy implements OfflineStrategy {
-  readonly name = "default";
+  readonly name = 'default';
   private cache: Map<string, CacheEntry> = new Map();
 
   registerEntry(entry: CacheEntry): void {
@@ -42,7 +42,7 @@ export class DefaultOfflineStrategy implements OfflineStrategy {
 }
 
 export class AggressiveOfflineStrategy implements OfflineStrategy {
-  readonly name = "aggressive";
+  readonly name = 'aggressive';
   private entries: Map<string, CacheEntry> = new Map();
   private maxEntries = 500;
 
@@ -81,9 +81,9 @@ export class AggressiveOfflineStrategy implements OfflineStrategy {
   }
 }
 
-export function createOfflineStrategy(type: "default" | "aggressive" = "default"): OfflineStrategy {
+export function createOfflineStrategy(type: 'default' | 'aggressive' = 'default'): OfflineStrategy {
   switch (type) {
-    case "aggressive":
+    case 'aggressive':
       return new AggressiveOfflineStrategy();
     default:
       return new DefaultOfflineStrategy();

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const baseSchema = z.object({
   cacheMaxSize: z.number().positive(),
@@ -9,8 +9,8 @@ const baseSchema = z.object({
   enableLogging: z.boolean(),
   enableDevtools: z.boolean(),
   enablePrefetch: z.boolean(),
-  bandwidthTestUrl: z.string().url().default("https://picsum.photos/100/100"),
-  offlineStrategy: z.enum(["default", "aggressive"]),
+  bandwidthTestUrl: z.string().url().default('https://picsum.photos/100/100'),
+  offlineStrategy: z.enum(['default', 'aggressive']),
   circuitBreakerFailureThreshold: z.number().positive().int(),
   circuitBreakerResetTimeout: z.number().positive(),
   bandwidthTestSize: z.number().positive(),

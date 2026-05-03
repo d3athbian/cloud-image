@@ -75,10 +75,10 @@ export const Threshold = {
 
 export const ImageSize = {
   // CDN variants
-  CDN_SMALL: { name: "small", width: 320, quality: 70 },
-  CDN_MEDIUM: { name: "medium", width: 640, quality: 75 },
-  CDN_LARGE: { name: "large", width: 1280, quality: 85 },
-  CDN_HIGH: { name: "high", width: 1280, quality: 80 },
+  CDN_SMALL: { name: 'small', width: 320, quality: 70 },
+  CDN_MEDIUM: { name: 'medium', width: 640, quality: 75 },
+  CDN_LARGE: { name: 'large', width: 1280, quality: 85 },
+  CDN_HIGH: { name: 'high', width: 1280, quality: 80 },
 } as const;
 
 // ============================================

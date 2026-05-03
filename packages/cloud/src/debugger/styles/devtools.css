@@ -1,0 +1,26 @@
+@import "tailwindcss";
+
+@theme {
+  /* Colors - Base Theme (Next.js / Vercel Dark Style) */
+  --color-dt-bg-base: #000000;
+  --color-dt-bg-panel: #0a0a0a;
+  --color-dt-bg-card: #111111;
+
+  /* Colors - Borders */
+  --color-dt-border: #333333;
+  --color-dt-border-hover: #444444;
+
+  /* Colors - Typography */
+  --color-dt-text-primary: #fafafa;
+  --color-dt-text-secondary: #888888;
+
+  /* Colors - Indicators & Badges */
+  --color-dt-success: #10b981;
+  --color-dt-warning: #f5a623;
+  --color-dt-error: #ff0000;
+  --color-dt-info: #0070f3;
+
+  /* Typography Variables */
+  --font-dt-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-dt-mono: "JetBrains Mono", "Fira Code", monospace;
+}

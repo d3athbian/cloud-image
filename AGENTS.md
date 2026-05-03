@@ -1,6 +1,6 @@
 # carbon-image Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-04-27
+Auto-generated from all feature plans. Last updated: 2026-04-28
 
 ## Active Technologies
 - TypeScript 5.x (strict mode) + Vitest (testing), Vite (build) (003-workers-to-serviceworkers)
@@ -14,8 +14,8 @@ Auto-generated from all feature plans. Last updated: 2026-04-27
 - TypeScript 5.x (strict mode) + jotai (state), idb (IndexedDB), React 19 (025-global-config-management)
 - TypeScript 5.x (strict mode) + Existing - Worker, ImageBitmap API, IndexedDB (idb), Jotai (026-worker-comms-optimize)
 - IndexedDB (idb) for image cache (026-worker-comms-optimize)
-- TypeScript 5.x (strict mode) + React 19, Jotai (existing), idb (existing IndexedDB wrapper) (027-panel-ui-improvements)
-- IndexedDB (existing via idb adapter) (027-panel-ui-improvements)
+- TypeScript 5.x (strict mode) + Tailwind CSS v4, React 19, Jotai (existing), idb (existing) (027-panel-ui-improvements)
+- IndexedDB (via idb - existing, no changes) (027-panel-ui-improvements)
 
 - TypeScript 5.x (strict mode) + React 18+, idb (IndexedDB wrapper), react-native-fflate (worker compression) (002-cloud-image-cache-engine)
 
@@ -75,7 +75,7 @@ TypeScript 5.x (strict mode): Follow standard conventions
 - Transferable objects for zero-copy
 
 ## Recent Changes
-- 027-panel-ui-improvements: Added TypeScript 5.x (strict mode) + React 19, Jotai (existing), idb (existing IndexedDB wrapper)
+- 027-panel-ui-improvements: Added TypeScript 5.x (strict mode) + Tailwind CSS v4, React 19, Jotai (existing), idb (existing)
 - 026-worker-comms-optimize: Added TypeScript 5.x (strict mode) + Existing - Worker, ImageBitmap API, IndexedDB (idb), Jotai
 - 025-global-config-management: Added Zod schemas for configuration validation, global config management
 

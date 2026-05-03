@@ -1,2 +1,2 @@
-export { createAdapter, detectPlatform } from "./factory";
-export type { AdapterConfig, PlatformAdapter, PlatformType } from "./types";
+export { createAdapter, detectPlatform } from './factory';
+export type { AdapterConfig, PlatformAdapter, PlatformType } from './types';

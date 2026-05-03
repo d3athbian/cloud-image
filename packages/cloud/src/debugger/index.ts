@@ -1,6 +1,6 @@
-export { DebuggerPanel } from "./DebuggerPanel";
-export { DebuggerTool, DebuggerToolPanel } from "./DebuggerTool";
-export { useDebuggerState } from "./hooks/useDebuggerState";
+export { DebuggerPanel } from './DebuggerPanel';
+export { DebuggerTool, DebuggerToolPanel } from './DebuggerTool';
+export { useDebuggerState } from './hooks/useDebuggerState';
 export type {
   CacheEntry,
   DebuggerState,
@@ -8,4 +8,4 @@ export type {
   PerformanceMetrics,
   Position,
   Tab,
-} from "./types";
+} from './types';

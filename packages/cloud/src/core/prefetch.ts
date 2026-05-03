@@ -6,14 +6,14 @@ export interface PrefetchOptions {
 export interface PrefetchTask {
   url: string;
   priority: number;
-  status: "pending" | "processing" | "completed" | "failed";
+  status: 'pending' | 'processing' | 'completed' | 'failed';
   createdAt: number;
   startedAt?: number;
   completedAt?: number;
   error?: Error;
 }
 
-export type PrefetchEventType = "start" | "complete" | "error" | "queueChange";
+export type PrefetchEventType = 'start' | 'complete' | 'error' | 'queueChange';
 
 export interface PrefetchEvent {
   type: PrefetchEventType;
@@ -49,7 +49,7 @@ export class PrefetchQueue {
         existing.priority = options.priority;
         this.sortQueue();
         this.notifyListeners({
-          type: "queueChange",
+          type: 'queueChange',
           queueSize: this.queue.length,
           timestamp: Date.now(),
         });
@@ -60,12 +60,12 @@ export class PrefetchQueue {
     const task: PrefetchTask = {
       url,
       priority: options.priority ?? 5,
-      status: "pending",
+      status: 'pending',
       createdAt: Date.now(),
     };
 
     if (options.signal) {
-      options.signal.addEventListener("abort", () => {
+      options.signal.addEventListener('abort', () => {
         this.remove(url);
       });
     }
@@ -73,7 +73,7 @@ export class PrefetchQueue {
     this.queue.push(task);
     this.sortQueue();
     this.notifyListeners({
-      type: "queueChange",
+      type: 'queueChange',
       queueSize: this.queue.length,
       timestamp: Date.now(),
     });
@@ -100,13 +100,13 @@ export class PrefetchQueue {
     if (index === -1) return false;
 
     const task = this.queue[index];
-    if (task.status === "processing") {
+    if (task.status === 'processing') {
       return false;
     }
 
     this.queue.splice(index, 1);
     this.notifyListeners({
-      type: "queueChange",
+      type: 'queueChange',
       queueSize: this.queue.length,
       timestamp: Date.now(),
     });
@@ -128,7 +128,7 @@ export class PrefetchQueue {
     this.processing = true;
 
     while (this.queue.length > 0) {
-      const pending = this.queue.filter((t) => t.status === "pending");
+      const pending = this.queue.filter((t) => t.status === 'pending');
       const toProcess = pending.slice(0, this.maxConcurrent);
 
       if (toProcess.length === 0) break;
@@ -143,11 +143,11 @@ export class PrefetchQueue {
   }
 
   private async processTask(task: PrefetchTask): Promise<void> {
-    task.status = "processing";
+    task.status = 'processing';
     task.startedAt = Date.now();
 
     this.notifyListeners({
-      type: "start",
+      type: 'start',
       task,
       queueSize: this.queue.length,
       timestamp: Date.now(),
@@ -155,19 +155,19 @@ export class PrefetchQueue {
 
     try {
       await this.fetchHandler(task.url);
-      task.status = "completed";
+      task.status = 'completed';
       task.completedAt = Date.now();
       this.notifyListeners({
-        type: "complete",
+        type: 'complete',
         task,
         queueSize: this.queue.length,
         timestamp: Date.now(),
       });
     } catch (error) {
-      task.status = "failed";
+      task.status = 'failed';
       task.error = error instanceof Error ? error : new Error(String(error));
       this.notifyListeners({
-        type: "error",
+        type: 'error',
         task,
         queueSize: this.queue.length,
         timestamp: Date.now(),
@@ -179,10 +179,10 @@ export class PrefetchQueue {
     const completedThreshold = Date.now() - 60000;
     this.queue = this.queue.filter(
       (t) =>
-        t.status === "pending" ||
-        t.status === "processing" ||
-        (t.status === "completed" && t.completedAt && t.completedAt > completedThreshold) ||
-        (t.status === "failed" && t.startedAt && t.startedAt > completedThreshold),
+        t.status === 'pending' ||
+        t.status === 'processing' ||
+        (t.status === 'completed' && t.completedAt && t.completedAt > completedThreshold) ||
+        (t.status === 'failed' && t.startedAt && t.startedAt > completedThreshold),
     );
   }
 
@@ -201,9 +201,9 @@ export class PrefetchQueue {
   }
 
   clear(): void {
-    this.queue = this.queue.filter((t) => t.status === "processing");
+    this.queue = this.queue.filter((t) => t.status === 'processing');
     this.notifyListeners({
-      type: "queueChange",
+      type: 'queueChange',
       queueSize: this.queue.length,
       timestamp: Date.now(),
     });
@@ -218,10 +218,10 @@ export class PrefetchQueue {
   } {
     return {
       queueSize: this.queue.length,
-      pending: this.queue.filter((t) => t.status === "pending").length,
-      processing: this.queue.filter((t) => t.status === "processing").length,
-      completed: this.queue.filter((t) => t.status === "completed").length,
-      failed: this.queue.filter((t) => t.status === "failed").length,
+      pending: this.queue.filter((t) => t.status === 'pending').length,
+      processing: this.queue.filter((t) => t.status === 'processing').length,
+      completed: this.queue.filter((t) => t.status === 'completed').length,
+      failed: this.queue.filter((t) => t.status === 'failed').length,
     };
   }
 

@@ -1,13 +1,16 @@
-import { useEffect, useRef, useCallback } from "react";
-import { updateCache } from "../../core/system-atoms";
-import type { EngineEventType } from "../../core/engine";
+import { useCallback, useEffect, useRef } from 'react';
+import type { EngineEventType } from '../../core/engine';
+import { updateCache } from '../../core/system-atoms';
 
 interface UseEngineSyncOptions {
   refreshInterval?: number;
 }
 
 export function useEngineSync(
-  engine: { on: (event: EngineEventType, listener: (data: unknown) => void) => () => void; getStats: () => Promise<unknown> } | null,
+  engine: {
+    on: (event: EngineEventType, listener: (data: unknown) => void) => () => void;
+    getStats: () => Promise<unknown>;
+  } | null,
   options: UseEngineSyncOptions = {},
 ): void {
   const { refreshInterval = 2000 } = options;
@@ -17,13 +20,13 @@ export function useEngineSync(
   const syncStats = useCallback(async () => {
     if (!engineRef.current) return;
     try {
-      const stats = await engineRef.current.getStats() as {
+      const stats = (await engineRef.current.getStats()) as {
         hitCount?: number;
         missCount?: number;
         itemCount?: number;
         totalSize?: number;
       };
-      console.log("[useEngineSync] getStats result:", stats);
+      console.log('[useEngineSync] getStats result:', stats);
       if (stats && (stats.hitCount !== undefined || stats.missCount !== undefined)) {
         updateCache({
           hitCount: stats.hitCount ?? 0,
@@ -32,43 +35,43 @@ export function useEngineSync(
           totalSize: stats.totalSize ?? 0,
           lastAccessTime: Date.now(),
         });
-        console.log("[useEngineSync] Updated cacheAtom with:", stats);
+        console.log('[useEngineSync] Updated cacheAtom with:', stats);
       }
     } catch (err) {
-      console.error("[useEngineSync] Error in syncStats:", err);
+      console.error('[useEngineSync] Error in syncStats:', err);
     }
   }, []);
 
   useEffect(() => {
     if (!engine) {
-      console.log("[useEngineSync] No engine yet, skipping setup");
+      console.log('[useEngineSync] No engine yet, skipping setup');
       return;
     }
 
-    console.log("[useEngineSync] Setting up sync with engine:", !!engine);
+    console.log('[useEngineSync] Setting up sync with engine:', !!engine);
 
     const handleEvent = (data: unknown) => {
-      console.log("[useEngineSync] Event received:", data);
+      console.log('[useEngineSync] Event received:', data);
       syncStats();
     };
 
     const unsubscribers = [
-      engine.on("cache-hit", handleEvent),
-      engine.on("cache-miss", handleEvent),
-      engine.on("cache-set", handleEvent),
-      engine.on("cache-delete", handleEvent),
-      engine.on("cache-clear", handleEvent),
+      engine.on('cache-hit', handleEvent),
+      engine.on('cache-miss', handleEvent),
+      engine.on('cache-set', handleEvent),
+      engine.on('cache-delete', handleEvent),
+      engine.on('cache-clear', handleEvent),
     ];
 
-    console.log("[useEngineSync] Subscribed to engine events");
+    console.log('[useEngineSync] Subscribed to engine events');
 
     const intervalId = setInterval(syncStats, refreshInterval);
-    console.log("[useEngineSync] Started interval:", refreshInterval);
+    console.log('[useEngineSync] Started interval:', refreshInterval);
 
     syncStats();
 
     return () => {
-      console.log("[useEngineSync] Cleaning up");
+      console.log('[useEngineSync] Cleaning up');
       unsubscribers.forEach((unsub) => unsub());
       clearInterval(intervalId);
     };

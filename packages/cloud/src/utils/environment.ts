@@ -1,19 +1,19 @@
 export const env = {
-  isBrowser: typeof window !== "undefined",
+  isBrowser: typeof window !== 'undefined',
 
-  isServer: typeof window === "undefined",
+  isServer: typeof window === 'undefined',
 
-  hasNavigator: typeof navigator !== "undefined",
+  hasNavigator: typeof navigator !== 'undefined',
 
-  hasPerformance: typeof performance !== "undefined",
+  hasPerformance: typeof performance !== 'undefined',
 
-  hasWorker: typeof Worker !== "undefined",
+  hasWorker: typeof Worker !== 'undefined',
 
   isDevelopment: (): boolean => {
-    if (typeof process !== "undefined" && process.env?.NODE_ENV) {
-      return process.env.NODE_ENV !== "production";
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV) {
+      return process.env.NODE_ENV !== 'production';
     }
-    return typeof window !== "undefined"; // Assume dev in browser without process.env
+    return typeof window !== 'undefined'; // Assume dev in browser without process.env
   },
 
   isProduction: (): boolean => !env.isDevelopment(),
@@ -25,11 +25,11 @@ export const env = {
 
   isServiceWorkerSupported: (): boolean => {
     if (!env.hasNavigator) return false;
-    return "serviceWorker" in navigator;
+    return 'serviceWorker' in navigator;
   },
 
   userAgent: (): string => {
-    if (!env.hasNavigator) return "";
+    if (!env.hasNavigator) return '';
     return navigator.userAgent;
   },
 

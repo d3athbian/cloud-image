@@ -1,4 +1,4 @@
-import type { BandwidthClassification } from "./types";
+import type { BandwidthClassification } from './types';
 
 export interface BandwidthSample {
   timestamp: number;
@@ -15,10 +15,10 @@ export interface BandwidthConfig {
 }
 
 export type BandwidthEventType =
-  | "classificationChange"
-  | "sampleAdded"
-  | "upgradeTriggered"
-  | "degradedTriggered";
+  | 'classificationChange'
+  | 'sampleAdded'
+  | 'upgradeTriggered'
+  | 'degradedTriggered';
 
 export interface BandwidthEvent {
   type: BandwidthEventType;
@@ -34,7 +34,7 @@ export class BandwidthMonitor {
   private samples: BandwidthSample[] = [];
   private config: Required<BandwidthConfig>;
   private listeners: Set<BandwidthListener> = new Set();
-  private classification: BandwidthClassification = "unknown";
+  private classification: BandwidthClassification = 'unknown';
   private previousClassification?: BandwidthClassification;
 
   constructor(config: BandwidthConfig = {}) {
@@ -68,7 +68,7 @@ export class BandwidthMonitor {
       this.previousClassification = previous;
       this.classification = newClassification;
       this.notifyListeners({
-        type: "classificationChange",
+        type: 'classificationChange',
         previous,
         current: newClassification,
         timestamp: Date.now(),
@@ -76,7 +76,7 @@ export class BandwidthMonitor {
       });
     } else {
       this.notifyListeners({
-        type: "sampleAdded",
+        type: 'sampleAdded',
         current: newClassification,
         timestamp: Date.now(),
         sample,
@@ -90,17 +90,17 @@ export class BandwidthMonitor {
     );
 
     if (recentSamples.length === 0) {
-      return "unknown";
+      return 'unknown';
     }
 
     const medianMbps = this.calculateMedian(recentSamples.map((s) => s.mbps));
 
     if (medianMbps < this.config.lowThreshold) {
-      return "low";
+      return 'low';
     } else if (medianMbps < this.config.mediumThreshold) {
-      return "medium";
+      return 'medium';
     } else {
-      return "high";
+      return 'high';
     }
   }
 
@@ -134,16 +134,16 @@ export class BandwidthMonitor {
 
   shouldUpgrade(): boolean {
     return (
-      this.classification === "high" &&
-      this.previousClassification !== "high" &&
+      this.classification === 'high' &&
+      this.previousClassification !== 'high' &&
       this.previousClassification !== undefined
     );
   }
 
   shouldDegrade(): boolean {
     return (
-      this.classification === "low" &&
-      this.previousClassification !== "low" &&
+      this.classification === 'low' &&
+      this.previousClassification !== 'low' &&
       this.previousClassification !== undefined
     );
   }
@@ -165,7 +165,7 @@ export class BandwidthMonitor {
 
   reset(): void {
     this.samples = [];
-    this.classification = "unknown";
+    this.classification = 'unknown';
     this.previousClassification = undefined;
   }
 

@@ -1,18 +1,18 @@
-import type { CacheEntry } from "../core/types";
-import type { PlatformAdapter } from "./types";
+import type { CacheEntry } from '../core/types';
+import type { PlatformAdapter } from './types';
 
-const BASE_PATH = "images";
+const BASE_PATH = 'images';
 
 export class TizenAdapter implements PlatformAdapter {
-  readonly platform = "tizen" as const;
+  readonly platform = 'tizen' as const;
   private baseDir: {
     readFile: (path: string, cb: (d: ArrayBuffer) => void) => void;
     writeFile: (path: string, data: ArrayBuffer, cb: () => void) => void;
   } | null = null;
 
   async init(): Promise<void> {
-    if (typeof tizen === "undefined") {
-      throw new Error("Tizen API not available");
+    if (typeof tizen === 'undefined') {
+      throw new Error('Tizen API not available');
     }
 
     return new Promise((resolve, reject) => {
@@ -26,13 +26,13 @@ export class TizenAdapter implements PlatformAdapter {
           resolve();
         },
         (e) => reject(new Error(`Tizen filesystem init failed: ${e}`)),
-        "rw",
+        'rw',
       );
     });
   }
 
   private getPath(url: string): string {
-    const hash = btoa(url).replace(/[/+=]/g, "_").substring(0, 64);
+    const hash = btoa(url).replace(/[/+=]/g, '_').substring(0, 64);
     return `${hash}.bin`;
   }
 

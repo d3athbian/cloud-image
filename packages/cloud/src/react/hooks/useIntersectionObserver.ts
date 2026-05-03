@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 interface UseIntersectionObserverOptions {
   rootMargin?: string;
@@ -6,7 +6,7 @@ interface UseIntersectionObserverOptions {
 }
 
 export function useIntersectionObserver(options: UseIntersectionObserverOptions = {}) {
-  const { rootMargin = "100px", triggerWhen = true } = options;
+  const { rootMargin = '100px', triggerWhen = true } = options;
   const ref = useRef<HTMLElement | null>(null);
   const [isInViewport, setIsInViewport] = useState(!triggerWhen);
 

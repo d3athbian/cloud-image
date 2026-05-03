@@ -1,8 +1,8 @@
-import { getSystemSettings } from "../config/settings";
-import { logger } from "../utils/logger";
-import { EventInterceptor } from "./event-interceptor";
-import { updateNetwork } from "./system-atoms";
-import type { BandwidthClassification, NetworkStatus } from "./types";
+import { getSystemSettings } from '../config/settings';
+import { logger } from '../utils/logger';
+import { EventInterceptor } from './event-interceptor';
+import { updateNetwork } from './system-atoms';
+import type { BandwidthClassification, NetworkStatus } from './types';
 
 const systemSettings = getSystemSettings();
 
@@ -29,7 +29,7 @@ interface BandwidthSample {
 export class NetworkMonitor {
   private status: NetworkStatus = {
     online: true,
-    bandwidth: "unknown",
+    bandwidth: 'unknown',
     bandwidthTested: false,
   };
   private samples: BandwidthSample[] = [];
@@ -65,7 +65,7 @@ export class NetworkMonitor {
     this.status.online = this.checkOnlineStatus();
 
     this.interceptor = new EventInterceptor({
-      moduleName: "NetworkMonitor",
+      moduleName: 'NetworkMonitor',
       logger: logger.NetworkMonitor,
     });
 
@@ -77,17 +77,17 @@ export class NetworkMonitor {
   }
 
   private checkOnlineStatus(): boolean {
-    if (typeof navigator === "undefined") {
+    if (typeof navigator === 'undefined') {
       return true;
     }
     return navigator.onLine;
   }
 
   private setupListeners(): void {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
-    this.interceptor.on(window, "online", "handleOnline", () => this.handleOnline());
-    this.interceptor.on(window, "offline", "handleOffline", () => this.handleOffline());
+    this.interceptor.on(window, 'online', 'handleOnline', () => this.handleOnline());
+    this.interceptor.on(window, 'offline', 'handleOffline', () => this.handleOffline());
 
     this.monitorConnectionAPI();
   }
@@ -113,7 +113,7 @@ export class NetworkMonitor {
         this.boundConnectionChange = () => {
           this.updateFromConnectionAPI(connection);
         };
-        connection.addEventListener("change", this.boundConnectionChange);
+        connection.addEventListener('change', this.boundConnectionChange);
       }
     }
   }
@@ -151,15 +151,15 @@ export class NetworkMonitor {
 
   private classifyFromEffectiveType(type: string): BandwidthClassification {
     switch (type) {
-      case "slow-2g":
-      case "2g":
-        return "low";
-      case "3g":
-        return "medium";
-      case "4g":
-        return "high";
+      case 'slow-2g':
+      case '2g':
+        return 'low';
+      case '3g':
+        return 'medium';
+      case '4g':
+        return 'high';
       default:
-        return "unknown";
+        return 'unknown';
     }
   }
 
@@ -169,7 +169,7 @@ export class NetworkMonitor {
     this.config.onStatusChange(this.status);
     this.processRetryQueue();
     updateNetwork({
-      status: "ONLINE",
+      status: 'ONLINE',
       rtt: 0,
       lastChecked: Date.now(),
     });
@@ -177,11 +177,11 @@ export class NetworkMonitor {
 
   private handleOffline(): void {
     this.status.online = false;
-    this.status.bandwidth = "unknown";
+    this.status.bandwidth = 'unknown';
     this.notifyListeners();
     this.config.onStatusChange(this.status);
     updateNetwork({
-      status: "OFFLINE",
+      status: 'OFFLINE',
       rtt: 0,
       lastChecked: Date.now(),
     });
@@ -202,13 +202,13 @@ export class NetworkMonitor {
     const medianMbps = this.calculateMedian(recentSamples.map((s) => s.mbps));
 
     if (medianMbps === 0) {
-      this.status.bandwidth = "unknown";
+      this.status.bandwidth = 'unknown';
     } else if (medianMbps < this.config.bandwidthThreshold.low) {
-      this.status.bandwidth = "low";
+      this.status.bandwidth = 'low';
     } else if (medianMbps < this.config.bandwidthThreshold.medium) {
-      this.status.bandwidth = "medium";
+      this.status.bandwidth = 'medium';
     } else {
-      this.status.bandwidth = "high";
+      this.status.bandwidth = 'high';
     }
   }
 
@@ -276,7 +276,7 @@ export class NetworkMonitor {
       }
 
       const start = performance.now();
-      fetch(url, { method: "HEAD", cache: "no-store" })
+      fetch(url, { method: 'HEAD', cache: 'no-store' })
         .then(() => {
           const rtt = performance.now() - start;
           this.status.rtt = rtt;
@@ -298,13 +298,13 @@ export class NetworkMonitor {
       const testUrl = this.config.bandwidthTestUrl;
       const startTime = performance.now();
       const response = await fetch(testUrl, {
-        method: "GET",
-        cache: "no-store",
+        method: 'GET',
+        cache: 'no-store',
       });
 
       const endTime = performance.now();
       const durationMs = endTime - startTime;
-      const contentLength = response.headers.get("content-length");
+      const contentLength = response.headers.get('content-length');
       const bytes = contentLength ? parseInt(contentLength, 10) : this.config.bandwidthTestSize;
 
       const bytesPerSecond = (bytes / durationMs) * 1000;
@@ -348,13 +348,13 @@ export class NetworkMonitor {
     try {
       const startTime = performance.now();
       const response = await fetch(testUrl, {
-        method: "GET",
-        cache: "no-store",
+        method: 'GET',
+        cache: 'no-store',
       });
 
       const endTime = performance.now();
       const durationMs = endTime - startTime;
-      const contentLength = response.headers.get("content-length");
+      const contentLength = response.headers.get('content-length');
       const bytes = contentLength ? parseInt(contentLength, 10) : this.config.bandwidthTestSize;
 
       const bytesPerSecond = (bytes / durationMs) * 1000;
@@ -367,12 +367,12 @@ export class NetworkMonitor {
   }
 
   destroy(): void {
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return;
 
     this.interceptor?.destroy();
 
     if (this.connectionRef && this.boundConnectionChange) {
-      this.connectionRef.removeEventListener?.("change", this.boundConnectionChange);
+      this.connectionRef.removeEventListener?.('change', this.boundConnectionChange);
       this.connectionRef = null;
       this.boundConnectionChange = null;
     }

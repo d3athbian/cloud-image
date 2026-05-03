@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
-import type { DebuggerState, Position, Tab } from "../types";
-import { DEFAULT_DEBUGGER_STATE } from "../types";
+import { useCallback, useState } from 'react';
+import type { DebuggerState, Position, Tab } from '../types';
+import { DEFAULT_DEBUGGER_STATE } from '../types';
 
 export function useDebuggerState(initialState?: Partial<DebuggerState>) {
   const [state, setState] = useState<DebuggerState>({

@@ -1,5 +1,5 @@
-import { useAtomValue, useSetAtom } from "jotai";
-import { cacheAtom, networkAtom, setCacheAtom, setNetworkAtom } from "../../core/system-atoms";
+import { useAtomValue, useSetAtom } from 'jotai';
+import { cacheAtom, networkAtom, setCacheAtom, setNetworkAtom } from '../../core/system-atoms';
 
 export function SelectiveRenderDemo() {
   const cache = useAtomValue(cacheAtom);
@@ -29,7 +29,7 @@ export function SelectiveRenderDemo() {
         <button
           type="button"
           onClick={() =>
-            updateNetwork({ status: network.status === "ONLINE" ? "OFFLINE" : "ONLINE" })
+            updateNetwork({ status: network.status === 'ONLINE' ? 'OFFLINE' : 'ONLINE' })
           }
         >
           Toggle Network

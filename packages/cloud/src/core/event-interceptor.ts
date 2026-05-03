@@ -1,4 +1,4 @@
-import { type LoggerInterface, logger } from "../utils/logger";
+import { type LoggerInterface, logger } from '../utils/logger';
 
 export interface EventInterceptorConfig {
   moduleName: string;
@@ -35,7 +35,7 @@ export class EventInterceptor {
       try {
         const result = handler();
 
-        if (result && typeof result.then === "function") {
+        if (result && typeof result.then === 'function') {
           result.catch((error: Error) => {
             this.logError(error, listenerId, eventType);
           });

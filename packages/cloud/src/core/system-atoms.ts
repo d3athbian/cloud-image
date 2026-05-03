@@ -1,9 +1,9 @@
-import { atom } from "jotai";
-import type { ImageEngine } from "./engine";
-import { StateSync } from "./state-sync";
+import { atom } from 'jotai';
+import type { ImageEngine } from './engine';
+import { StateSync } from './state-sync';
 
-export type ConnectionStatus = "ONLINE" | "OFFLINE" | "LOW_BANDWIDTH";
-export type PressureLevel = "low" | "medium" | "high";
+export type ConnectionStatus = 'ONLINE' | 'OFFLINE' | 'LOW_BANDWIDTH';
+export type PressureLevel = 'low' | 'medium' | 'high';
 
 let stateSyncInstance: StateSync | null = null;
 
@@ -45,14 +45,14 @@ const initialCacheState: CacheState = {
 };
 
 const initialNetworkState: NetworkState = {
-  status: "ONLINE",
+  status: 'ONLINE',
   rtt: 0,
   lastChecked: 0,
 };
 
 const initialMemoryState: MemoryState = {
   isUnderPressure: false,
-  pressureLevel: "low",
+  pressureLevel: 'low',
 };
 
 export const cacheAtom = atom<CacheState>(initialCacheState);
@@ -87,7 +87,7 @@ export const setCacheAtom = atom(
     const current = _get(cacheAtom);
     const newState = { ...current, ...update };
     set(cacheAtom, newState);
-    getStateSync().syncState("cache", newState);
+    getStateSync().syncState('cache', newState);
   },
 );
 
@@ -97,7 +97,7 @@ export const setNetworkAtom = atom(
     const current = _get(networkAtom);
     const newState = { ...current, ...update };
     set(networkAtom, newState);
-    getStateSync().syncState("network", newState);
+    getStateSync().syncState('network', newState);
   },
 );
 
@@ -107,7 +107,7 @@ export const setMemoryAtom = atom(
     const current = _get(memoryAtom);
     const newState = { ...current, ...update };
     set(memoryAtom, newState);
-    getStateSync().syncState("memory", newState);
+    getStateSync().syncState('memory', newState);
   },
 );
 
@@ -130,7 +130,7 @@ export function updateCache(data: Partial<CacheState>) {
     cacheUpdater(data);
   }
   const sync = getStateSync();
-  sync.syncState("cache", { ...data });
+  sync.syncState('cache', { ...data });
 }
 
 export function updateNetwork(data: Partial<NetworkState>) {
@@ -138,7 +138,7 @@ export function updateNetwork(data: Partial<NetworkState>) {
     networkUpdater(data);
   }
   const sync = getStateSync();
-  sync.syncState("network", { ...data });
+  sync.syncState('network', { ...data });
 }
 
 export function updateMemory(data: Partial<MemoryState>) {
@@ -146,7 +146,7 @@ export function updateMemory(data: Partial<MemoryState>) {
     memoryUpdater(data);
   }
   const sync = getStateSync();
-  sync.syncState("memory", { ...data });
+  sync.syncState('memory', { ...data });
 }
 
 export async function hydrateState(
@@ -157,12 +157,12 @@ export async function hydrateState(
   const sync = getStateSync();
   await sync.init();
 
-  const cache = await sync.readState<CacheState>("cache");
+  const cache = await sync.readState<CacheState>('cache');
   if (cache) setCache(cache);
 
-  const network = await sync.readState<NetworkState>("network");
+  const network = await sync.readState<NetworkState>('network');
   if (network) setNetwork(network);
 
-  const memory = await sync.readState<MemoryState>("memory");
+  const memory = await sync.readState<MemoryState>('memory');
   if (memory) setMemory(memory);
 }

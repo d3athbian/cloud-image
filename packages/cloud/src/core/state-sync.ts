@@ -1,8 +1,8 @@
-import { type IDBPDatabase, openDB } from "idb";
-import { logger } from "../utils/logger";
+import { type IDBPDatabase, openDB } from 'idb';
+import { logger } from '../utils/logger';
 
-const DB_NAME = "cloud-state";
-const STORE_NAME = "state";
+const DB_NAME = 'cloud-state';
+const STORE_NAME = 'state';
 const DB_VERSION = 1;
 
 interface StateDB {
@@ -44,10 +44,10 @@ export class StateSync {
       maxRetries: config.maxRetries ?? 3,
     };
 
-    if (typeof window !== "undefined") {
+    if (typeof window !== 'undefined') {
       this.online = navigator.onLine;
-      window.addEventListener("online", this.boundHandleOnline);
-      window.addEventListener("offline", this.boundHandleOffline);
+      window.addEventListener('online', this.boundHandleOnline);
+      window.addEventListener('offline', this.boundHandleOffline);
     }
   }
 
@@ -61,14 +61,14 @@ export class StateSync {
   }
 
   private async _init(): Promise<void> {
-    if (typeof indexedDB === "undefined") {
+    if (typeof indexedDB === 'undefined') {
       return;
     }
 
     this.db = await openDB<StateDB>(this.config.dbName, DB_VERSION, {
       upgrade(db) {
         if (!db.objectStoreNames.contains(STORE_NAME)) {
-          db.createObjectStore(STORE_NAME, { keyPath: "key" });
+          db.createObjectStore(STORE_NAME, { keyPath: 'key' });
         }
       },
     });
@@ -158,19 +158,19 @@ export class StateSync {
 
   private handleOnline(): void {
     this.online = true;
-    this.log.info("[StateSync] Online - flushing queue");
+    this.log.info('[StateSync] Online - flushing queue');
     this.flush().catch(() => {});
   }
 
   private handleOffline(): void {
     this.online = false;
-    this.log.info("[StateSync] Offline - queuing writes");
+    this.log.info('[StateSync] Offline - queuing writes');
   }
 
   destroy(): void {
-    if (typeof window !== "undefined") {
-      window.removeEventListener("online", this.boundHandleOnline);
-      window.removeEventListener("offline", this.boundHandleOffline);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('online', this.boundHandleOnline);
+      window.removeEventListener('offline', this.boundHandleOffline);
     }
     this.queue = [];
   }

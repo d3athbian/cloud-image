@@ -1,10 +1,10 @@
-import type React from "react";
-import { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
-import { getNetworkMonitor } from "../core/network";
-import { CloudContext } from "./context";
+import type React from 'react';
+import { memo, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { getNetworkMonitor } from '../core/network';
+import { CloudContext } from './context';
 
 export interface CloudImageProps
-  extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, "onError" | "onLoad"> {
+  extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'onError' | 'onLoad'> {
   src: string;
   alt?: string;
   placeholder?: string;
@@ -21,34 +21,34 @@ export interface CloudImageProps
   blurPlaceholder?: string;
   transitionDuration?: number;
   enableCrossfade?: boolean;
-  priority?: "high" | "low" | "auto";
+  priority?: 'high' | 'low' | 'auto';
 }
 
-export type ImageStatus = "pending" | "loading" | "loaded" | "error" | "offline" | "cached";
+export type ImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline' | 'cached';
 
 const getPlaceholderStyle = (
   blurPlaceholder?: string,
   placeholder?: string,
 ): React.CSSProperties => ({
-  position: "absolute",
+  position: 'absolute',
   top: 0,
   left: 0,
-  width: "100%",
-  height: "100%",
+  width: '100%',
+  height: '100%',
   backgroundImage: blurPlaceholder
     ? `url(${blurPlaceholder})`
     : placeholder
       ? `url(${placeholder})`
       : undefined,
-  backgroundSize: "cover",
-  backgroundPosition: "center",
-  filter: blurPlaceholder ? "blur(20px)" : undefined,
-  transform: blurPlaceholder ? "scale(1.1)" : undefined,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  filter: blurPlaceholder ? 'blur(20px)' : undefined,
+  transform: blurPlaceholder ? 'scale(1.1)' : undefined,
 });
 
 const CloudImageComponent: React.FC<CloudImageProps> = ({
   src,
-  alt = "",
+  alt = '',
   placeholder,
   showLoading = true,
   fallback,
@@ -67,14 +67,14 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
   height,
   style,
   className,
-  priority = "auto",
+  priority = 'auto',
   ...props
 }) => {
   const context = useContext(CloudContext);
   const engine = context?.engine;
   const isReady = context?.isReady ?? false;
 
-  const [status, setStatus] = useState<ImageStatus>("pending");
+  const [status, setStatus] = useState<ImageStatus>('pending');
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isInViewport, setIsInViewport] = useState(!preload);
   const [isOnline, setIsOnline] = useState(true);
@@ -94,8 +94,8 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
 
     const unsubscribe = networkMonitorRef.current.subscribe((newStatus) => {
       setIsOnline(newStatus.online);
-      if (newStatus.online && status === "offline") {
-        setStatus("pending");
+      if (newStatus.online && status === 'offline') {
+        setStatus('pending');
       }
     });
 
@@ -115,7 +115,7 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
           observerRef.current?.disconnect();
         }
       },
-      { rootMargin: "100px" },
+      { rootMargin: '100px' },
     );
 
     if (imgRef.current) {
@@ -154,14 +154,14 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
 
     const loadImage = async () => {
       if (!isOnline) {
-        setStatus("offline");
+        setStatus('offline');
         return;
       }
 
       const cacheHasUrl = engine?.has(src);
 
       if (!cacheHasUrl) {
-        setStatus("loading");
+        setStatus('loading');
       }
       setMainImageLoaded(false);
 
@@ -234,7 +234,7 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
           setMainImageLoaded(true);
         }
 
-        setStatus(fromCache ? "cached" : "loaded");
+        setStatus(fromCache ? 'cached' : 'loaded');
         if (fromCache) {
           onCacheHit?.();
         } else {
@@ -243,9 +243,9 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
         onLoad?.();
       } catch (error) {
         if (!isOnline) {
-          setStatus("offline");
+          setStatus('offline');
         } else {
-          setStatus("error");
+          setStatus('error');
           onError?.(error as Error);
         }
       }
@@ -274,18 +274,18 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
     isReady,
   ]);
 
-  const loadingPriority: "eager" | "lazy" = priority === "high" || isInViewport ? "eager" : "lazy";
+  const loadingPriority: 'eager' | 'lazy' = priority === 'high' || isInViewport ? 'eager' : 'lazy';
 
-  if (status === "pending" && hasBlurPlaceholder) {
+  if (status === 'pending' && hasBlurPlaceholder) {
     return (
       <div
         ref={imgRef}
         className={className}
         style={{
-          position: "relative",
-          width: width || "100%",
+          position: 'relative',
+          width: width || '100%',
           aspectRatio: width && height ? `${width}/${height}` : undefined,
-          overflow: "hidden",
+          overflow: 'hidden',
           ...style,
         }}
         role="img"
@@ -296,13 +296,13 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
     );
   }
 
-  if (status === "offline") {
+  if (status === 'offline') {
     return (
       <div
         className={className}
         style={{
-          position: "relative",
-          width: width || "100%",
+          position: 'relative',
+          width: width || '100%',
           aspectRatio: width && height ? `${width}/${height}` : undefined,
           ...style,
         }}
@@ -310,14 +310,14 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
         {offlineFallback || fallback || (
           <div
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "100%",
-              height: "100%",
-              backgroundColor: "#f0f0f0",
-              color: "#666",
-              fontSize: "14px",
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '100%',
+              height: '100%',
+              backgroundColor: '#f0f0f0',
+              color: '#666',
+              fontSize: '14px',
             }}
           >
             Offline
@@ -331,10 +331,10 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
     <div
       className={className}
       style={{
-        position: "relative",
-        width: width || "100%",
+        position: 'relative',
+        width: width || '100%',
         aspectRatio: width && height ? `${width}/${height}` : undefined,
-        overflow: "hidden",
+        overflow: 'hidden',
         ...style,
       }}
     >
@@ -342,25 +342,25 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
         <div style={getPlaceholderStyle(blurPlaceholder, placeholder)} />
       )}
 
-      {showLoading && status === "loading" && !mainImageLoaded && (
+      {showLoading && status === 'loading' && !mainImageLoaded && (
         <div
           style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             width: 24,
             height: 24,
-            border: "2px solid #ccc",
-            borderTopColor: "#333",
-            borderRadius: "50%",
-            animation: "cloudImageSpin 1s linear infinite",
+            border: '2px solid #ccc',
+            borderTopColor: '#333',
+            borderRadius: '50%',
+            animation: 'cloudImageSpin 1s linear infinite',
             zIndex: 2,
           }}
         />
       )}
 
-      {status === "error" && fallback ? (
+      {status === 'error' && fallback ? (
         fallback
       ) : (
         <img
@@ -371,12 +371,12 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
           height={height}
           loading={loadingPriority}
           style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
             opacity: mainImageLoaded ? 1 : 0,
-            transition: enableCrossfade ? `opacity ${transitionDuration}ms ease-out` : "none",
-            position: "absolute",
+            transition: enableCrossfade ? `opacity ${transitionDuration}ms ease-out` : 'none',
+            position: 'absolute',
             top: 0,
             left: 0,
           }}
