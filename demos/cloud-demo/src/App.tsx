@@ -2,17 +2,18 @@ import { CloudProvider, ErrorBoundary } from '@cloudimage/cloud';
 import { DebuggerTool } from '@cloudimage/cloud/debugger';
 import { ImageGrid } from './components/ImageGrid';
 import { STATIC_IMAGES } from './types/images';
-import './styles/app.css';
+import './styles/global.css';
+import styles from './App.module.css';
 
 function AppContent() {
   return (
-    <div className="demo-container">
-      <header className="demo-header">
+    <div className={styles.container}>
+      <header className={styles.header}>
         <h1>CLOUD Image Cache</h1>
         <p>Intelligent image caching for modern web apps</p>
       </header>
 
-      <main className="demo-main">
+      <main className={styles.main}>
         <ImageGrid images={STATIC_IMAGES} />
       </main>
 
