@@ -49,6 +49,15 @@ demos/*/.output/
 .playwright
 demos/cloud-demo/public/register.js
 
+# Spec Kit (project-specific config, templates, scripts)
+.specify/
+
+# Claude Code (project-specific config, skills, permissions)
+.claude/
+
+# OpenCode CLI (project-specific commands)
+.opencode/
+
 # Generated SW artifacts (compiled from .ts by Vite build — never commit these)
 packages/cloud/src/service-worker/sw.js
 packages/cloud/src/service-worker/register.js
