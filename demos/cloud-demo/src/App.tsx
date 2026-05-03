@@ -1,5 +1,5 @@
-import { CloudProvider, ErrorBoundary } from '@cloudimage/cloud';
-import { DebuggerTool } from '@cloudimage/cloud/debugger';
+import { CloudProvider, ErrorBoundary, DebuggerTool } from '@cloudimage/cloud';
+import '@cloudimage/cloud/dist/cloud.css';
 import { ImageGrid } from './components/ImageGrid';
 import { STATIC_IMAGES } from './types/images';
 import './styles/global.css';

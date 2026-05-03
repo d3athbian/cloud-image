@@ -29,15 +29,6 @@ if (existsSync(libRegister)) {
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: {
-      '@cloudimage/cloud/debugger': path.resolve(__dirname, '../../packages/cloud/src/debugger/index.ts'),
-      '@cloudimage/cloud/react': path.resolve(__dirname, '../../packages/cloud/src/react/index.ts'),
-      '@cloudimage/cloud/core': path.resolve(__dirname, '../../packages/cloud/src/core/index.ts'),
-      '@cloudimage/cloud/adapters': path.resolve(__dirname, '../../packages/cloud/src/adapters/index.ts'),
-      '@cloudimage/cloud': path.resolve(__dirname, '../../packages/cloud/src/index.ts'),
-    }
-  },
   server: {
     port: 5173,
     host: true

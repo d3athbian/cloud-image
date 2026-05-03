@@ -1,5 +1,5 @@
 import { useAtom } from 'jotai';
-import { type CSSProperties, memo, useCallback, useEffect } from 'react';
+import { type CSSProperties, memo, useCallback } from 'react';
 import {
   cacheAtom,
   cacheStatsAtom,
@@ -10,18 +10,9 @@ import {
 } from '../core/system-atoms';
 import { DebuggerPanel } from './DebuggerPanel';
 import { useDebuggerState } from './hooks/useDebuggerState';
-import './DebuggerPanel.css';
+import './styles/devtools.css';
 
 type Position = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
-
-const CSS_VARIABLES_STYLE = `
-:root {
-  --debugger-bg: #0f0f0f;
-  --debugger-text: #ededed;
-  --debugger-border: #333;
-  --debugger-accent: #3b82f6;
-}
-`;
 
 interface DebuggerToolProps {
   initialIsOpen?: boolean;
@@ -100,16 +91,6 @@ export const DebuggerTool = memo(function DebuggerTool({
     console.log('[Debugger] Network test triggered via atom');
   }, []);
 
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const style = document.createElement('style');
-    style.textContent = CSS_VARIABLES_STYLE;
-    document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
-
   const handleToggle = () => {
     toggle();
     onToggle?.(!state.isOpen);
@@ -124,7 +105,7 @@ export const DebuggerTool = memo(function DebuggerTool({
     <>
       <button
         type="button"
-        className={`debugger-toggle ${className ?? ''}`}
+        className={`fixed w-11 h-11 rounded-xl bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-dt-border text-dt-text-primary cursor-pointer flex items-center justify-center transition-all z-[9998] shadow-lg hover:border-dt-info hover:scale-105 ${className ?? ''}`}
         style={getTogglePosition()}
         onClick={handleToggle}
         aria-label={state.isOpen ? 'Close Debugger' : 'Open Debugger'}

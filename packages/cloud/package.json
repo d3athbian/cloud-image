@@ -28,6 +28,9 @@
     "./debugger": {
       "types": "./dist/debugger/index.d.ts",
       "import": "./dist/debugger/index.js"
+    },
+    "./dist/cloud.css": {
+      "import": "./dist/cloud.css"
     }
   },
   "files": [

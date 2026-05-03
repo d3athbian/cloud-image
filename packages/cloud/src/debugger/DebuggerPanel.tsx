@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import type { DebuggerState, Tab } from './types';
+import './styles/devtools.css';
 
 const TAB_LABELS: Record<Tab, string> = {
   cache: 'Cache',
@@ -77,9 +78,9 @@ const StatItem = ({
   value: string | number;
   color?: string;
 }) => (
-  <div className="debugger-stat">
-    <span className="debugger-label">{label}</span>
-    <span className={`debugger-value ${color ?? ''}`}>{value}</span>
+  <div className="flex flex-col p-3 bg-white/[0.04] rounded-lg border border-white/[0.05]">
+    <span className="text-[10px] text-[#666] uppercase tracking-wide mb-1">{label}</span>
+    <span className={`text-base font-semibold tabular-nums ${color ?? ''}`}>{value}</span>
   </div>
 );
 
@@ -92,7 +93,11 @@ const ActionButton = ({
   icon: string;
   label: string;
 }) => (
-  <button className="debugger-action-btn" onClick={onClick} title={label}>
+  <button
+    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-dt-info/10 border border-dt-info/30 rounded-lg text-dt-info text-xs font-medium cursor-pointer transition-all hover:bg-dt-info/20 hover:border-dt-info/50"
+    onClick={onClick}
+    title={label}
+  >
     <span dangerouslySetInnerHTML={{ __html: icon }} />
     <span>{label}</span>
   </button>
@@ -111,22 +116,22 @@ const CachePanel = memo(function CachePanel({
   const missRate = Math.round(stats.missRate * 100);
 
   return (
-    <div className="debugger-panel-section">
-      <div className="debugger-metrics">
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-2">
         <StatItem label="Items Cached" value={stats.itemCount} />
         <StatItem label="Total Size" value={formatSize(stats.totalSize)} />
         <StatItem
           label="Hit Rate"
           value={`${hitRate}%`}
           color={
-            hitRate >= 80 ? 'text-green-500' : hitRate >= 50 ? 'text-yellow-500' : 'text-red-500'
+            hitRate >= 80 ? 'text-dt-success' : hitRate >= 50 ? 'text-dt-warning' : 'text-dt-error'
           }
         />
         <StatItem label="Miss Rate" value={`${missRate}%`} />
         <StatItem label="Evictions" value={stats.evictionCount} />
       </div>
 
-      <div className="debugger-actions">
+      <div className="flex gap-2 pt-2 border-t border-white/[0.05]">
         <ActionButton onClick={onUpdateCache} icon={ICONS.refresh} label="Refresh Stats" />
         <ActionButton onClick={onClearCache} icon={ICONS.clear} label="Clear Cache" />
       </div>
@@ -142,14 +147,14 @@ const NetworkPanel = memo(function NetworkPanel({
   onUpdateNetwork?: () => void;
 }) {
   const statusColors: Record<string, string> = {
-    ONLINE: 'text-green-500',
-    OFFLINE: 'text-red-500',
-    LOW_BANDWIDTH: 'text-yellow-500',
+    ONLINE: 'text-dt-success',
+    OFFLINE: 'text-dt-error',
+    LOW_BANDWIDTH: 'text-dt-warning',
   };
 
   return (
-    <div className="debugger-panel-section">
-      <div className="debugger-metrics">
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-2">
         <StatItem
           label="Status"
           value={status.charAt(0).toUpperCase() + status.slice(1)}
@@ -157,7 +162,7 @@ const NetworkPanel = memo(function NetworkPanel({
         />
       </div>
 
-      <div className="debugger-actions">
+      <div className="flex gap-2 pt-2 border-t border-white/[0.05]">
         <ActionButton onClick={onUpdateNetwork} icon={ICONS.sync} label="Test Speed" />
       </div>
     </div>
@@ -170,8 +175,8 @@ const PerformancePanel = memo(function PerformancePanel({
   metrics?: DebuggerPanelProps['performanceMetrics'];
 }) {
   return (
-    <div className="debugger-panel-section">
-      <div className="debugger-metrics">
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-2">
         <StatItem
           label="Avg Response"
           value={metrics ? `${Math.round(metrics.avgResponse)}ms` : 'N/A'}
@@ -193,85 +198,89 @@ const StatePanel = memo(function StatePanel({
 }) {
   if (!jotaiState) {
     return (
-      <div className="debugger-panel-section">
-        <div className="debugger-empty">No state available</div>
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-center p-10 text-[#666] text-sm">
+          No state available
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="debugger-state-content">
-      <div className="debugger-state-card">
-        <div className="debugger-state-header">
+    <div className="grid grid-cols-3 gap-3">
+      <div className="bg-white/[0.03] rounded-lg border border-white/[0.05] overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-dt-info/10 border-b border-white/[0.05] text-xs font-semibold text-dt-info uppercase tracking-wide">
           <span dangerouslySetInnerHTML={{ __html: ICONS.cache }} />
           Cache State
         </div>
-        <div className="debugger-state-body">
-          <div className="debugger-state-row">
+        <div className="p-0">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>Total Items</span>
-            <span>{jotaiState.cache.totalItems}</span>
+            <span className="font-medium tabular-nums">{jotaiState.cache.totalItems}</span>
           </div>
-          <div className="debugger-state-row">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>Hit Count</span>
-            <span>{jotaiState.cache.hitCount}</span>
+            <span className="font-medium tabular-nums">{jotaiState.cache.hitCount}</span>
           </div>
-          <div className="debugger-state-row">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>Miss Count</span>
-            <span>{jotaiState.cache.missCount}</span>
+            <span className="font-medium tabular-nums">{jotaiState.cache.missCount}</span>
           </div>
-          <div className="debugger-state-row">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>Last Access</span>
-            <span>{formatTime(jotaiState.cache.lastAccessTime)}</span>
+            <span className="font-medium tabular-nums">{formatTime(jotaiState.cache.lastAccessTime)}</span>
           </div>
         </div>
       </div>
 
-      <div className="debugger-state-card">
-        <div className="debugger-state-header">
+      <div className="bg-white/[0.03] rounded-lg border border-white/[0.05] overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-dt-info/10 border-b border-white/[0.05] text-xs font-semibold text-dt-info uppercase tracking-wide">
           <span dangerouslySetInnerHTML={{ __html: ICONS.network }} />
           Network State
         </div>
-        <div className="debugger-state-body">
-          <div className="debugger-state-row">
+        <div className="p-0">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>Status</span>
             <span
-              className={jotaiState.network.status === 'ONLINE' ? 'text-green-500' : 'text-red-500'}
+              className={
+                jotaiState.network.status === 'ONLINE' ? 'text-dt-success' : 'text-dt-error'
+              }
             >
               {jotaiState.network.status}
             </span>
           </div>
-          <div className="debugger-state-row">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>RTT</span>
-            <span>{jotaiState.network.rtt}ms</span>
+            <span className="font-medium tabular-nums">{jotaiState.network.rtt}ms</span>
           </div>
-          <div className="debugger-state-row">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>Last Check</span>
-            <span>{formatTime(jotaiState.network.lastChecked)}</span>
+            <span className="font-medium tabular-nums">{formatTime(jotaiState.network.lastChecked)}</span>
           </div>
         </div>
       </div>
 
-      <div className="debugger-state-card">
-        <div className="debugger-state-header">
+      <div className="bg-white/[0.03] rounded-lg border border-white/[0.05] overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2.5 bg-dt-info/10 border-b border-white/[0.05] text-xs font-semibold text-dt-info uppercase tracking-wide">
           <span dangerouslySetInnerHTML={{ __html: ICONS.performance }} />
           Memory State
         </div>
-        <div className="debugger-state-body">
-          <div className="debugger-state-row">
+        <div className="p-0">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>Under Pressure</span>
-            <span className={jotaiState.memory.isUnderPressure ? 'text-red-500' : 'text-green-500'}>
+            <span className={jotaiState.memory.isUnderPressure ? 'text-dt-error' : 'text-dt-success'}>
               {jotaiState.memory.isUnderPressure ? 'Yes' : 'No'}
             </span>
           </div>
-          <div className="debugger-state-row">
+          <div className="flex justify-between px-3 py-1.5 text-xs">
             <span>Pressure Level</span>
             <span
               className={
                 jotaiState.memory.pressureLevel === 'high'
-                  ? 'text-red-500'
+                  ? 'text-dt-error'
                   : jotaiState.memory.pressureLevel === 'medium'
-                    ? 'text-yellow-500'
-                    : 'text-green-500'
+                    ? 'text-dt-warning'
+                    : 'text-dt-success'
               }
             >
               {jotaiState.memory.pressureLevel}
@@ -313,16 +322,22 @@ export const DebuggerPanel = memo(function DebuggerPanel({
 
   return (
     <div
-      className={`debugger-panel ${state.panelMode === 'fullwidth' ? 'debugger-panel-fullwidth' : ''}`}
+      className={`fixed bg-dt-bg-panel border border-dt-border rounded-2xl w-80 max-h-[400px] overflow-hidden z-[9999] shadow-2xl font-sans text-sm text-dt-text-primary ${
+        state.panelMode === 'fullwidth' ? 'w-auto max-w-none left-4 right-4 max-h-[45vh]' : ''
+      }`}
       style={getPositionStyles()}
     >
-      <div className="debugger-header">
-        <div className="debugger-tabs">
+      <div className="flex items-center justify-between px-3 pt-2 bg-white/[0.02] border-b border-dt-border">
+        <div className="flex gap-1">
           {tabs.map((tab) => (
             <button
               type="button"
               key={tab}
-              className={`debugger-tab ${state.activeTab === tab ? 'active' : ''}`}
+              className={`flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 bg-transparent border-none border-b-2 border-transparent text-dt-text-secondary text-xs font-medium cursor-pointer transition-all rounded-t-lg hover:text-dt-text-primary hover:bg-white/5 ${
+                state.activeTab === tab
+                  ? 'text-dt-info border-b-dt-info bg-dt-info/10'
+                  : ''
+              }`}
               onClick={() => onTabChange(tab)}
             >
               <span dangerouslySetInnerHTML={{ __html: ICONS[tab as keyof typeof ICONS] }} />
@@ -330,12 +345,17 @@ export const DebuggerPanel = memo(function DebuggerPanel({
             </button>
           ))}
         </div>
-        <button type="button" className="debugger-close-btn" onClick={onClose} title="Close">
+        <button
+          type="button"
+          className="flex items-center justify-center w-8 h-8 bg-transparent border-none rounded-lg text-[#666] cursor-pointer transition-all hover:bg-red-500/10 hover:text-red-500"
+          onClick={onClose}
+          title="Close"
+        >
           <span dangerouslySetInnerHTML={{ __html: ICONS.close }} />
         </button>
       </div>
 
-      <div className="debugger-panel-content">
+      <div className="p-4 max-h-[calc(45vh-60px)] overflow-y-auto">
         {state.activeTab === 'cache' && (
           <CachePanel
             stats={cacheStats}

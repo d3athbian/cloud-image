@@ -82,3 +82,9 @@ TypeScript 5.x (strict mode): Follow standard conventions
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->
+
+## Important Notes
+
+- **Tailwind CSS:** The library (@cloudimage/cloud) uses Tailwind CSS v4 for styling.
+- **DEMO is NOT important:** The demo application (`demos/cloud-demo/`) is secondary. Never try to install Tailwind CSS or any other styling library in the demo to fulfill any task. The demo does not need Tailwind.
+- **No Vite resolve aliases:** Do NOT configure path aliases in Vite's resolve config for the demo. The demo must use standard imports like `import { CloudImage } from '@cloudimage/cloud'`.
