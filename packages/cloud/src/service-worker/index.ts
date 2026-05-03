@@ -241,12 +241,15 @@ class ServiceWorkerClient {
 
       if (response.type === 'success' && response.payload) {
         const payload = response.payload as {
-          blobUrl: string;
-          fromCache: boolean;
-          size: number;
-          mimeType: string;
+          found: boolean;
+          metadata?: Record<string, unknown>;
+          data?: ArrayBuffer;
         };
-        return payload.blobUrl;
+        if (payload.found && payload.data) {
+          const arrayBuffer = payload.data;
+          const blob = new Blob([arrayBuffer], { type: (payload.metadata?.mimeType as string) || "image/jpeg" });
+          return URL.createObjectURL(blob);
+        }
       }
 
       return null;
