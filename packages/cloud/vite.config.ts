@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { libInjectCss } from 'vite-plugin-lib-inject-css';
 import { resolve } from 'path';
 import { copyFileSync, mkdirSync } from 'fs';
 import { buildSync } from 'esbuild';
@@ -9,17 +10,15 @@ export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    libInjectCss(),
     {
       name: 'build-service-worker',
-      // Runs after Vite has finished writing dist/ so outDir already exists.
       closeBundle() {
-        const destDir = resolve(__dirname, 'dist');
-        mkdirSync(destDir, { recursive: true });
+        mkdirSync(resolve(__dirname, 'dist'), { recursive: true });
 
-        // Compile sw.ts → dist/sw.js (IIFE, self-contained, no external deps)
         buildSync({
           entryPoints: [resolve(__dirname, 'src/service-worker/sw.ts')],
-          outfile: resolve(destDir, 'sw.js'),
+          outfile: resolve(__dirname, 'dist/sw.js'),
           bundle: true,
           format: 'iife',
           platform: 'browser',
@@ -28,10 +27,9 @@ export default defineConfig({
         });
         console.log('[Build] Service Worker compiled → dist/sw.js');
 
-        // register.ts is plain JS — copy as-is (no TS-specific syntax)
         copyFileSync(
           resolve(__dirname, 'src/service-worker/register.ts'),
-          resolve(destDir, 'register.js'),
+          resolve(__dirname, 'dist/register.js'),
         );
         console.log('[Build] Register script copied → dist/register.js');
       },
@@ -50,41 +48,19 @@ export default defineConfig({
       formats: ['es'],
       fileName: (format, name) => `${name}.js`,
     },
-    rollupOptions: {
-      external: [
-        'react',
-        'react-dom',
-        'react/jsx-runtime',
-        'jotai',
-      ],
-      output: {
-        manualChunks(id: string) {
-          if (id.includes('/core/')) {
-            return 'cloud-core';
-          }
-          if (id.includes('/adapters/')) {
-            return 'cloud-adapters';
-          }
-          if (id.includes('/react/')) {
-            return 'cloud-react';
-          }
-          if (id.includes('/debugger/')) {
-            return 'debugger';
-          }
-        },
-        chunkFileNames: '[name].js',
-        entryFileNames: '[name].js',
-      },
-    },
     outDir: 'dist',
     emptyOutDir: true,
     sourcemap: false,
     minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        passes: 2,
+    rollupOptions: {
+      external: ['react', 'react-dom', 'react/jsx-runtime', 'jotai'],
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('/core/')) return 'cloud-core';
+          if (id.includes('/adapters/')) return 'cloud-adapters';
+          if (id.includes('/react/')) return 'cloud-react';
+          if (id.includes('/debugger/')) return 'debugger';
+        },
       },
     },
   },

@@ -9,3 +9,4 @@ export type {
   Position,
   Tab,
 } from './types';
+import './styles/devtools.css';
