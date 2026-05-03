@@ -1,7 +1,7 @@
-import { useSetAtom } from "jotai";
-import { useCallback } from "react";
-import { logsAtom } from "../store/logger-atoms";
-import type { LogEntry, LogLevel } from "../types/devtools.types";
+import { useSetAtom } from 'jotai';
+import { useCallback } from 'react';
+import { logsAtom } from '../store/logger-atoms';
+import type { LogEntry, LogLevel } from '../types/devtools.types';
 
 const MAX_LOGS = 500;
 

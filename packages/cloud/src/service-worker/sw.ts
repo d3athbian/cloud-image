@@ -3,8 +3,8 @@ const MAX_RETRIES = 3;
 const CIRCUIT_BREAKER_THRESHOLD = 3;
 const CIRCUIT_BREAKER_TIMEOUT = 30000;
 
-const DB_NAME = "cloud-image-cache";
-const STORE_NAME = "images";
+const DB_NAME = 'cloud-image-cache';
+const STORE_NAME = 'images';
 const DB_VERSION = 2; // Bumped: added 'cachedAt' index for efficient LRU eviction
 
 // Umbrales de gestión proactiva de quota
@@ -31,7 +31,7 @@ interface CacheEntry {
     accessCount: number;
   };
   cachedAt: number; // redundant but needed for the IDB index
-  qualityTier: "low" | "medium" | "high";
+  qualityTier: 'low' | 'medium' | 'high';
   upgradeable: boolean;
 }
 
@@ -48,7 +48,7 @@ async function openDB(): Promise<IDBDatabase> {
     if (db.objectStoreNames.contains(STORE_NAME)) {
       return db;
     }
-    console.warn("[SW] DB handle stale, resetting...");
+    console.warn('[SW] DB handle stale, resetting...');
     try {
       db.close();
     } catch (_) {
@@ -74,14 +74,14 @@ async function openDB(): Promise<IDBDatabase> {
 
       // Disparado cuando el browser borra la DB (storage pressure, DevTools, browser clear)
       db.onversionchange = () => {
-        console.warn("[SW] DB version changed or deleted externally. Closing to allow deletion.");
+        console.warn('[SW] DB version changed or deleted externally. Closing to allow deletion.');
         db?.close();
         db = null;
       };
 
       // Disparado si el browser cierra la conexión por presión de RAM
       db.onclose = () => {
-        console.warn("[SW] DB connection closed (memory pressure?). Will reopen on next access.");
+        console.warn('[SW] DB connection closed (memory pressure?). Will reopen on next access.');
         db = null;
       };
 
@@ -92,15 +92,15 @@ async function openDB(): Promise<IDBDatabase> {
       const database = (event.target as IDBOpenDBRequest).result;
 
       if (!database.objectStoreNames.contains(STORE_NAME)) {
-        const store = database.createObjectStore(STORE_NAME, { keyPath: "url" });
-        store.createIndex("cachedAt", "cachedAt", { unique: false });
+        const store = database.createObjectStore(STORE_NAME, { keyPath: 'url' });
+        store.createIndex('cachedAt', 'cachedAt', { unique: false });
       } else {
         // Migración desde v1: agregar índice cachedAt si no existe
         const transaction = (event.target as IDBOpenDBRequest).transaction;
         if (!transaction) return;
         const store = transaction.objectStore(STORE_NAME);
-        if (!store.indexNames.contains("cachedAt")) {
-          store.createIndex("cachedAt", "cachedAt", { unique: false });
+        if (!store.indexNames.contains('cachedAt')) {
+          store.createIndex('cachedAt', 'cachedAt', { unique: false });
         }
       }
     };
@@ -133,14 +133,14 @@ async function withDB<T>(operation: (database: IDBDatabase) => Promise<T>): Prom
     } catch (error) {
       const isStaleHandleError =
         error instanceof DOMException &&
-        (error.name === "InvalidStateError" ||
-          error.name === "TransactionInactiveError" ||
-          error.name === "AbortError" ||
-          error.message?.includes("closing") ||
-          error.message?.includes("database connection is closing"));
+        (error.name === 'InvalidStateError' ||
+          error.name === 'TransactionInactiveError' ||
+          error.name === 'AbortError' ||
+          error.message?.includes('closing') ||
+          error.message?.includes('database connection is closing'));
 
       if (isStaleHandleError && attempt === 0) {
-        console.warn("[SW] Stale DB handle, retrying:", (error as Error).message);
+        console.warn('[SW] Stale DB handle, retrying:', (error as Error).message);
         if (db) {
           try {
             db.close();
@@ -157,7 +157,7 @@ async function withDB<T>(operation: (database: IDBDatabase) => Promise<T>): Prom
     }
   }
 
-  throw new Error("[SW] Failed to get DB connection after retries");
+  throw new Error('[SW] Failed to get DB connection after retries');
 }
 
 // ─── IndexedDB: Operaciones CRUD ─────────────────────────────────────────────
@@ -167,7 +167,7 @@ async function getFromIDB(url: string): Promise<CacheEntry | null> {
     return await withDB(
       (database) =>
         new Promise<CacheEntry | null>((resolve, reject) => {
-          const transaction = database.transaction(STORE_NAME, "readonly");
+          const transaction = database.transaction(STORE_NAME, 'readonly');
           const store = transaction.objectStore(STORE_NAME);
           const request = store.get(url);
           request.onsuccess = () => resolve((request.result as CacheEntry) || null);
@@ -175,7 +175,7 @@ async function getFromIDB(url: string): Promise<CacheEntry | null> {
         }),
     );
   } catch (error) {
-    console.warn("[SW] getFromIDB failed, returning null:", error);
+    console.warn('[SW] getFromIDB failed, returning null:', error);
     return null;
   }
 }
@@ -194,14 +194,14 @@ async function saveToIDB(entry: CacheEntry): Promise<void> {
     await _writeToIDB(entry);
   } catch (error) {
     if (isQuotaError(error)) {
-      console.warn("[SW] QuotaExceededError on save. Running emergency eviction...");
+      console.warn('[SW] QuotaExceededError on save. Running emergency eviction...');
       await evictOldestEntries(EVICT_BATCH_PERCENT);
       try {
         await _writeToIDB(entry);
-        console.log("[SW] Save succeeded after emergency eviction.");
+        console.log('[SW] Save succeeded after emergency eviction.');
       } catch (retryError) {
         if (isQuotaError(retryError)) {
-          console.warn("[SW] Quota still exceeded after eviction. Skipping cache for:", entry.url);
+          console.warn('[SW] Quota still exceeded after eviction. Skipping cache for:', entry.url);
         } else {
           throw retryError;
         }
@@ -216,7 +216,7 @@ async function _writeToIDB(entry: CacheEntry): Promise<void> {
   return withDB(
     (database) =>
       new Promise<void>((resolve, reject) => {
-        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const transaction = database.transaction(STORE_NAME, 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
         const request = store.put(entry);
         request.onsuccess = () => resolve();
@@ -228,10 +228,10 @@ async function _writeToIDB(entry: CacheEntry): Promise<void> {
 function isQuotaError(error: unknown): boolean {
   return (
     error instanceof DOMException &&
-    (error.name === "QuotaExceededError" ||
-      error.name === "NS_ERROR_DOM_QUOTA_REACHED" ||
+    (error.name === 'QuotaExceededError' ||
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED' ||
       error.code === 22 ||
-      error.message.toLowerCase().includes("quota"))
+      error.message.toLowerCase().includes('quota'))
   );
 }
 
@@ -239,7 +239,7 @@ async function deleteFromIDB(url: string): Promise<boolean> {
   return withDB(
     (database) =>
       new Promise<boolean>((resolve) => {
-        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const transaction = database.transaction(STORE_NAME, 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
         const request = store.delete(url);
         request.onsuccess = () => resolve(true);
@@ -252,7 +252,7 @@ async function clearIDB(): Promise<void> {
   return withDB(
     (database) =>
       new Promise<void>((resolve, reject) => {
-        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const transaction = database.transaction(STORE_NAME, 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
         const request = store.clear();
         request.onsuccess = () => resolve();
@@ -279,7 +279,7 @@ async function checkAndEvictIfNeeded(incomingBytes = 0): Promise<void> {
   const nav = navigator as Navigator & {
     storage?: { estimate: () => Promise<{ usage?: number; quota?: number }> };
   };
-  if (!("storage" in nav) || !nav.storage?.estimate) {
+  if (!('storage' in nav) || !nav.storage?.estimate) {
     return; // API no disponible → depender del error handler
   }
 
@@ -302,7 +302,7 @@ async function checkAndEvictIfNeeded(incomingBytes = 0): Promise<void> {
       await evictBySize(bytesToFree);
     }
   } catch (error) {
-    console.warn("[SW] Storage estimate failed (non-fatal):", error);
+    console.warn('[SW] Storage estimate failed (non-fatal):', error);
   }
 }
 
@@ -316,9 +316,9 @@ async function evictBySize(bytesToFree: number): Promise<void> {
   return withDB(
     (database) =>
       new Promise<void>((resolve) => {
-        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const transaction = database.transaction(STORE_NAME, 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
-        const index = store.index("cachedAt");
+        const index = store.index('cachedAt');
         const cursorRequest = index.openCursor(); // ASC = más viejos primero
 
         let freedBytes = 0;
@@ -358,7 +358,7 @@ async function evictOldestEntries(fraction: number): Promise<void> {
   return withDB(
     (database) =>
       new Promise<void>((resolve) => {
-        const transaction = database.transaction(STORE_NAME, "readwrite");
+        const transaction = database.transaction(STORE_NAME, 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
 
         const countRequest = store.count();
@@ -366,7 +366,7 @@ async function evictOldestEntries(fraction: number): Promise<void> {
           const total = countRequest.result;
           const toDelete = Math.max(1, Math.ceil(total * fraction));
 
-          const index = store.index("cachedAt");
+          const index = store.index('cachedAt');
           const cursorRequest = index.openCursor();
           let deleted = 0;
 
@@ -404,7 +404,7 @@ async function getStatsFromIDB(): Promise<Record<string, unknown>> {
         hits: number;
         misses: number;
       }>((resolve) => {
-        const transaction = database.transaction(STORE_NAME, "readonly");
+        const transaction = database.transaction(STORE_NAME, 'readonly');
         const store = transaction.objectStore(STORE_NAME);
         const request = store.getAll();
         request.onsuccess = () => {
@@ -442,7 +442,7 @@ async function getStorageInfo(): Promise<StorageInfo | null> {
   const nav = navigator as Navigator & {
     storage?: { estimate: () => Promise<{ usage?: number; quota?: number }> };
   };
-  if (!("storage" in nav) || !nav.storage?.estimate) return null;
+  if (!('storage' in nav) || !nav.storage?.estimate) return null;
   try {
     const estimate = await nav.storage.estimate();
     return {
@@ -461,9 +461,9 @@ function isImageURL(url: string): boolean {
   try {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname.toLowerCase();
-    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico"];
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.ico'];
     const hasImageExtension = imageExtensions.some((ext) => pathname.endsWith(ext));
-    const isPicsum = urlObj.hostname.includes("picsum");
+    const isPicsum = urlObj.hostname.includes('picsum');
     return hasImageExtension || isPicsum;
   } catch {
     return false;
@@ -474,23 +474,23 @@ function isImageURL(url: string): boolean {
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
-sw.addEventListener("install", () => {
-  console.log("[SW] Installing...");
+sw.addEventListener('install', () => {
+  console.log('[SW] Installing...');
   sw.skipWaiting();
 });
 
-sw.addEventListener("activate", (event: ExtendableEvent) => {
-  console.log("[SW] Activating...");
+sw.addEventListener('activate', (event: ExtendableEvent) => {
+  console.log('[SW] Activating...');
   event.waitUntil(sw.clients.claim());
 });
 
 // ─── Fetch interceptor ────────────────────────────────────────────────────────
 
-sw.addEventListener("fetch", (event: FetchEvent) => {
+sw.addEventListener('fetch', (event: FetchEvent) => {
   const url = event.request.url;
 
   if (!isImageURL(url)) return;
-  if (event.request.mode === "navigate") return;
+  if (event.request.mode === 'navigate') return;
 
   event.respondWith(handleFetch(url));
 });
@@ -507,9 +507,9 @@ async function handleFetch(url: string): Promise<Response> {
           stats.hits++;
           return createCachedResponse(cached);
         }
-        return new Response("Service unavailable (circuit open)", {
+        return new Response('Service unavailable (circuit open)', {
           status: 503,
-          headers: { "Cache-Control": "no-store" },
+          headers: { 'Cache-Control': 'no-store' },
         });
       }
     }
@@ -523,7 +523,7 @@ async function handleFetch(url: string): Promise<Response> {
     stats.misses++;
 
     if (!navigator.onLine) {
-      return new Response("Offline", { status: 503 });
+      return new Response('Offline', { status: 503 });
     }
 
     const response = await fetchWithRetry(url);
@@ -543,10 +543,10 @@ async function handleFetch(url: string): Promise<Response> {
               accessCount: 1,
             },
             cachedAt: Date.now(),
-            qualityTier: "high",
+            qualityTier: 'high',
             upgradeable: false,
           };
-          saveToIDB(entry).catch((err) => console.error("[SW] Unexpected save error:", err));
+          saveToIDB(entry).catch((err) => console.error('[SW] Unexpected save error:', err));
         });
       });
     }
@@ -554,7 +554,7 @@ async function handleFetch(url: string): Promise<Response> {
     circuitBreakerFailures = 0;
     return response;
   } catch (error) {
-    console.error("[SW] handleFetch error:", error);
+    console.error('[SW] handleFetch error:', error);
     circuitBreakerFailures++;
     circuitBreakerLastFailure = Date.now();
     if (circuitBreakerFailures >= CIRCUIT_BREAKER_THRESHOLD) {
@@ -568,7 +568,7 @@ async function fetchWithRetry(url: string, attempt = 1): Promise<Response> {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
-    const response = await fetch(url, { signal: controller.signal, cache: "no-store" });
+    const response = await fetch(url, { signal: controller.signal, cache: 'no-store' });
     clearTimeout(timeout);
     return response;
   } catch (error) {
@@ -584,18 +584,18 @@ function createCachedResponse(entry: CacheEntry): Response {
   const blob = new Blob([entry.data], { type: entry.metadata.mimeType });
   return new Response(blob, {
     headers: {
-      "Content-Type": entry.metadata.mimeType,
-      "X-Cache-Status": "HIT",
-      "Cache-Control": "public, max-age=31536000, immutable",
+      'Content-Type': entry.metadata.mimeType,
+      'X-Cache-Status': 'HIT',
+      'Cache-Control': 'public, max-age=31536000, immutable',
     },
   });
 }
 
 // ─── Message handler ──────────────────────────────────────────────────────────
 
-import { compressPayload, shouldCompress } from "../worker/compression";
+import { compressPayload, shouldCompress } from '../worker/compression';
 
-sw.addEventListener("message", async (event: ExtendableMessageEvent) => {
+sw.addEventListener('message', async (event: ExtendableMessageEvent) => {
   const { id, type, payload } = event.data as {
     id: string;
     type: string;
@@ -611,7 +611,7 @@ sw.addEventListener("message", async (event: ExtendableMessageEvent) => {
       finalPayload = { data: compressed, _compression: metadata };
     }
 
-    const message = { id, type: "success", payload: finalPayload };
+    const message = { id, type: 'success', payload: finalPayload };
     if (event.source) {
       event.source.postMessage(message, { transfer: finalTransfer });
     } else {
@@ -626,11 +626,11 @@ sw.addEventListener("message", async (event: ExtendableMessageEvent) => {
   const replyError = (error: unknown) => {
     const message = error instanceof Error ? error.message : String(error);
     if (event.source) {
-      event.source.postMessage({ id, type: "error", error: message });
+      event.source.postMessage({ id, type: 'error', error: message });
     } else {
       sw.clients.matchAll().then((clients) => {
         for (const client of clients) {
-          client.postMessage({ id, type: "error", error: message });
+          client.postMessage({ id, type: 'error', error: message });
         }
       });
     }
@@ -639,7 +639,7 @@ sw.addEventListener("message", async (event: ExtendableMessageEvent) => {
   try {
     let response: unknown;
     switch (type) {
-      case "cache-get": {
+      case 'cache-get': {
         const entry = await getFromIDB(payload.url as string);
         if (entry) {
           const responsePayload = { found: true, metadata: entry.metadata };
@@ -649,41 +649,41 @@ sw.addEventListener("message", async (event: ExtendableMessageEvent) => {
         }
         return;
       }
-      case "cache-set": {
+      case 'cache-set': {
         const entry: CacheEntry = {
           url: payload.url as string,
           data: payload.data as ArrayBuffer,
-          metadata: payload.metadata as CacheEntry["metadata"],
+          metadata: payload.metadata as CacheEntry['metadata'],
           cachedAt: Date.now(),
-          qualityTier: "high",
+          qualityTier: 'high',
           upgradeable: false,
         };
         await saveToIDB(entry);
         response = { stored: true };
         break;
       }
-      case "cache-delete": {
+      case 'cache-delete': {
         response = { deleted: await deleteFromIDB(payload.url as string) };
         break;
       }
-      case "cache-clear": {
+      case 'cache-clear': {
         await clearIDB();
         stats.hits = 0;
         stats.misses = 0;
         response = { cleared: true };
         break;
       }
-      case "stats": {
+      case 'stats': {
         response = await getStatsFromIDB();
         break;
       }
-      case "evict": {
+      case 'evict': {
         const fraction = (payload.fraction as number | undefined) ?? EVICT_BATCH_PERCENT;
         await evictOldestEntries(fraction);
         response = { evicted: true };
         break;
       }
-      case "ping": {
+      case 'ping': {
         response = { alive: true };
         break;
       }
@@ -705,7 +705,7 @@ export interface SWRequest<T = unknown> {
 
 export interface SWResponse<T = unknown> {
   id: string;
-  type: "success" | "error";
+  type: 'success' | 'error';
   payload?: T;
   error?: string;
   timestamp: number;

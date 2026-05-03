@@ -1,8 +1,8 @@
-export type Position = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+export type Position = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
-export type Tab = "cache" | "network" | "performance" | "state";
+export type Tab = 'cache' | 'network' | 'performance' | 'state';
 
-export type PanelMode = "floating" | "fullwidth";
+export type PanelMode = 'floating' | 'fullwidth';
 
 export interface DebuggerState {
   isOpen: boolean;
@@ -14,15 +14,15 @@ export interface DebuggerState {
 
 export const DEFAULT_DEBUGGER_STATE: DebuggerState = {
   isOpen: false,
-  activeTab: "cache",
-  position: "bottom-left",
+  activeTab: 'cache',
+  position: 'bottom-left',
   isExpanded: true,
-  panelMode: "fullwidth",
+  panelMode: 'fullwidth',
 };
 
 export interface CacheEntry {
   url: string;
-  method: "GET" | "POST" | "PUT" | "DELETE";
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE';
   status: number;
   size: number;
   timestamp: number;
@@ -54,14 +54,14 @@ export interface CacheStateData {
 }
 
 export interface NetworkStateData {
-  status: "ONLINE" | "OFFLINE" | "LOW_BANDWIDTH";
+  status: 'ONLINE' | 'OFFLINE' | 'LOW_BANDWIDTH';
   rtt: number;
   lastChecked: number;
 }
 
 export interface MemoryStateData {
   isUnderPressure: boolean;
-  pressureLevel: "low" | "medium" | "high";
+  pressureLevel: 'low' | 'medium' | 'high';
 }
 
 export interface TransferStats {

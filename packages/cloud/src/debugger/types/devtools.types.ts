@@ -9,8 +9,8 @@ export interface CacheItemMetadata {
   ttl: number;
   expiresIn: number;
   lruScore: number;
-  status: "active" | "expired" | "evicted" | "pinned";
-  source: "sw" | "idb" | "memory";
+  status: 'active' | 'expired' | 'evicted' | 'pinned';
+  source: 'sw' | 'idb' | 'memory';
 }
 
 export interface NetworkState {
@@ -18,16 +18,16 @@ export interface NetworkState {
   rtt: number | null;
   downlink: number | null;
   effectiveType: string | null;
-  circuitState: "CLOSED" | "OPEN" | "HALF_OPEN";
+  circuitState: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 }
 
 export interface PerformanceMetrics {
-  workerStatus: "Idle" | "Active" | "Terminated";
+  workerStatus: 'Idle' | 'Active' | 'Terminated';
   decodeTimeMs: number;
-  swStatus: "Active" | "Installing" | "Error";
+  swStatus: 'Active' | 'Installing' | 'Error';
 }
 
-export type LogLevel = "INFO" | "WARN" | "ERROR";
+export type LogLevel = 'INFO' | 'WARN' | 'ERROR';
 
 export interface LogEntry {
   id: string;
@@ -39,9 +39,9 @@ export interface LogEntry {
 
 export interface DevToolsUIState {
   isOpen: boolean;
-  activeTab: "cache" | "network" | "performance" | "state";
+  activeTab: 'cache' | 'network' | 'performance' | 'state';
   selectedItemUrl: string | null;
-  logsFilter: LogLevel | "ALL";
+  logsFilter: LogLevel | 'ALL';
 }
 
-export type Tab = "cache" | "network" | "performance" | "state";
+export type Tab = 'cache' | 'network' | 'performance' | 'state';

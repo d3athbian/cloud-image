@@ -1,6 +1,6 @@
-import { createContext } from "react";
-import type { ImageEngine } from "../core/engine";
-import type { BandwidthClassification, CacheStats } from "../core/types";
+import { createContext } from 'react';
+import type { ImageEngine } from '../core/engine';
+import type { BandwidthClassification, CacheStats } from '../core/types';
 
 export interface CloudContextValue {
   cache: {

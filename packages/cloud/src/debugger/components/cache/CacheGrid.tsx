@@ -1,6 +1,6 @@
-import { memo, useMemo } from "react";
-import type { CacheItemMetadata } from "../../types/devtools.types";
-import { CacheCard } from "./CacheCard";
+import { memo, useMemo } from 'react';
+import type { CacheItemMetadata } from '../../types/devtools.types';
+import { CacheCard } from './CacheCard';
 
 interface CacheGridProps {
   items: CacheItemMetadata[];

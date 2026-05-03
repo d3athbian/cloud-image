@@ -1,6 +1,6 @@
-import { memo } from "react";
-import type { CacheItemMetadata } from "../../types/devtools.types";
-import { Button } from "../shared/Button";
+import { memo } from 'react';
+import type { CacheItemMetadata } from '../../types/devtools.types';
+import { Button } from '../shared/Button';
 
 interface ImageDetailsProps {
   item?: CacheItemMetadata;

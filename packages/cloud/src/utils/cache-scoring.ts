@@ -1,4 +1,4 @@
-import type { CacheEntry } from "../core/types";
+import type { CacheEntry } from '../core/types';
 
 export interface ScoringConfig {
   defaultTTL: number;
@@ -6,7 +6,7 @@ export interface ScoringConfig {
   recencyWeight?: number;
 }
 
-import { Time } from "../config/constants";
+import { Time } from '../config/constants';
 
 const DEFAULT_CONFIG: Required<ScoringConfig> = {
   defaultTTL: Time.DEFAULT_TTL,

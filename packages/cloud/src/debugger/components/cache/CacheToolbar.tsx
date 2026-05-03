@@ -1,4 +1,4 @@
-import { type ChangeEvent, memo, useState } from "react";
+import { type ChangeEvent, memo, useState } from 'react';
 
 interface CacheToolbarProps {
   items: { url: string; key: string }[];
@@ -9,9 +9,9 @@ export const CacheToolbar = memo(function CacheToolbar({
   items,
   onFilterChange,
 }: CacheToolbarProps) {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "expired" | "pinned">("all");
-  const [sortBy, setSortBy] = useState<"lru" | "size" | "access">("lru");
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'expired' | 'pinned'>('all');
+  const [sortBy, setSortBy] = useState<'lru' | 'size' | 'access'>('lru');
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;

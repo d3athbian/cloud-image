@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const CircuitBreakerStateSchema = z.enum(["closed", "open", "half-open"]);
+export const CircuitBreakerStateSchema = z.enum(['closed', 'open', 'half-open']);
 
 export type CircuitBreakerState = z.infer<typeof CircuitBreakerStateSchema>;
 

@@ -1,4 +1,4 @@
-import { getFormatDetector, type ImageFormat } from "./format-detector";
+import { getFormatDetector, type ImageFormat } from './format-detector';
 
 export type { ImageFormat };
 
@@ -10,7 +10,7 @@ export async function fetchWithFormatSupport(
   const acceptHeader = detector.getAcceptHeader();
 
   const headers = new Headers(options.headers);
-  headers.set("Accept", acceptHeader);
+  headers.set('Accept', acceptHeader);
 
   return fetch(url, {
     ...options,
@@ -27,7 +27,7 @@ export async function fetchWithImageFallback(
   url: string,
   options: FetchWithFallbackOptions = {},
 ): Promise<Response> {
-  const formats = options.fallbackFormats ?? ["avif", "webp", "jpeg"];
+  const formats = options.fallbackFormats ?? ['avif', 'webp', 'jpeg'];
   const maxRetries = options.maxRetries ?? formats.length;
 
   let lastError: Error | null = null;
@@ -38,7 +38,7 @@ export async function fetchWithImageFallback(
       const acceptHeader = getAcceptHeaderForFormat(format);
 
       const headers = new Headers(options.headers);
-      headers.set("Accept", acceptHeader);
+      headers.set('Accept', acceptHeader);
 
       const response = await fetch(url, {
         ...options,
@@ -55,20 +55,20 @@ export async function fetchWithImageFallback(
     }
   }
 
-  throw lastError || new Error("All format attempts failed");
+  throw lastError || new Error('All format attempts failed');
 }
 
 function getAcceptHeaderForFormat(format: ImageFormat): string {
   switch (format) {
-    case "avif":
-      return "image/avif";
-    case "webp":
-      return "image/webp";
-    case "jpeg":
-      return "image/jpeg";
-    case "png":
-      return "image/png";
+    case 'avif':
+      return 'image/avif';
+    case 'webp':
+      return 'image/webp';
+    case 'jpeg':
+      return 'image/jpeg';
+    case 'png':
+      return 'image/png';
     default:
-      return "*/*";
+      return '*/*';
   }
 }

@@ -1,26 +1,26 @@
-import type { PlatformType } from "../core/types";
-import { createMemoryAdapter } from "./memory";
-import { createTizenAdapter } from "./tizen";
-import type { AdapterConfig, PlatformAdapter } from "./types";
-import { createWebAdapter } from "./web";
-import { createWebOSAdapter } from "./webos";
+import type { PlatformType } from '../core/types';
+import { createMemoryAdapter } from './memory';
+import { createTizenAdapter } from './tizen';
+import type { AdapterConfig, PlatformAdapter } from './types';
+import { createWebAdapter } from './web';
+import { createWebOSAdapter } from './webos';
 
 export function detectPlatform(): PlatformType {
-  if (typeof window === "undefined") {
-    return "memory";
+  if (typeof window === 'undefined') {
+    return 'memory';
   }
 
   const ua = navigator.userAgent.toLowerCase();
 
-  if (ua.includes("tizen")) {
-    return "tizen";
+  if (ua.includes('tizen')) {
+    return 'tizen';
   }
 
-  if (ua.includes("webos") || ua.includes("lgnetcast") || ua.includes("lge;")) {
-    return "webos";
+  if (ua.includes('webos') || ua.includes('lgnetcast') || ua.includes('lge;')) {
+    return 'webos';
   }
 
-  return "web";
+  return 'web';
 }
 
 const adapters: Record<PlatformType, () => PlatformAdapter> = {
@@ -36,9 +36,9 @@ export function createAdapter(config: AdapterConfig = {}): PlatformAdapter {
   return createFn();
 }
 
-export { MemoryAdapter } from "./memory";
-export { TizenAdapter } from "./tizen";
-export type { AdapterConfig, PlatformAdapter, PlatformType } from "./types";
-export { WebAdapter } from "./web";
-export { WebOSAdapter } from "./webos";
+export { MemoryAdapter } from './memory';
+export { TizenAdapter } from './tizen';
+export type { AdapterConfig, PlatformAdapter, PlatformType } from './types';
+export { WebAdapter } from './web';
+export { WebOSAdapter } from './webos';
 export { createMemoryAdapter, createTizenAdapter, createWebAdapter, createWebOSAdapter };

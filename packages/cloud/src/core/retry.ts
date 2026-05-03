@@ -102,21 +102,21 @@ export class RetryHandler {
 
   static isNetworkError(error: Error): boolean {
     return (
-      error.name === "NetworkError" ||
-      error.name === "TypeError" ||
-      error.message.includes("fetch") ||
-      error.message.includes("network") ||
-      error.message.includes("Failed to fetch") ||
-      error.message.includes("Network request failed")
+      error.name === 'NetworkError' ||
+      error.name === 'TypeError' ||
+      error.message.includes('fetch') ||
+      error.message.includes('network') ||
+      error.message.includes('Failed to fetch') ||
+      error.message.includes('Network request failed')
     );
   }
 
   static isTimeoutError(error: Error): boolean {
     return (
-      error.name === "AbortError" ||
-      error.name === "TimeoutError" ||
-      error.message.includes("timeout") ||
-      error.message.includes("timed out")
+      error.name === 'AbortError' ||
+      error.name === 'TimeoutError' ||
+      error.message.includes('timeout') ||
+      error.message.includes('timed out')
     );
   }
 }

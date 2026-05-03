@@ -22,18 +22,18 @@ const createLogger = (context: string): Logger => ({
 
 export const logger = {
   create: createLogger,
-  ImageCache: createLogger("ImageCache"),
-  ImageEngine: createLogger("ImageEngine"),
-  MemoryMonitor: createLogger("MemoryMonitor"),
-  CircuitBreaker: createLogger("CircuitBreaker"),
-  NetworkMonitor: createLogger("NetworkMonitor"),
-  PrefetchManager: createLogger("PrefetchManager"),
-  ServiceWorker: createLogger("ServiceWorker"),
-  WebAdapter: createLogger("WebAdapter"),
-  CloudImage: createLogger("CloudImage"),
-  CloudProvider: createLogger("CloudProvider"),
-  EventInterceptor: createLogger("EventInterceptor"),
-  StateSync: createLogger("StateSync"),
+  ImageCache: createLogger('ImageCache'),
+  ImageEngine: createLogger('ImageEngine'),
+  MemoryMonitor: createLogger('MemoryMonitor'),
+  CircuitBreaker: createLogger('CircuitBreaker'),
+  NetworkMonitor: createLogger('NetworkMonitor'),
+  PrefetchManager: createLogger('PrefetchManager'),
+  ServiceWorker: createLogger('ServiceWorker'),
+  WebAdapter: createLogger('WebAdapter'),
+  CloudImage: createLogger('CloudImage'),
+  CloudProvider: createLogger('CloudProvider'),
+  EventInterceptor: createLogger('EventInterceptor'),
+  StateSync: createLogger('StateSync'),
 };
 
 export type { Logger as LoggerInterface };

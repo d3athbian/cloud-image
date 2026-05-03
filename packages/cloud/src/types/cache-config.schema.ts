@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const PlatformTypeSchema = z.enum(["web", "tizen", "webos", "memory"]);
+export const PlatformTypeSchema = z.enum(['web', 'tizen', 'webos', 'memory']);
 
 export const CacheConfigSchema = z.object({
   maxSize: z.number().positive(),

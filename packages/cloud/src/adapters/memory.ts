@@ -1,9 +1,9 @@
-import { Size, Time } from "../config/constants";
-import type { CacheEntry } from "../core/types";
-import type { PlatformAdapter } from "./types";
+import { Size, Time } from '../config/constants';
+import type { CacheEntry } from '../core/types';
+import type { PlatformAdapter } from './types';
 
 export class MemoryAdapter implements PlatformAdapter {
-  readonly platform = "memory" as const;
+  readonly platform = 'memory' as const;
   private cache = new Map<string, CacheEntry>();
   private size = 0;
   private maxSize: number;

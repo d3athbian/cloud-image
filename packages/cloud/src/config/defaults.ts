@@ -1,6 +1,6 @@
-import { CoreServiceOptionsSchema } from "../types/core-options.schema";
-import { env } from "../utils/environment";
-import { Size, Threshold, Time } from "./constants";
+import { CoreServiceOptionsSchema } from '../types/core-options.schema';
+import { env } from '../utils/environment';
+import { Size, Threshold, Time } from './constants';
 
 const isDev = env.isDevelopment();
 
@@ -17,8 +17,8 @@ const defaultOptions = {
   enableLogging: isDev,
   enableDevtools: false,
   enablePrefetch: true,
-  bandwidthTestUrl: "https://picsum.photos/100/100",
-  offlineStrategy: "default" as const,
+  bandwidthTestUrl: 'https://picsum.photos/100/100',
+  offlineStrategy: 'default' as const,
   circuitBreakerFailureThreshold: Threshold.CB_FAILURE_THRESHOLD,
   circuitBreakerResetTimeout: Time.CIRCUIT_BREAKER_RESET,
   bandwidthTestSize: 10000,

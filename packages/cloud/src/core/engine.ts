@@ -1,21 +1,21 @@
-import { createAdapter, type PlatformAdapter } from "../adapters/factory";
-import { Time } from "../config/constants";
-import { createCloudEngine, type ServiceWorkerClient } from "../service-worker/index";
-import { logger } from "../utils/logger";
-import { ImageCache } from "./cache";
-import { CircuitBreaker } from "./circuit-breaker";
-import { ImageValidator } from "./image-validator";
-import { getNetworkMonitor } from "./network";
-import type { CacheConfig, CacheEntry, CacheStats } from "./types";
+import { createAdapter, type PlatformAdapter } from '../adapters/factory';
+import { Time } from '../config/constants';
+import { createCloudEngine, type ServiceWorkerClient } from '../service-worker/index';
+import { logger } from '../utils/logger';
+import { ImageCache } from './cache';
+import { CircuitBreaker } from './circuit-breaker';
+import { ImageValidator } from './image-validator';
+import { getNetworkMonitor } from './network';
+import type { CacheConfig, CacheEntry, CacheStats } from './types';
 
 const log = logger.ImageEngine;
 
 export type EngineEventType =
-  | "cache-hit"
-  | "cache-miss"
-  | "cache-set"
-  | "cache-delete"
-  | "cache-clear";
+  | 'cache-hit'
+  | 'cache-miss'
+  | 'cache-set'
+  | 'cache-delete'
+  | 'cache-clear';
 export type EngineEventListener = (data: EngineEventData) => void;
 export interface EngineEventData {
   type: EngineEventType;
@@ -32,7 +32,7 @@ export class ImageEngine {
   private swClient: ServiceWorkerClient;
   private networkMonitor = getNetworkMonitor();
   private adapter: PlatformAdapter | null = null;
-  private platform: string = "memory";
+  private platform: string = 'memory';
   private pendingRequests: Map<string, Promise<string | null>> = new Map();
   private activeControllers: Map<string, AbortController> = new Map();
   private debug: boolean;
@@ -58,20 +58,20 @@ export class ImageEngine {
   }
 
   async init(): Promise<void> {
-    this.log("[ImageEngine] Starting init...");
+    this.log('[ImageEngine] Starting init...');
     this.cache.init();
 
-    this.log("[ImageEngine] SW init starting...");
+    this.log('[ImageEngine] SW init starting...');
     try {
       const swEnabled = await this.swClient.init();
 
       if (!swEnabled) {
-        this.log("[ImageEngine] Service Worker unavailable, using fallback mode");
+        this.log('[ImageEngine] Service Worker unavailable, using fallback mode');
       } else {
-        this.log("[ImageEngine] Service Worker active");
+        this.log('[ImageEngine] Service Worker active');
       }
     } catch (err) {
-      this.log("[ImageEngine] SW init failed:", err);
+      this.log('[ImageEngine] SW init failed:', err);
     }
 
     this.log(`[ImageEngine] Initialized with ${this.platform} adapter`);
@@ -79,42 +79,42 @@ export class ImageEngine {
 
   private translateError(error: unknown, context: string): string {
     if (error instanceof Error) {
-      if (error.message.includes("NetworkError") || error.message.includes("fetch")) {
-        return "network_unavailable";
+      if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+        return 'network_unavailable';
       }
-      if (error.message.includes("QuotaExceeded") || error.message.includes("quota")) {
-        return "storage_full";
+      if (error.message.includes('QuotaExceeded') || error.message.includes('quota')) {
+        return 'storage_full';
       }
-      if (error.message.includes("InvalidState") || error.message.includes("closing")) {
-        return "storage_corrupted";
+      if (error.message.includes('InvalidState') || error.message.includes('closing')) {
+        return 'storage_corrupted';
       }
-      if (error.message.includes("timeout")) {
-        return "timeout";
+      if (error.message.includes('timeout')) {
+        return 'timeout';
       }
     }
     return context;
   }
 
-  private onAdapterError?(error: unknown, operation: "get" | "set" | "delete"): void;
+  private onAdapterError?(error: unknown, operation: 'get' | 'set' | 'delete'): void;
 
   setAdapterErrorCallback(
-    callback: (error: unknown, operation: "get" | "set" | "delete") => void,
+    callback: (error: unknown, operation: 'get' | 'set' | 'delete') => void,
   ): void {
     this.onAdapterError = callback;
   }
 
   private shouldUseOfflineFallback(): boolean {
     const status = this.networkMonitor.getStatus();
-    return !status.online || status.bandwidth === "unknown";
+    return !status.online || status.bandwidth === 'unknown';
   }
 
   async get(url: string): Promise<string | null> {
     let result: string | null = null;
-    let source: "sw" | "adapter" | "network" | null = null;
+    let source: 'sw' | 'adapter' | 'network' | null = null;
 
     // Bandwidth unknown or offline → direct to cache fallback (NO network)
     if (this.shouldUseOfflineFallback()) {
-      this.log("[ImageEngine] Offline/unknown bandwidth, skipping network");
+      this.log('[ImageEngine] Offline/unknown bandwidth, skipping network');
       // Skip directly to adapter fallback
     } else if (!this.swClient.isFallbackMode()) {
       const pending = this.pendingRequests.get(url);
@@ -124,8 +124,8 @@ export class ImageEngine {
 
       // Check circuit breaker before attempting network request
       const cbState = this.circuitBreaker.getState();
-      if (cbState === "open") {
-        this.log("[ImageEngine] Circuit breaker open, skipping network");
+      if (cbState === 'open') {
+        this.log('[ImageEngine] Circuit breaker open, skipping network');
       } else {
         const pending = this.swClient.get(url);
         this.pendingRequests.set(url, pending);
@@ -136,12 +136,12 @@ export class ImageEngine {
           this.circuitBreaker.recordSuccess();
           if (res) {
             result = res;
-            source = "sw";
+            source = 'sw';
           }
         } catch (error) {
           this.pendingRequests.delete(url);
           this.circuitBreaker.recordFailure();
-          this.log("[ImageEngine] SW get failed:", this.translateError(error, "sw_error"));
+          this.log('[ImageEngine] SW get failed:', this.translateError(error, 'sw_error'));
         }
       }
     }
@@ -155,12 +155,12 @@ export class ImageEngine {
           const objectUrl = URL.createObjectURL(blob);
           this.objectURLs.add(objectUrl);
           result = objectUrl;
-          source = source ?? "adapter";
+          source = source ?? 'adapter';
         }
       } catch (adapterError) {
         this.log(
-          "[ImageEngine] Adapter failed:",
-          this.translateError(adapterError, "adapter_error"),
+          '[ImageEngine] Adapter failed:',
+          this.translateError(adapterError, 'adapter_error'),
         );
       }
     }
@@ -172,8 +172,8 @@ export class ImageEngine {
 
       const response = await this.circuitBreaker.execute(async () => {
         const cbState = this.circuitBreaker.getState();
-        if (cbState === "open") {
-          throw new Error("Circuit breaker open");
+        if (cbState === 'open') {
+          throw new Error('Circuit breaker open');
         }
         return await fetch(url, { signal: controller.signal });
       });
@@ -202,15 +202,15 @@ export class ImageEngine {
             accessedAt: Date.now(),
             accessCount: 1,
           },
-          qualityTier: "high",
+          qualityTier: 'high',
           upgradeable: false,
-          state: "validated",
+          state: 'validated',
         };
 
         this.cache.set(newEntry).catch((err) => {
-          this.log("[ImageEngine] Cache write failed (non-blocking):", err);
+          this.log('[ImageEngine] Cache write failed (non-blocking):', err);
           if (this.onAdapterError) {
-            this.onAdapterError(err, "set");
+            this.onAdapterError(err, 'set');
           }
         });
       }
@@ -218,33 +218,33 @@ export class ImageEngine {
       const objectUrl = URL.createObjectURL(blob);
       this.objectURLs.add(objectUrl);
       result = objectUrl;
-      source = source ?? "network";
+      source = source ?? 'network';
     } catch (fetchError) {
       this.activeControllers.delete(url);
       this.circuitBreaker.recordFailure();
       this.log(
-        "[ImageEngine] All fallbacks failed:",
-        this.translateError(fetchError, "fetch_error"),
+        '[ImageEngine] All fallbacks failed:',
+        this.translateError(fetchError, 'fetch_error'),
       );
     }
 
     if (result) {
-      this.emit("cache-hit", { url, stats: undefined });
+      this.emit('cache-hit', { url, stats: undefined });
     } else {
-      this.emit("cache-miss", { url, stats: undefined });
+      this.emit('cache-miss', { url, stats: undefined });
     }
 
     return result;
   }
 
-  async set(url: string, data: ArrayBuffer, metadata: CacheEntry["metadata"]): Promise<void> {
+  async set(url: string, data: ArrayBuffer, metadata: CacheEntry['metadata']): Promise<void> {
     const entry: CacheEntry = {
       url,
       data,
       metadata,
-      qualityTier: "high",
+      qualityTier: 'high',
       upgradeable: false,
-      state: "cached",
+      state: 'cached',
     };
     await this.cache.set(entry);
 
@@ -252,7 +252,7 @@ export class ImageEngine {
       await this.swClient.set(url, data, metadata as unknown as Record<string, unknown>);
     }
 
-    this.emit("cache-set", { url, stats: undefined });
+    this.emit('cache-set', { url, stats: undefined });
   }
 
   async delete(url: string): Promise<boolean> {
@@ -260,11 +260,11 @@ export class ImageEngine {
 
     if (!this.swClient.isFallbackMode()) {
       const swDeleted = await this.swClient.delete(url);
-      this.emit("cache-delete", { url, stats: undefined });
+      this.emit('cache-delete', { url, stats: undefined });
       return cacheDeleted || swDeleted;
     }
 
-    this.emit("cache-delete", { url, stats: undefined });
+    this.emit('cache-delete', { url, stats: undefined });
     return cacheDeleted;
   }
 
@@ -275,7 +275,7 @@ export class ImageEngine {
       await this.swClient.clear();
     }
 
-    this.emit("cache-clear", { stats: undefined });
+    this.emit('cache-clear', { stats: undefined });
   }
 
   async getStats(): Promise<CacheStats> {
@@ -338,15 +338,15 @@ export class ImageEngine {
     if (!this.eventListeners[event]) {
       this.eventListeners[event] = [];
     }
-    this.eventListeners[event]!.push(listener);
+    this.eventListeners[event]?.push(listener);
     return () => {
       this.eventListeners[event] = this.eventListeners[event]?.filter((l) => l !== listener);
     };
   }
 
-  private emit(event: EngineEventType, data: Omit<EngineEventData, "type"> = {}): void {
+  private emit(event: EngineEventType, data: Omit<EngineEventData, 'type'> = {}): void {
     const listeners = this.eventListeners[event];
-    console.log(`[ImageEngine] Emitting ${event}:`, data, "listeners:", listeners?.length ?? 0);
+    console.log(`[ImageEngine] Emitting ${event}:`, data, 'listeners:', listeners?.length ?? 0);
     if (listeners) {
       const fullData: EngineEventData = { type: event, ...data };
       listeners.forEach((listener) => {
@@ -362,7 +362,7 @@ export class ImageEngine {
   destroy(): void {
     // Cancel all in-flight requests
     for (const [url, controller] of this.activeControllers) {
-      controller.abort(new Error("ImageEngine destroyed"));
+      controller.abort(new Error('ImageEngine destroyed'));
       this.log(`[ImageEngine] Aborted request: ${url}`);
     }
     this.activeControllers.clear();

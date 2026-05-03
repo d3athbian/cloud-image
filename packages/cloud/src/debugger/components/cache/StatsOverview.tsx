@@ -1,22 +1,22 @@
-import { memo } from "react";
+import { memo } from 'react';
 
 interface StatWidgetProps {
   label: string;
   value: string | number;
-  variant?: "default" | "success" | "warning" | "error";
+  variant?: 'default' | 'success' | 'warning' | 'error';
 }
 
 const VARIANT_COLORS: Record<string, string> = {
-  default: "text-dt-text-primary",
-  success: "text-dt-success",
-  warning: "text-dt-warning",
-  error: "text-dt-error",
+  default: 'text-dt-text-primary',
+  success: 'text-dt-success',
+  warning: 'text-dt-warning',
+  error: 'text-dt-error',
 };
 
 const StatWidget = memo(function StatWidget({
   label,
   value,
-  variant = "default",
+  variant = 'default',
 }: StatWidgetProps) {
   return (
     <div className="bg-dt-bg-card border border-dt-border rounded-md p-3 min-w-[120px]">
@@ -57,12 +57,12 @@ export const StatsOverview = memo(function StatsOverview({
       <StatWidget
         label="Hit Rate"
         value={`${Math.round(hitRate)}%`}
-        variant={hitRate >= 80 ? "success" : hitRate >= 50 ? "warning" : "error"}
+        variant={hitRate >= 80 ? 'success' : hitRate >= 50 ? 'warning' : 'error'}
       />
       <StatWidget
         label="Evictions"
         value={evictionCount}
-        variant={evictionCount > 0 ? "warning" : "default"}
+        variant={evictionCount > 0 ? 'warning' : 'default'}
       />
       <StatWidget label="TTL Expired" value={ttlExpiredCount} />
       <StatWidget label="Pinned" value={pinnedCount} variant="default" />

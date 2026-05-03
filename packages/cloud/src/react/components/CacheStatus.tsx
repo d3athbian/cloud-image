@@ -1,5 +1,5 @@
-import { useAtomValue } from "jotai";
-import { cacheAtom } from "../../core/system-atoms";
+import { useAtomValue } from 'jotai';
+import { cacheAtom } from '../../core/system-atoms';
 
 export interface CacheStatusProps {
   className?: string;

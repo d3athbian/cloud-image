@@ -1,7 +1,7 @@
-import type { PlatformAdapter } from "../adapters/types";
-import { logger } from "../utils/logger";
-import { updateCache } from "./system-atoms";
-import { type CacheConfig, type CacheEntry, type CacheStats, DEFAULT_CACHE_CONFIG } from "./types";
+import type { PlatformAdapter } from '../adapters/types';
+import { logger } from '../utils/logger';
+import { updateCache } from './system-atoms';
+import { type CacheConfig, type CacheEntry, type CacheStats, DEFAULT_CACHE_CONFIG } from './types';
 
 const log = logger.ImageCache;
 
@@ -36,7 +36,7 @@ class SimpleMutex {
 
 export class ImageCache {
   private entries: Map<string, CacheEntry> = new Map();
-  private config: Required<Omit<CacheConfig, "platformOverride">> & { platformOverride?: string };
+  private config: Required<Omit<CacheConfig, 'platformOverride'>> & { platformOverride?: string };
   private stats: CacheStats = {
     itemCount: 0,
     totalSize: 0,
@@ -53,7 +53,7 @@ export class ImageCache {
 
   constructor(config: Partial<CacheConfig> = {}, adapter?: PlatformAdapter) {
     this.config = { ...DEFAULT_CACHE_CONFIG, ...config } as Required<
-      Omit<CacheConfig, "platformOverride">
+      Omit<CacheConfig, 'platformOverride'>
     > & { platformOverride?: string };
     this.adapter = adapter ?? null;
   }
@@ -64,8 +64,8 @@ export class ImageCache {
 
   async init(): Promise<void> {
     if (this.adapter) {
-      this.adapter.init().catch((err) => log.warn("Adapter init failed:", err));
-      this.loadFromAdapter().catch((err) => log.warn("Load failed:", err));
+      this.adapter.init().catch((err) => log.warn('Adapter init failed:', err));
+      this.loadFromAdapter().catch((err) => log.warn('Load failed:', err));
     }
   }
 
@@ -96,7 +96,7 @@ export class ImageCache {
       }
       this.stats.itemCount = this.entries.size;
     } catch (error) {
-      log.warn("[ImageCache] Failed to load from adapter:", error);
+      log.warn('[ImageCache] Failed to load from adapter:', error);
     }
   }
 
@@ -107,31 +107,31 @@ export class ImageCache {
   } {
     const errors: string[] = [];
 
-    if (!entry.url || typeof entry.url !== "string") {
-      errors.push("Missing or invalid url");
+    if (!entry.url || typeof entry.url !== 'string') {
+      errors.push('Missing or invalid url');
     }
     if (!entry.data || !(entry.data instanceof ArrayBuffer)) {
-      errors.push("Missing or invalid data (not ArrayBuffer)");
+      errors.push('Missing or invalid data (not ArrayBuffer)');
     }
     if (!entry.metadata) {
-      errors.push("Missing metadata");
+      errors.push('Missing metadata');
     } else {
-      if (typeof entry.metadata.size !== "number" || entry.metadata.size <= 0) {
-        errors.push("Invalid metadata.size (must be positive number)");
+      if (typeof entry.metadata.size !== 'number' || entry.metadata.size <= 0) {
+        errors.push('Invalid metadata.size (must be positive number)');
       }
-      if (typeof entry.metadata.cachedAt !== "number") {
-        errors.push("Missing metadata.cachedAt");
+      if (typeof entry.metadata.cachedAt !== 'number') {
+        errors.push('Missing metadata.cachedAt');
       }
-      if (typeof entry.metadata.accessedAt !== "number") {
-        errors.push("Missing metadata.accessedAt");
+      if (typeof entry.metadata.accessedAt !== 'number') {
+        errors.push('Missing metadata.accessedAt');
       }
-      if (typeof entry.metadata.accessCount !== "number") {
-        errors.push("Missing metadata.accessCount");
+      if (typeof entry.metadata.accessCount !== 'number') {
+        errors.push('Missing metadata.accessCount');
       }
     }
     if (!entry.state) {
-      errors.push("Missing state (defaulting to cached)");
-      entry.state = "cached";
+      errors.push('Missing state (defaulting to cached)');
+      entry.state = 'cached';
     }
 
     return {
@@ -219,7 +219,7 @@ export class ImageCache {
 
     const newEntry: CacheEntry = {
       ...entry,
-      state: "cached",
+      state: 'cached',
       metadata: {
         ...entry.metadata,
         cachedAt: Date.now(),
@@ -235,7 +235,7 @@ export class ImageCache {
       try {
         await this.adapter.set(newEntry);
       } catch (adapterError) {
-        log.error("[ImageCache] Persistence failed for", entry.url, adapterError);
+        log.error('[ImageCache] Persistence failed for', entry.url, adapterError);
         this.entries.delete(entry.url);
         this.stats.itemCount = this.entries.size;
         this.stats.totalSize -= newEntry.metadata.size;
@@ -301,14 +301,14 @@ export class ImageCache {
         const keys = await this.adapter.keys();
         this.stats.itemCount = keys.length;
       } catch (error) {
-        log.warn("[ImageCache] Failed to get adapter stats:", error);
+        log.warn('[ImageCache] Failed to get adapter stats:', error);
       }
     }
     return { ...this.stats };
   }
 
   getAdapterPlatform(): string {
-    return this.adapter?.platform ?? "memory";
+    return this.adapter?.platform ?? 'memory';
   }
 
   private isExpired(entry: CacheEntry): boolean {
@@ -403,7 +403,7 @@ export class ImageCache {
         entry.metadata.lastViewportSeen = Date.now();
       }
       if (this.adapter) {
-        await this.adapter.set(entry).catch((err) => log.warn("Viewport update failed:", err));
+        await this.adapter.set(entry).catch((err) => log.warn('Viewport update failed:', err));
       }
     }
   }

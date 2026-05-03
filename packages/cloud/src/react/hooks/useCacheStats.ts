@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { updateCache } from "../../core/system-atoms";
-import type { CacheStats } from "../../core/types";
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { updateCache } from '../../core/system-atoms';
+import type { CacheStats } from '../../core/types';
 
 export interface CacheLike {
   getStats(): Promise<CacheStats>;

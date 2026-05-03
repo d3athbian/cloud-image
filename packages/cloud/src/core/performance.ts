@@ -10,7 +10,7 @@ export interface PerformanceMetrics {
 
 export interface PerformanceSample {
   timestamp: number;
-  type: "message" | "decode" | "transfer";
+  type: 'message' | 'decode' | 'transfer';
   duration: number;
   correlationId: string;
 }
@@ -41,9 +41,9 @@ export class PerformanceMonitor {
     const now = Date.now();
     const recentSamples = this.samples.filter((s) => now - s.timestamp < 60000);
 
-    const messageSamples = recentSamples.filter((s) => s.type === "message");
-    const decodeSamples = recentSamples.filter((s) => s.type === "decode");
-    const transferSamples = recentSamples.filter((s) => s.type === "transfer");
+    const messageSamples = recentSamples.filter((s) => s.type === 'message');
+    const decodeSamples = recentSamples.filter((s) => s.type === 'decode');
+    const transferSamples = recentSamples.filter((s) => s.type === 'transfer');
 
     this.metrics.messageLatency = this.calculateAverage(messageSamples);
     this.metrics.decodeTime = this.calculateAverage(decodeSamples);

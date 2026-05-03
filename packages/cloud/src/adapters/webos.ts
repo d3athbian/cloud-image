@@ -1,30 +1,30 @@
-import type { CacheEntry } from "../core/types";
-import type { PlatformAdapter } from "./types";
+import type { CacheEntry } from '../core/types';
+import type { PlatformAdapter } from './types';
 
-const CACHE_DIR = "cloud_image_cache";
+const CACHE_DIR = 'cloud_image_cache';
 
 export class WebOSAdapter implements PlatformAdapter {
-  readonly platform = "webos" as const;
+  readonly platform = 'webos' as const;
   private initialized = false;
 
   async init(): Promise<void> {
-    if (typeof webOS === "undefined") {
-      throw new Error("webOS API not available");
+    if (typeof webOS === 'undefined') {
+      throw new Error('webOS API not available');
     }
     this.initialized = true;
   }
 
   private getPath(url: string): string {
-    const hash = btoa(url).replace(/[/+=]/g, "_").substring(0, 64);
+    const hash = btoa(url).replace(/[/+=]/g, '_').substring(0, 64);
     return `${CACHE_DIR}/${hash}`;
   }
 
   private async readFile(path: string): Promise<ArrayBuffer | null> {
     return new Promise((resolve) => {
       webOS.service.request(`luna://com.webos.service.db/${path}`, {
-        method: "get",
+        method: 'get',
         onSuccess: (r) => {
-          if (r.payload && typeof r.payload === "object" && "data" in r.payload) {
+          if (r.payload && typeof r.payload === 'object' && 'data' in r.payload) {
             const base64 = (r.payload as { data: string }).data;
             const binary = atob(base64);
             const bytes = new Uint8Array(binary.length);

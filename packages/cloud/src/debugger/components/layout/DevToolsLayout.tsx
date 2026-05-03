@@ -1,5 +1,5 @@
-import { memo, type ReactNode } from "react";
-import "../../styles/devtools.css";
+import { memo, type ReactNode } from 'react';
+import '../../styles/devtools.css';
 
 interface DevToolsLayoutProps {
   topbar: ReactNode;

@@ -1,19 +1,19 @@
-import { memo } from "react";
+import { memo } from 'react';
 
 interface TopbarProps {
   version?: string;
   onlineStatus?: boolean;
-  circuitState?: "CLOSED" | "OPEN" | "HALF_OPEN";
-  swStatus?: "Active" | "Installing" | "Error";
-  workerStatus?: "Idle" | "Active" | "Terminated";
+  circuitState?: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+  swStatus?: 'Active' | 'Installing' | 'Error';
+  workerStatus?: 'Idle' | 'Active' | 'Terminated';
 }
 
 export const Topbar = memo(function Topbar({
-  version = "0.3.1",
+  version = '0.3.1',
   onlineStatus = true,
-  circuitState = "CLOSED",
-  swStatus = "Active",
-  workerStatus = "Idle",
+  circuitState = 'CLOSED',
+  swStatus = 'Active',
+  workerStatus = 'Idle',
 }: TopbarProps) {
   return (
     <header className="col-span-2 row-start-1 bg-dt-bg-panel border-b border-dt-border flex items-center justify-between px-4 h-12">
@@ -32,18 +32,18 @@ export const Topbar = memo(function Topbar({
       <div className="flex items-center gap-4 text-xs">
         <div className="flex items-center gap-2">
           <span
-            className={`w-2 h-2 rounded-full ${onlineStatus ? "bg-dt-success" : "bg-dt-error"}`}
+            className={`w-2 h-2 rounded-full ${onlineStatus ? 'bg-dt-success' : 'bg-dt-error'}`}
           />
           <span className="text-dt-text-primary">Online</span>
         </div>
         <div className="flex items-center gap-2">
           <span
             className={
-              circuitState === "CLOSED"
-                ? "text-dt-success"
-                : circuitState === "OPEN"
-                  ? "text-dt-error"
-                  : "text-dt-warning"
+              circuitState === 'CLOSED'
+                ? 'text-dt-success'
+                : circuitState === 'OPEN'
+                  ? 'text-dt-error'
+                  : 'text-dt-warning'
             }
           >
             Circuit: {circuitState}
@@ -52,11 +52,11 @@ export const Topbar = memo(function Topbar({
         <div className="flex items-center gap-2">
           <span
             className={
-              swStatus === "Active"
-                ? "text-dt-success"
-                : swStatus === "Installing"
-                  ? "text-dt-warning"
-                  : "text-dt-error"
+              swStatus === 'Active'
+                ? 'text-dt-success'
+                : swStatus === 'Installing'
+                  ? 'text-dt-warning'
+                  : 'text-dt-error'
             }
           >
             SW: {swStatus}

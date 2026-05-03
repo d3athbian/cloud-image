@@ -1,11 +1,11 @@
-import type { CompressionMetadata } from "../core/types";
+import type { CompressionMetadata } from '../core/types';
 
 export function compressPayload(payload: unknown): {
   compressed: unknown;
   metadata: CompressionMetadata;
 } {
   const originalSize = estimateSize(payload);
-  const algorithm: CompressionMetadata["algorithm"] = "none";
+  const algorithm: CompressionMetadata['algorithm'] = 'none';
   const data = JSON.stringify(payload);
   return {
     compressed: payload,

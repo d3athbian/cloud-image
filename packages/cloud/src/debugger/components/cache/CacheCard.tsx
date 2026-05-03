@@ -1,5 +1,5 @@
-import { memo } from "react";
-import type { CacheItemMetadata } from "../../types/devtools.types";
+import { memo } from 'react';
+import type { CacheItemMetadata } from '../../types/devtools.types';
 
 interface CacheCardProps {
   item: CacheItemMetadata;
@@ -8,10 +8,10 @@ interface CacheCardProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  active: "text-dt-success",
-  expired: "text-dt-warning",
-  evicted: "text-dt-error",
-  pinned: "text-purple-400",
+  active: 'text-dt-success',
+  expired: 'text-dt-warning',
+  evicted: 'text-dt-error',
+  pinned: 'text-purple-400',
 };
 
 function formatSize(bytes: number): string {
@@ -33,8 +33,8 @@ export const CacheCard = memo(function CacheCard({ item, isSelected, onClick }: 
         rounded-md border overflow-hidden flex flex-col cursor-pointer transition-all duration-200
         ${
           isSelected
-            ? "border-dt-info bg-dt-bg-card"
-            : "border-dt-border bg-dt-bg-card hover:border-dt-border-hover"
+            ? 'border-dt-info bg-dt-bg-card'
+            : 'border-dt-border bg-dt-bg-card hover:border-dt-border-hover'
         }
       `}
     >
@@ -63,7 +63,7 @@ export const CacheCard = memo(function CacheCard({ item, isSelected, onClick }: 
           <span>•</span>
           <span>ttl: {Math.round(item.ttl / 1000)}s</span>
         </div>
-        {item.status !== "active" && (
+        {item.status !== 'active' && (
           <div className={`text-[10px] font-bold text-right ${STATUS_COLORS[item.status]}`}>
             {item.status.toUpperCase()}
           </div>

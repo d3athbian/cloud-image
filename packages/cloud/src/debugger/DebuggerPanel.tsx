@@ -1,11 +1,11 @@
-import { memo } from "react";
-import type { DebuggerState, Tab } from "./types";
+import { memo } from 'react';
+import type { DebuggerState, Tab } from './types';
 
 const TAB_LABELS: Record<Tab, string> = {
-  cache: "Cache",
-  network: "Network",
-  performance: "Performance",
-  state: "State",
+  cache: 'Cache',
+  network: 'Network',
+  performance: 'Performance',
+  state: 'State',
 };
 
 const ICONS = {
@@ -63,7 +63,7 @@ const formatSize = (bytes: number): string => {
 };
 
 const formatTime = (timestamp: number): string => {
-  if (!timestamp) return "Never";
+  if (!timestamp) return 'Never';
   const date = new Date(timestamp);
   return date.toLocaleTimeString();
 };
@@ -79,7 +79,7 @@ const StatItem = ({
 }) => (
   <div className="debugger-stat">
     <span className="debugger-label">{label}</span>
-    <span className={`debugger-value ${color ?? ""}`}>{value}</span>
+    <span className={`debugger-value ${color ?? ''}`}>{value}</span>
   </div>
 );
 
@@ -103,7 +103,7 @@ const CachePanel = memo(function CachePanel({
   onUpdateCache,
   onClearCache,
 }: {
-  stats: DebuggerPanelProps["cacheStats"];
+  stats: DebuggerPanelProps['cacheStats'];
   onUpdateCache?: () => void;
   onClearCache?: () => void;
 }) {
@@ -119,7 +119,7 @@ const CachePanel = memo(function CachePanel({
           label="Hit Rate"
           value={`${hitRate}%`}
           color={
-            hitRate >= 80 ? "text-green-500" : hitRate >= 50 ? "text-yellow-500" : "text-red-500"
+            hitRate >= 80 ? 'text-green-500' : hitRate >= 50 ? 'text-yellow-500' : 'text-red-500'
           }
         />
         <StatItem label="Miss Rate" value={`${missRate}%`} />
@@ -142,9 +142,9 @@ const NetworkPanel = memo(function NetworkPanel({
   onUpdateNetwork?: () => void;
 }) {
   const statusColors: Record<string, string> = {
-    ONLINE: "text-green-500",
-    OFFLINE: "text-red-500",
-    LOW_BANDWIDTH: "text-yellow-500",
+    ONLINE: 'text-green-500',
+    OFFLINE: 'text-red-500',
+    LOW_BANDWIDTH: 'text-yellow-500',
   };
 
   return (
@@ -167,19 +167,19 @@ const NetworkPanel = memo(function NetworkPanel({
 const PerformancePanel = memo(function PerformancePanel({
   metrics,
 }: {
-  metrics?: DebuggerPanelProps["performanceMetrics"];
+  metrics?: DebuggerPanelProps['performanceMetrics'];
 }) {
   return (
     <div className="debugger-panel-section">
       <div className="debugger-metrics">
         <StatItem
           label="Avg Response"
-          value={metrics ? `${Math.round(metrics.avgResponse)}ms` : "N/A"}
+          value={metrics ? `${Math.round(metrics.avgResponse)}ms` : 'N/A'}
         />
-        <StatItem label="Total Requests" value={metrics ? metrics.totalRequests : "N/A"} />
+        <StatItem label="Total Requests" value={metrics ? metrics.totalRequests : 'N/A'} />
         <StatItem
           label="Success Rate"
-          value={metrics ? `${Math.round(metrics.successRate * 100)}%` : "N/A"}
+          value={metrics ? `${Math.round(metrics.successRate * 100)}%` : 'N/A'}
         />
       </div>
     </div>
@@ -189,7 +189,7 @@ const PerformancePanel = memo(function PerformancePanel({
 const StatePanel = memo(function StatePanel({
   jotaiState,
 }: {
-  jotaiState?: DebuggerPanelProps["jotaiState"];
+  jotaiState?: DebuggerPanelProps['jotaiState'];
 }) {
   if (!jotaiState) {
     return (
@@ -235,7 +235,7 @@ const StatePanel = memo(function StatePanel({
           <div className="debugger-state-row">
             <span>Status</span>
             <span
-              className={jotaiState.network.status === "ONLINE" ? "text-green-500" : "text-red-500"}
+              className={jotaiState.network.status === 'ONLINE' ? 'text-green-500' : 'text-red-500'}
             >
               {jotaiState.network.status}
             </span>
@@ -259,19 +259,19 @@ const StatePanel = memo(function StatePanel({
         <div className="debugger-state-body">
           <div className="debugger-state-row">
             <span>Under Pressure</span>
-            <span className={jotaiState.memory.isUnderPressure ? "text-red-500" : "text-green-500"}>
-              {jotaiState.memory.isUnderPressure ? "Yes" : "No"}
+            <span className={jotaiState.memory.isUnderPressure ? 'text-red-500' : 'text-green-500'}>
+              {jotaiState.memory.isUnderPressure ? 'Yes' : 'No'}
             </span>
           </div>
           <div className="debugger-state-row">
             <span>Pressure Level</span>
             <span
               className={
-                jotaiState.memory.pressureLevel === "high"
-                  ? "text-red-500"
-                  : jotaiState.memory.pressureLevel === "medium"
-                    ? "text-yellow-500"
-                    : "text-green-500"
+                jotaiState.memory.pressureLevel === 'high'
+                  ? 'text-red-500'
+                  : jotaiState.memory.pressureLevel === 'medium'
+                    ? 'text-yellow-500'
+                    : 'text-green-500'
               }
             >
               {jotaiState.memory.pressureLevel}
@@ -294,16 +294,16 @@ export const DebuggerPanel = memo(function DebuggerPanel({
   jotaiState,
   performanceMetrics,
 }: DebuggerPanelProps) {
-  const tabs: Tab[] = ["cache", "network", "performance", "state"];
+  const tabs: Tab[] = ['cache', 'network', 'performance', 'state'];
 
   const getPositionStyles = (): React.CSSProperties => {
     const styles: React.CSSProperties = {};
-    if (state.position.includes("top")) {
+    if (state.position.includes('top')) {
       styles.top = 0;
     } else {
       styles.bottom = 0;
     }
-    if (state.position.includes("left")) {
+    if (state.position.includes('left')) {
       styles.left = 0;
     } else {
       styles.right = 0;
@@ -313,7 +313,7 @@ export const DebuggerPanel = memo(function DebuggerPanel({
 
   return (
     <div
-      className={`debugger-panel ${state.panelMode === "fullwidth" ? "debugger-panel-fullwidth" : ""}`}
+      className={`debugger-panel ${state.panelMode === 'fullwidth' ? 'debugger-panel-fullwidth' : ''}`}
       style={getPositionStyles()}
     >
       <div className="debugger-header">
@@ -322,7 +322,7 @@ export const DebuggerPanel = memo(function DebuggerPanel({
             <button
               type="button"
               key={tab}
-              className={`debugger-tab ${state.activeTab === tab ? "active" : ""}`}
+              className={`debugger-tab ${state.activeTab === tab ? 'active' : ''}`}
               onClick={() => onTabChange(tab)}
             >
               <span dangerouslySetInnerHTML={{ __html: ICONS[tab as keyof typeof ICONS] }} />
@@ -336,21 +336,21 @@ export const DebuggerPanel = memo(function DebuggerPanel({
       </div>
 
       <div className="debugger-panel-content">
-        {state.activeTab === "cache" && (
+        {state.activeTab === 'cache' && (
           <CachePanel
             stats={cacheStats}
             onUpdateCache={onUpdateCache}
             onClearCache={onClearCache}
           />
         )}
-        {state.activeTab === "network" && (
+        {state.activeTab === 'network' && (
           <NetworkPanel
-            status={jotaiState?.network.status ?? "ONLINE"}
+            status={jotaiState?.network.status ?? 'ONLINE'}
             onUpdateNetwork={onUpdateNetwork}
           />
         )}
-        {state.activeTab === "performance" && <PerformancePanel metrics={performanceMetrics} />}
-        {state.activeTab === "state" && <StatePanel jotaiState={jotaiState} />}
+        {state.activeTab === 'performance' && <PerformancePanel metrics={performanceMetrics} />}
+        {state.activeTab === 'state' && <StatePanel jotaiState={jotaiState} />}
       </div>
     </div>
   );

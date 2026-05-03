@@ -1,27 +1,27 @@
-import { memo } from "react";
-import type { LogEntry as LogEntryType } from "../../types/devtools.types";
+import { memo } from 'react';
+import type { LogEntry as LogEntryType } from '../../types/devtools.types';
 
 interface LogEntryProps {
   entry: LogEntryType;
 }
 
 const LEVEL_STYLES: Record<string, string> = {
-  INFO: "text-dt-info bg-dt-info/10",
-  WARN: "text-dt-warning bg-dt-warning/10",
-  ERROR: "text-dt-error bg-dt-error/10",
+  INFO: 'text-dt-info bg-dt-info/10',
+  WARN: 'text-dt-warning bg-dt-warning/10',
+  ERROR: 'text-dt-error bg-dt-error/10',
 };
 
 function formatTime(timestamp: number): string {
   const date = new Date(timestamp);
   return (
-    date.toLocaleTimeString("en-US", {
+    date.toLocaleTimeString('en-US', {
       hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
     }) +
-    "." +
-    String(date.getMilliseconds()).padStart(3, "0")
+    '.' +
+    String(date.getMilliseconds()).padStart(3, '0')
   );
 }
 

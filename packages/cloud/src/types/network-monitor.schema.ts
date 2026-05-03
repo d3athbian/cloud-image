@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 const BandwidthThresholdSchema = z.object({
   low: z.number().positive(),
@@ -16,7 +16,7 @@ export const NetworkMonitorConfigSchema = z.object({
 
 export type NetworkMonitorConfig = z.infer<typeof NetworkMonitorConfigSchema>;
 
-export const BandwidthClassificationSchema = z.enum(["low", "medium", "high", "unknown"]);
+export const BandwidthClassificationSchema = z.enum(['low', 'medium', 'high', 'unknown']);
 
 export type BandwidthClassification = z.infer<typeof BandwidthClassificationSchema>;
 

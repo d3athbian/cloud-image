@@ -1,5 +1,5 @@
-import { memo } from "react";
-import type { Tab } from "../../types/devtools.types";
+import { memo } from 'react';
+import type { Tab } from '../../types/devtools.types';
 
 const TAB_ICONS: Record<Tab, string> = {
   cache: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M7 12h2v5H7zm4-3h2v8h-2zm4-3h2v11h-2z"/></svg>`,
@@ -9,10 +9,10 @@ const TAB_ICONS: Record<Tab, string> = {
 };
 
 const TAB_LABELS: Record<Tab, string> = {
-  cache: "Cache",
-  network: "Network",
-  performance: "Performance",
-  state: "State",
+  cache: 'Cache',
+  network: 'Network',
+  performance: 'Performance',
+  state: 'State',
 };
 
 interface TabBarProps {
@@ -21,7 +21,7 @@ interface TabBarProps {
 }
 
 export const TabBar = memo(function TabBar({ activeTab, onTabChange }: TabBarProps) {
-  const tabs: Tab[] = ["cache", "network", "performance", "state"];
+  const tabs: Tab[] = ['cache', 'network', 'performance', 'state'];
 
   return (
     <div className="flex border-b border-dt-border bg-dt-bg-panel">
@@ -34,8 +34,8 @@ export const TabBar = memo(function TabBar({ activeTab, onTabChange }: TabBarPro
             flex-1 flex items-center justify-center gap-2 px-4 py-3 text-xs font-medium transition-all duration-200
             ${
               activeTab === tab
-                ? "text-dt-info border-b-2 border-dt-info bg-dt-bg-card"
-                : "text-dt-text-secondary hover:text-dt-text-primary hover:bg-dt-bg-card/50"
+                ? 'text-dt-info border-b-2 border-dt-info bg-dt-bg-card'
+                : 'text-dt-text-secondary hover:text-dt-text-primary hover:bg-dt-bg-card/50'
             }
           `}
         >

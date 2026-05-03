@@ -1,6 +1,6 @@
-import { useAtom } from "jotai";
-import { activeTabAtom, devToolsOpenAtom, selectedItemUrlAtom } from "../store/devtools-atoms";
-import type { Tab } from "../types/devtools.types";
+import { useAtom } from 'jotai';
+import { activeTabAtom, devToolsOpenAtom, selectedItemUrlAtom } from '../store/devtools-atoms';
+import type { Tab } from '../types/devtools.types';
 
 export function useDevToolsLayout() {
   const [isOpen, setIsOpen] = useAtom(devToolsOpenAtom);
