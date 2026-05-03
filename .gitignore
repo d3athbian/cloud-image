@@ -43,6 +43,7 @@ demos/*/.output/
 # Temporary
 *.tmp
 *.temp
+.mcp.json
 
 .playwright-cli
 .playwright
