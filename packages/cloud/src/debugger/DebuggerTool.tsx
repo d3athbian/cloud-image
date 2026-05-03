@@ -10,7 +10,6 @@ import {
 } from '../core/system-atoms';
 import { DebuggerPanel } from './DebuggerPanel';
 import { useDebuggerState } from './hooks/useDebuggerState';
-import './styles/devtools.css';
 
 type Position = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
