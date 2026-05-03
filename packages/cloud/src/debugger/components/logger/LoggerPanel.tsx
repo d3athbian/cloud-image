@@ -1,20 +1,19 @@
-import { useAtomValue, useSetAtom } from "jotai";
-import { memo, useEffect, useRef } from "react";
-import { useLogger } from "../../hooks/useLogger";
-import { logsFilterAtom } from "../../store/devtools-atoms";
-import { filteredLogsAtom, logsAtom } from "../../store/logger-atoms";
-import type { LogLevel } from "../../types/devtools.types";
-import { LogEntry } from "./LogEntry";
+import { useAtomValue, useSetAtom } from 'jotai';
+import { memo, useEffect, useRef } from 'react';
+import { useLogger } from '../../hooks/useLogger';
+import { logsFilterAtom } from '../../store/devtools-atoms';
+import { filteredLogsAtom } from '../../store/logger-atoms';
+import type { LogLevel } from '../../types/devtools.types';
+import { LogEntry } from './LogEntry';
 
-const FILTER_OPTIONS: { label: string; value: LogLevel | "ALL" }[] = [
-  { label: "All", value: "ALL" },
-  { label: "Info", value: "INFO" },
-  { label: "Warn", value: "WARN" },
-  { label: "Error", value: "ERROR" },
+const FILTER_OPTIONS: { label: string; value: LogLevel | 'ALL' }[] = [
+  { label: 'All', value: 'ALL' },
+  { label: 'Info', value: 'INFO' },
+  { label: 'Warn', value: 'WARN' },
+  { label: 'Error', value: 'ERROR' },
 ];
 
 export const LoggerPanel = memo(function LoggerPanel() {
-  const logs = useAtomValue(logsAtom);
   const filteredLogs = useAtomValue(filteredLogsAtom);
   const filter = useAtomValue(logsFilterAtom);
   const setFilter = useSetAtom(logsFilterAtom);
@@ -26,7 +25,7 @@ export const LoggerPanel = memo(function LoggerPanel() {
     if (isAtBottomRef.current && containerRef.current) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
     }
-  }, [logs]);
+  }, []);
 
   const handleScroll = () => {
     if (containerRef.current) {
@@ -48,8 +47,8 @@ export const LoggerPanel = memo(function LoggerPanel() {
                 px-2 py-1 text-xs rounded transition-colors
                 ${
                   filter === option.value
-                    ? "bg-dt-info text-white"
-                    : "text-dt-text-secondary hover:text-dt-text-primary hover:bg-dt-bg-card"
+                    ? 'bg-dt-info text-white'
+                    : 'text-dt-text-secondary hover:text-dt-text-primary hover:bg-dt-bg-card'
                 }
               `}
             >
