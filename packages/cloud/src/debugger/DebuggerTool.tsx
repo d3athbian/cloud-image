@@ -10,6 +10,7 @@ import {
 } from '../core/system-atoms';
 import { DebuggerPanel } from './DebuggerPanel';
 import { useDebuggerState } from './hooks/useDebuggerState';
+import { useCachedImages } from './hooks/useCachedImages';
 
 type Position = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
@@ -40,6 +41,13 @@ export const DebuggerTool = memo(function DebuggerTool({
     position,
     panelMode,
   });
+
+  const cachedImagesList = useCachedImages().items.map(item => ({
+    url: item.url,
+    size: item.size,
+    mimeType: item.mimeType,
+    cachedAt: item.cachedAt,
+  }));
 
   const [jotaiCache] = useAtom(cacheAtom);
   const [jotaiNetwork] = useAtom(networkAtom);
@@ -132,6 +140,7 @@ export const DebuggerTool = memo(function DebuggerTool({
           jotaiState={jotaiState}
           cacheStats={cacheStats}
           performanceMetrics={performanceMetrics}
+          cachedImages={cachedImagesList}
         />
       )}
     </>
