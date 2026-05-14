@@ -45,3 +45,30 @@ export interface DevToolsUIState {
 }
 
 export type Tab = 'cache' | 'network' | 'performance' | 'state';
+
+export interface CachedImageItem {
+  url: string;
+  size: number;
+  mimeType: string;
+  cachedAt: number;
+}
+
+export interface CacheStats {
+  itemCount: number;
+  totalSize: number;
+  hitRate: number;
+  missRate: number;
+  evictionCount: number;
+}
+
+export interface JotaiDebuggerState {
+  cache: { totalItems: number; hitCount: number; missCount: number; lastAccessTime: number };
+  network: { status: string; rtt: number; lastChecked: number };
+  memory: { isUnderPressure: boolean; pressureLevel: string };
+}
+
+export interface PerformanceData {
+  avgResponse: number;
+  totalRequests: number;
+  successRate: number;
+}
