@@ -6,6 +6,6 @@ export { CloudContext } from './context';
 export { SelectiveRenderDemo } from './examples/SelectiveRenderDemo';
 export { ErrorBoundary } from './hooks/ErrorBoundary';
 export { useCacheStats } from './hooks/useCacheStats';
-export type { CloudImageProps, ImageStatus } from './image';
+export type { CloudImageProps, ImageStatus } from './image.type';
 export { CloudImage } from './image';
 export { CloudProvider, useCloud } from './provider';

@@ -20,17 +20,17 @@ This task list addresses four critical performance issues:
 
 ## Phase 1: Setup
 
-- [ ] T001 Create directory structure for new hooks in src/react/hooks/
-- [ ] T002 Verify existing tests still pass before starting changes
-- [ ] T003 Review current CloudImage implementation to understand exact behavior to preserve
+- [x] T001 Create directory structure for new hooks in src/react/hooks/
+- [x] T002 Verify existing tests still pass before starting changes
+- [x] T003 Review current CloudImage implementation to understand exact behavior to preserve
 
 ---
 
 ## Phase 2: Foundational (Blocking Prerequisite)
 
-- [ ] T004 Create src/utils/blobUrlRegistry.ts - BlobUrlRegistry class with Map-based tracking
-- [ ] T005 Create src/utils/GlobalIntersectionObserver.ts - Singleton observer manager with WeakMap
-- [ ] T006 Create src/utils/logger.ts - Environment-aware logger with error classification
+- [x] T004 Create src/utils/blobUrlRegistry.ts - BlobUrlRegistry class with Map-based tracking
+- [x] T005 Create src/utils/globalIntersectionObserver.ts - Singleton observer manager with WeakMap
+- [x] T006 Create src/utils/logger.ts - Environment-aware logger with error classification
 
 ---
 
@@ -42,11 +42,11 @@ This task list addresses four critical performance issues:
 
 ### Implementation Tasks
 
-- [ ] T010 [P] Create src/react/hooks/useBlobUrl.ts - ObjectURL lifecycle management hook
-- [ ] T011 [P] Create src/utils/blobUrlRegistry.ts tests to verify existing behavior
-- [ ] T012 Integrate useBlobUrl into CloudImage component - ensure identical timing/behavior
-- [ ] T013 Verify ObjectURLs are revoked on component unmount (existing test + new verification)
-- [ ] T014 Verify ObjectURLs are revoked when src changes (before creating new)
+- [x] T010 [P] Create src/react/hooks/useBlobUrl.ts - ObjectURL lifecycle management hook
+- [x] T011 [P] Create src/utils/blobUrlRegistry.ts tests to verify existing behavior
+- [x] T012 Integrate useBlobUrl into CloudImage component - ensure identical timing/behavior
+- [x] T013 Verify ObjectURLs are revoked on component unmount (existing test + new verification)
+- [x] T014 Verify ObjectURLs are revoked when src changes (before creating new)
 
 ---
 
@@ -58,13 +58,13 @@ This task list addresses four critical performance issues:
 
 ### Implementation Tasks
 
-- [ ] T020 Create src/react/hooks/useNetworkMonitor.ts - Network state hook
-- [ ] T021 Create src/react/hooks/useImageCacheLoader.ts - Cache loading logic hook
-- [ ] T022 Create src/react/hooks/useCrossfadeAnimation.ts - Animation timing hook
-- [ ] T023 Refactor CloudImage to use hooks - component becomes pure presenter
-- [ ] T024 Ensure CloudImage useEffect reduced to < 30 lines
-- [ ] T025 Verify each hook is independently testable - existing tests pass unchanged
-- [ ] T026 Verify no race conditions when src changes rapidly (existing test + new verification)
+- [x] T020 Create src/react/hooks/useNetworkMonitor.ts - Network state hook
+- [x] T021 Create src/react/hooks/useImageCacheLoader.ts - Cache loading logic hook
+- [x] T022 Create src/react/hooks/useCrossfadeAnimation.ts - Animation timing hook
+- [x] T023 Refactor CloudImage to use hooks - component becomes pure presenter
+- [x] T024 Ensure CloudImage useEffect reduced to < 30 lines
+- [x] T025 Verify each hook is independently testable - existing tests pass unchanged
+- [x] T026 Verify no race conditions when src changes rapidly (existing test + new verification)
 
 ---
 
@@ -76,11 +76,11 @@ This task list addresses four critical performance issues:
 
 ### Implementation Tasks
 
-- [ ] T030 [P] Create useIntersectionObserver React hook wrapper
-- [ ] T031 [P] Write tests for GlobalIntersectionObserver singleton behavior
-- [ ] T032 Migrate CloudImage to use globalObserver.observe()
-- [ ] T033 Verify only 1 IntersectionObserver instance exists (performance profiler)
-- [ ] T034 Verify cleanup works correctly when DOM nodes are removed
+- [x] T030 [P] Create useIntersectionObserver React hook wrapper
+- [x] T031 [P] Write tests for GlobalIntersectionObserver singleton behavior
+- [x] T032 Migrate CloudImage to use globalObserver.observe()
+- [x] T033 Verify only 1 IntersectionObserver instance exists (performance profiler)
+- [x] T034 Verify cleanup works correctly when DOM nodes are removed
 
 ---
 
@@ -92,23 +92,23 @@ This task list addresses four critical performance issues:
 
 ### Implementation Tasks
 
-- [ ] T040 Enhance src/utils/logger.ts with error classification (AbortError, QuotaExceededError, NetworkError)
-- [ ] T041 Add onCacheError prop to CloudImageProps interface
-- [ ] T042 Update CloudImage catch blocks to use classified error handling
-- [ ] T043 Verify QuotaExceededError triggers onCacheError callback
-- [ ] T044 Verify AbortError silently suppressed (existing behavior preserved)
-- [ ] T045 Verify full stack traces appear in dev mode console
+- [x] T040 Enhance src/utils/logger.ts with error classification (AbortError, QuotaExceededError, NetworkError)
+- [x] T041 Add onCacheError prop to CloudImageProps interface
+- [x] T042 Update CloudImage catch blocks to use classified error handling
+- [x] T043 Verify QuotaExceededError triggers onCacheError callback
+- [x] T044 Verify AbortError silently suppressed (existing behavior preserved)
+- [x] T045 Verify full stack traces appear in dev mode console
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T050 Run full test suite to verify all existing tests still pass
-- [ ] T051 Run typecheck to verify no type errors introduced
-- [ ] T052 Run lint check to verify code style compliance
-- [ ] T053 Measure bundle size - verify core module remains under 50KB gzipped
-- [ ] T054 Memory profiling - verify no blob: URL leaks after 100 navigations
-- [ ] T055 Performance profiling - verify 60fps maintained with 50+ images
+- [x] T050 Run full test suite to verify all existing tests still pass
+- [x] T051 Run typecheck to verify no type errors introduced
+- [x] T052 Run lint check to verify code style compliance
+- [x] T053 Measure bundle size - verify core module remains under 50KB gzipped
+- [x] T054 Memory profiling - verify no blob: URL leaks after 100 navigations
+- [x] T055 Performance profiling - verify 60fps maintained with 50+ images
 
 ---
 
@@ -190,18 +190,19 @@ Complete Phase 1 (Setup) and Phase 2 (Foundational) to establish the infrastruct
 
 ## File Paths
 
-### New Files to Create
+### New Files Created
 
 ```
 src/react/hooks/useBlobUrl.ts
 src/react/hooks/useNetworkMonitor.ts
 src/react/hooks/useImageCacheLoader.ts
 src/react/hooks/useCrossfadeAnimation.ts
-src/utils/GlobalIntersectionObserver.ts
+src/react/hooks/useGlobalIntersectionObserver.ts
+src/utils/globalIntersectionObserver.ts
 src/utils/blobUrlRegistry.ts
 ```
 
-### Files to Modify
+### Files Modified
 
 ```
 src/utils/logger.ts
