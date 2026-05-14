@@ -1,6 +1,6 @@
 import { memo, type ReactNode } from 'react';
-import { CacheList } from '../cache/CacheList';
 import { useCachedImages } from '../../hooks/useCachedImages';
+import { CacheList } from '../cache/CacheList';
 
 interface SidePanelProps {
   children?: ReactNode;
@@ -18,11 +18,7 @@ export const SidePanel = memo(function SidePanel({
   return (
     <aside className="col-start-2 row-start-2 row-span-2 grid grid-rows-[55%_45%] bg-dt-bg-panel border-l border-dt-border">
       {children || (
-        <CacheList
-          items={items}
-          selectedUrl={selectedUrl}
-          onSelectItem={onSelectItem}
-        />
+        <CacheList items={items} selectedUrl={selectedUrl} onSelectItem={onSelectItem} />
       )}
     </aside>
   );

@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { openDB, type IDBPDatabase } from 'idb';
+import { type IDBPDatabase, openDB } from 'idb';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface CacheDB {
   images: {

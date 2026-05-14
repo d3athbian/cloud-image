@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import type { CachedImageItem } from '../../types/devtools.types';
-import { CachedImageRow } from '../molecules/CachedImageRow';
 import { TAB_ICONS } from '../../utils/icons';
+import { CachedImageRow } from '../molecules/CachedImageRow';
 
 interface CachedImageListProps {
   items: CachedImageItem[];

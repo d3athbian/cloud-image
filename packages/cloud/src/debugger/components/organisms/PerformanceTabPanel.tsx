@@ -11,10 +11,7 @@ export const PerformanceTabPanel = memo(function PerformanceTabPanel({
 }: PerformanceTabPanelProps) {
   return (
     <div className="grid grid-cols-2 gap-1.5">
-      <Stat
-        label="Avg Response"
-        value={metrics ? `${Math.round(metrics.avgResponse)}ms` : 'N/A'}
-      />
+      <Stat label="Avg Response" value={metrics ? `${Math.round(metrics.avgResponse)}ms` : 'N/A'} />
       <Stat label="Total Requests" value={metrics ? metrics.totalRequests : 'N/A'} />
       <Stat
         label="Success Rate"

@@ -9,8 +9,8 @@ import {
   updateCache,
 } from '../core/system-atoms';
 import { DebuggerPanel } from './DebuggerPanel';
-import { useDebuggerState } from './hooks/useDebuggerState';
 import { useCachedImages } from './hooks/useCachedImages';
+import { useDebuggerState } from './hooks/useDebuggerState';
 
 type Position = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right';
 
@@ -42,7 +42,7 @@ export const DebuggerTool = memo(function DebuggerTool({
     panelMode,
   });
 
-  const cachedImagesList = useCachedImages().items.map(item => ({
+  const cachedImagesList = useCachedImages().items.map((item) => ({
     url: item.url,
     size: item.size,
     mimeType: item.mimeType,

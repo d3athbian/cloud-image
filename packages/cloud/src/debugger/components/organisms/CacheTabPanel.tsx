@@ -1,9 +1,9 @@
 import { memo } from 'react';
 import type { CacheStats } from '../../types/devtools.types';
-import { Stat } from '../atoms/Stat';
-import { GhostButton } from '../atoms/GhostButton';
-import { TAB_ICONS } from '../../utils/icons';
 import { formatSize } from '../../utils/formatters';
+import { TAB_ICONS } from '../../utils/icons';
+import { GhostButton } from '../atoms/GhostButton';
+import { Stat } from '../atoms/Stat';
 
 interface CacheTabPanelProps {
   stats: CacheStats;
@@ -27,7 +27,9 @@ export const CacheTabPanel = memo(function CacheTabPanel({
         <Stat
           label="Hit Rate"
           value={`${hitRate}%`}
-          color={hitRate >= 80 ? 'text-dt-success' : hitRate >= 50 ? 'text-dt-warning' : 'text-dt-error'}
+          color={
+            hitRate >= 80 ? 'text-dt-success' : hitRate >= 50 ? 'text-dt-warning' : 'text-dt-error'
+          }
         />
         <Stat label="Miss Rate" value={`${missRate}%`} />
         <Stat label="Evictions" value={stats.evictionCount} />

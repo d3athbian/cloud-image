@@ -1,5 +1,5 @@
 import { useAtom, useAtomValue } from 'jotai';
-import { useMemo, useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { cacheAtom, cacheStatsAtom } from '../../core/system-atoms';
 import type { CacheItemMetadata } from '../types/devtools.types';
 

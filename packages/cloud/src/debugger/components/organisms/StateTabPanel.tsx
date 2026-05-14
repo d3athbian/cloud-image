@@ -29,9 +29,7 @@ const StateRow = ({ label, value }: { label: string; value: React.ReactNode }) =
   </div>
 );
 
-export const StateTabPanel = memo(function StateTabPanel({
-  jotaiState,
-}: StateTabPanelProps) {
+export const StateTabPanel = memo(function StateTabPanel({ jotaiState }: StateTabPanelProps) {
   if (!jotaiState) {
     return (
       <div className="flex items-center justify-center h-20 text-[11px] text-dt-text-tertiary">
@@ -52,7 +50,11 @@ export const StateTabPanel = memo(function StateTabPanel({
         <StateRow
           label="Status"
           value={
-            <span className={jotaiState.network.status === 'ONLINE' ? 'text-dt-success' : 'text-dt-error'}>
+            <span
+              className={
+                jotaiState.network.status === 'ONLINE' ? 'text-dt-success' : 'text-dt-error'
+              }
+            >
               {jotaiState.network.status}
             </span>
           }
@@ -64,7 +66,9 @@ export const StateTabPanel = memo(function StateTabPanel({
         <StateRow
           label="Pressure"
           value={
-            <span className={jotaiState.memory.isUnderPressure ? 'text-dt-error' : 'text-dt-success'}>
+            <span
+              className={jotaiState.memory.isUnderPressure ? 'text-dt-error' : 'text-dt-success'}
+            >
               {jotaiState.memory.isUnderPressure ? 'Yes' : 'No'}
             </span>
           }

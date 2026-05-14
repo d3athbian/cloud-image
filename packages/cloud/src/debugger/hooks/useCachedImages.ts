@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { openDB, type IDBPDatabase } from 'idb';
+import { type IDBPDatabase, openDB } from 'idb';
+import { useCallback, useEffect, useState } from 'react';
 import type { CacheItemMetadata } from '../types/devtools.types';
 
 interface CacheDB {
@@ -84,7 +84,13 @@ export function useCachedImages(): UseCachedImagesResult {
             ttl: ttl,
             expiresIn: Math.max(0, expiresIn),
             lruScore: lruScore,
-            status: (entry.state === 'cached' ? 'active' : entry.state === 'expired' ? 'expired' : entry.state === 'evicted' ? 'evicted' : 'pinned') as 'active' | 'expired' | 'evicted' | 'pinned',
+            status: (entry.state === 'cached'
+              ? 'active'
+              : entry.state === 'expired'
+                ? 'expired'
+                : entry.state === 'evicted'
+                  ? 'evicted'
+                  : 'pinned') as 'active' | 'expired' | 'evicted' | 'pinned',
             source: 'idb' as const,
           };
         });

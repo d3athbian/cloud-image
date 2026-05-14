@@ -1,7 +1,7 @@
 import { memo } from 'react';
+import { TAB_ICONS, TAB_LABELS } from '../../utils/icons';
 import { GhostButton } from '../atoms/GhostButton';
 import { StatusDot } from '../atoms/StatusDot';
-import { TAB_ICONS, TAB_LABELS } from '../../utils/icons';
 
 interface DebuggerHeaderProps {
   networkStatus: string;

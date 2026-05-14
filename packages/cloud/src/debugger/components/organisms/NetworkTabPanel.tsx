@@ -1,8 +1,8 @@
 import { memo } from 'react';
-import { Stat } from '../atoms/Stat';
-import { GhostButton } from '../atoms/GhostButton';
-import { TAB_ICONS } from '../../utils/icons';
 import { formatTime } from '../../utils/formatters';
+import { TAB_ICONS } from '../../utils/icons';
+import { GhostButton } from '../atoms/GhostButton';
+import { Stat } from '../atoms/Stat';
 
 interface NetworkTabPanelProps {
   status: string;
@@ -18,7 +18,11 @@ export const NetworkTabPanel = memo(function NetworkTabPanel({
   onUpdateNetwork,
 }: NetworkTabPanelProps) {
   const statusColor =
-    status === 'ONLINE' ? 'text-dt-success' : status === 'LOW_BANDWIDTH' ? 'text-dt-warning' : 'text-dt-error';
+    status === 'ONLINE'
+      ? 'text-dt-success'
+      : status === 'LOW_BANDWIDTH'
+        ? 'text-dt-warning'
+        : 'text-dt-error';
 
   return (
     <div className="flex flex-col gap-2.5">
