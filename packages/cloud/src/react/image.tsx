@@ -1,30 +1,11 @@
 import type React from 'react';
 import { memo, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { getNetworkMonitor } from '../core/network';
+import { blobUrlRegistry } from '../utils/blobUrlRegistry';
+import { classifyError, ErrorType } from '../utils/logger';
 import { CloudContext } from './context';
-
-export interface CloudImageProps
-  extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'onError' | 'onLoad'> {
-  src: string;
-  alt?: string;
-  placeholder?: string;
-  showLoading?: boolean;
-  fallback?: React.ReactNode;
-  noCache?: boolean;
-  preload?: boolean;
-  cacheKey?: string;
-  onLoad?: () => void;
-  onError?: (error: Error) => void;
-  onCacheHit?: () => void;
-  onCacheMiss?: () => void;
-  offlineFallback?: React.ReactNode;
-  blurPlaceholder?: string;
-  transitionDuration?: number;
-  enableCrossfade?: boolean;
-  priority?: 'high' | 'low' | 'auto';
-}
-
-export type ImageStatus = 'pending' | 'loading' | 'loaded' | 'error' | 'offline' | 'cached';
+import { observeElement, unobserveElement } from './hooks/useGlobalIntersectionObserver';
+import type { CloudImageProps, ImageStatus } from './image.type';
 
 const getPlaceholderStyle = (
   blurPlaceholder?: string,
@@ -59,6 +40,7 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
   onError,
   onCacheHit,
   onCacheMiss,
+  onCacheError,
   offlineFallback,
   blurPlaceholder,
   transitionDuration = 300,
@@ -81,13 +63,14 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
   const [, setIsTransitioning] = useState(false);
   const [mainImageLoaded, setMainImageLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
-  const observerRef = useRef<IntersectionObserver | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const networkMonitorRef = useRef<ReturnType<typeof getNetworkMonitor> | null>(null);
   const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const componentIdRef = useRef(`cloud-image-${src}-${Date.now()}`);
 
   const hasBlurPlaceholder = blurPlaceholder || placeholder;
 
+  // Network monitor subscription
   useEffect(() => {
     networkMonitorRef.current = getNetworkMonitor();
     setIsOnline(networkMonitorRef.current.isOnline());
@@ -102,28 +85,27 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
     return unsubscribe;
   }, [status]);
 
+  // Intersection observer for viewport detection
   useEffect(() => {
     if (preload) {
       setIsInViewport(false);
       return;
     }
 
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setIsInViewport(true);
-          observerRef.current?.disconnect();
-        }
-      },
-      { rootMargin: '100px' },
-    );
+    const element = imgRef.current;
+    if (!element) return;
 
-    if (imgRef.current) {
-      observerRef.current.observe(imgRef.current);
-    }
+    const handleIntersection: IntersectionObserverCallback = (entries) => {
+      if (entries[0]?.isIntersecting) {
+        setIsInViewport(true);
+        unobserveElement(element);
+      }
+    };
+
+    observeElement(element, handleIntersection, { rootMargin: '100px' });
 
     return () => {
-      observerRef.current?.disconnect();
+      unobserveElement(element);
     };
   }, [preload]);
 
@@ -147,6 +129,32 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
     }
   }, [isInViewport, engine, src]);
 
+  /**
+   * Handle cache errors with proper classification
+   */
+  const handleCacheError = useCallback(
+    (error: unknown, context: 'blob' | 'indexeddb' | 'network') => {
+      const classified = classifyError(error, context);
+
+      // AbortError is silently suppressed (expected behavior)
+      if (classified.type === ErrorType.ABORT) {
+        return;
+      }
+
+      // Log in dev mode
+      if (process.env.NODE_ENV !== 'production') {
+        console.error(`[CloudImage] Cache error (${context}):`, error);
+      }
+
+      // Notify via callback if provided
+      if (onCacheError && classified.original instanceof Error) {
+        onCacheError(classified.original, context);
+      }
+    },
+    [onCacheError],
+  );
+
+  // Main image loading effect
   useEffect(() => {
     if (!isInViewport || !isReady) return;
 
@@ -170,8 +178,12 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
         let fromCache = false;
 
         if (engine && !noCache) {
-          url = await engine.get(src);
-          fromCache = !!url;
+          try {
+            url = await engine.get(src);
+            fromCache = !!url;
+          } catch (err) {
+            handleCacheError(err, 'indexeddb');
+          }
         }
 
         if (!url) {
@@ -182,7 +194,8 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
 
             if (response.ok) {
               const blob = await response.blob();
-              const createdUrl = URL.createObjectURL(blob);
+              const createdUrl = blobUrlRegistry.create(blob, componentIdRef.current);
+              url = createdUrl;
 
               if (engine && !noCache) {
                 blob
@@ -196,29 +209,31 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
                         accessedAt: Date.now(),
                         accessCount: 0,
                       })
-                      .catch(() => {
-                        /* non-fatal */
+                      .catch((err) => {
+                        handleCacheError(err, 'indexeddb');
                       });
                   })
-                  .catch(() => {
-                    /* non-fatal */
+                  .catch((err) => {
+                    handleCacheError(err, 'blob');
                   });
               }
-
-              url = createdUrl;
             } else {
-              console.warn(
-                `[CloudImage] SW returned ${response.status} for ${src}, using direct URL`,
-              );
               url = src;
             }
-          } catch {
+          } catch (err) {
+            const classified = classifyError(err, 'network');
+            if (classified.type === ErrorType.ABORT) {
+              return;
+            }
+            handleCacheError(err, 'network');
             url = src;
           }
         }
 
         if (!isInViewport) {
-          if (url && url !== src) URL.revokeObjectURL(url);
+          if (url && url !== src) {
+            blobUrlRegistry.revoke(url);
+          }
           return;
         }
 
@@ -272,7 +287,15 @@ const CloudImageComponent: React.FC<CloudImageProps> = ({
     onLoad,
     onError,
     isReady,
+    handleCacheError,
   ]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => {
+      blobUrlRegistry.revokeComponent(componentIdRef.current);
+    };
+  }, []);
 
   const loadingPriority: 'eager' | 'lazy' = priority === 'high' || isInViewport ? 'eager' : 'lazy';
 

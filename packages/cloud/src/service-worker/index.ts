@@ -247,7 +247,9 @@ class ServiceWorkerClient {
         };
         if (payload.found && payload.data) {
           const arrayBuffer = payload.data;
-          const blob = new Blob([arrayBuffer], { type: (payload.metadata?.mimeType as string) || "image/jpeg" });
+          const blob = new Blob([arrayBuffer], {
+            type: (payload.metadata?.mimeType as string) || 'image/jpeg',
+          });
           return URL.createObjectURL(blob);
         }
       }

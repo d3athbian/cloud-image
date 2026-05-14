@@ -60,5 +60,6 @@ Feature specs are in `specs/` directory (e.g., `027-panel-ui-improvements/`) - t
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read the current plan at:
+`specs/031-perf-refactor/plan/impl-plan.md`
 <!-- SPECKIT END -->
