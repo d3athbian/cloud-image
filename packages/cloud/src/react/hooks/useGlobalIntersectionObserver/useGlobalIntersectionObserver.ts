@@ -7,7 +7,10 @@
 
 import { useCallback, useState } from 'react';
 import { globalIntersectionObserver } from '../../../utils/globalIntersectionObserver';
-import type { UseGlobalIntersectionObserverOptions, UseGlobalIntersectionObserverReturn } from './useGlobalIntersectionObserver.type';
+import type {
+  UseGlobalIntersectionObserverOptions,
+  UseGlobalIntersectionObserverReturn,
+} from './useGlobalIntersectionObserver.type';
 
 /**
  * Hook for observing element visibility using global singleton observer

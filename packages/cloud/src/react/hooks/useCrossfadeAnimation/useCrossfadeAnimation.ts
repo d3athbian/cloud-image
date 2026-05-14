@@ -6,7 +6,10 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CrossfadeAnimationOptions, CrossfadeAnimationResult } from './useCrossfadeAnimation.type';
+import type {
+  CrossfadeAnimationOptions,
+  CrossfadeAnimationResult,
+} from './useCrossfadeAnimation.type';
 
 /**
  * Hook for managing crossfade animation timing

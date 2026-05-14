@@ -7,8 +7,8 @@ export type { CloudContextValue } from './react/hooks';
 export { CloudContext } from './react/hooks';
 export { ErrorBoundary } from './react/hooks/ErrorBoundary';
 export { useCacheStats } from './react/hooks/useCacheStats';
-export type { CloudImageProps, ImageStatus } from './react/image.type';
 export { CloudImage } from './react/image';
+export type { CloudImageProps, ImageStatus } from './react/image.type';
 export { CloudProvider, useCloud } from './react/provider';
 export * from './service-worker';
 

@@ -8,7 +8,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { blobUrlRegistry } from '../../../utils/blobUrlRegistry';
 import { classifyError, ErrorType } from '../../../utils/logger';
-import type { ImageCacheLoaderResult, ImageCacheLoaderProps } from './useImageCacheLoader.type';
+import type { ImageCacheLoaderProps, ImageCacheLoaderResult } from './useImageCacheLoader.type';
 
 /**
  * Hook for loading images from cache with fallback to network

@@ -7,7 +7,7 @@
 
 import { useCallback, useEffect, useRef } from 'react';
 import { blobUrlRegistry } from '../../../utils/blobUrlRegistry';
-import type { UseBlobUrlOptions, BlobUrlResult } from './useBlobUrl.type';
+import type { BlobUrlResult, UseBlobUrlOptions } from './useBlobUrl.type';
 
 /**
  * Hook for managing blob URL lifecycle with automatic cleanup

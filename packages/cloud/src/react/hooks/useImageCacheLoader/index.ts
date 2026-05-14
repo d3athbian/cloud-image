@@ -1,7 +1,7 @@
 export { useImageCacheLoader } from './useImageCacheLoader';
 export type {
-  ImageCacheLoaderStatus,
-  ImageCacheLoaderResult,
-  ImageCacheLoaderProps,
   ImageCacheEngine,
+  ImageCacheLoaderProps,
+  ImageCacheLoaderResult,
+  ImageCacheLoaderStatus,
 } from './useImageCacheLoader.type';

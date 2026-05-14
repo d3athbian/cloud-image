@@ -1,8 +1,11 @@
 export {
-  useGlobalIntersectionObserver,
+  disconnectGlobalObserver,
   observeElement,
   unobserveElement,
-  disconnectGlobalObserver,
+  useGlobalIntersectionObserver,
 } from './useGlobalIntersectionObserver';
 
-export type { UseGlobalIntersectionObserverOptions, UseGlobalIntersectionObserverReturn } from './useGlobalIntersectionObserver.type';
+export type {
+  UseGlobalIntersectionObserverOptions,
+  UseGlobalIntersectionObserverReturn,
+} from './useGlobalIntersectionObserver.type';

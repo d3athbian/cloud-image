@@ -1,2 +1,2 @@
 export { useBlobUrl } from './useBlobUrl';
-export type { UseBlobUrlOptions, BlobUrlResult } from './useBlobUrl.type';
+export type { BlobUrlResult, UseBlobUrlOptions } from './useBlobUrl.type';
